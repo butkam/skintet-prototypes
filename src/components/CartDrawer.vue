@@ -9,7 +9,7 @@ import { useCart } from '@/composables/useCart'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 import viewedImage from '@/assets/images/product-viewed.png'
 
-const { lines, count, sampleLines, drawerOpen, baseFrozen, baseScrollY, baseTop, drawerExit, closeDrawer, add } = useCart()
+const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, drawerExit, closeDrawer, add } = useCart()
 
 const recentlyViewed = [
   { id: 1, title: 'Exo-PDRN Prismatic+ Super Mega Pro Max Deluxe with amazing formula', price: '1 700,00 ₴', image: viewedImage },
@@ -111,7 +111,7 @@ const drag = { tracking: false, active: false, startX: 0, startY: 0, dx: 0, last
 
 function onPointerDown(e: PointerEvent) {
   if (e.pointerType === 'mouse' && e.button !== 0) return
-  if ((e.target as HTMLElement).closest('button, a, .viewed__track, .samples__track')) return
+  if ((e.target as HTMLElement).closest('button, a, .viewed__track, .gifts__track')) return
   Object.assign(drag, { tracking: true, active: false, startX: e.clientX, startY: e.clientY, dx: 0, lastX: e.clientX, lastT: e.timeStamp, velocity: 0, pointerId: e.pointerId })
 }
 
@@ -184,10 +184,6 @@ function onPointerUp(e: PointerEvent) {
               <SkIcon name="CrossLarge" />
             </button>
             <h2 id="cart-drawer-title" class="drawer__title body-m">Кошик · {{ count }}</h2>
-            <div class="drawer__gifts body-m" :aria-label="`Подарунків: ${sampleLines.length}`">
-              <span aria-hidden="true">{{ sampleLines.length }}</span>
-              <SkIcon name="Gift" />
-            </div>
           </header>
 
           <CartContents v-if="lines.length" />
@@ -263,6 +259,16 @@ function onPointerUp(e: PointerEvent) {
   background: var(--bg-canvas);
 }
 
+/* Figma 156:7038: hairline divider under the header, above the scale */
+.drawer__header--solid::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--border-width-hairline);
+  background: var(--border-default);
+  pointer-events: none;
+}
+
 .drawer__icon-btn {
   display: grid;
   place-items: center;
@@ -285,14 +291,6 @@ function onPointerUp(e: PointerEvent) {
   font-variant-numeric: tabular-nums;
 }
 
-.drawer__gifts {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: var(--icon-md);
-  color: var(--action-secondary-fg);
-  font-variant-numeric: tabular-nums;
-}
 
 /* ---------- Body ---------- */
 

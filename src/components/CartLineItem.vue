@@ -56,9 +56,10 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
           :aria-label="line.qty > 1 ? 'Зменшити кількість' : 'Видалити товар'"
           @click="emit('decrement')"
         >
+          <!-- Trash drawn smaller than +/− (it reads heavier); the 32px button and 44px tap area stay -->
           <SkIcon
             :name="locked ? 'TrashCanDisabled' : line.qty > 1 ? 'MinusMedium' : 'TrashCan'"
-            :size="32"
+            :size="locked || line.qty === 1 ? 28 : 32"
           />
         </button>
         <span class="qty__value body-l" aria-live="polite">{{ line.qty }}</span>
@@ -75,11 +76,15 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
 </template>
 
 <style scoped>
+/* The thumbnail is taken out of flow: the text column, gift and controls keep the same gaps
+   whatever the text length, and the row only grows to fit the image when the content is shorter */
 .line {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-3);
+  min-height: calc(var(--thumbnail-sample) + var(--space-5));
   padding-bottom: var(--space-5);
   border-bottom: var(--border-width-hairline) solid var(--border-default);
   background: var(--bg-canvas);
@@ -87,23 +92,24 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
 
 .line__top {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: flex-end;
   width: 100%;
 }
 
 .line__thumb {
-  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: var(--thumbnail-sample);
   height: var(--thumbnail-sample);
   border-radius: var(--radius-sm);
   object-fit: cover;
 }
 
+/* Text column always fills everything right of the thumbnail (16px gutter), at any screen width */
 .line__info,
 .line__controls {
-  width: 283px;
-  max-width: calc(100% - var(--thumbnail-sample) - var(--space-4));
+  width: calc(100% - var(--thumbnail-sample) - var(--space-4));
 }
 
 .line__info {
@@ -126,10 +132,6 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
 }
 
 /* ---------- Set ---------- */
-
-.line--set .line__info {
-  gap: var(--space-1);
-}
 
 .line__set-toggle {
   display: inline-flex;
@@ -203,11 +205,11 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  width: 287px;
-  max-width: calc(100% - var(--thumbnail-sample) - var(--space-3));
+  /* Starts 4px left of the text column, as in the design */
+  width: calc(100% - var(--thumbnail-sample) - var(--space-3));
   padding: var(--space-2) 0 var(--space-2) var(--space-2);
   border-radius: var(--radius-full) 0 0 var(--radius-full);
-  background: linear-gradient(to right, var(--bg-subtle), color-mix(in oklch, var(--bg-subtle) 0%, transparent));
+  background: linear-gradient(to right, var(--bg-surface), color-mix(in oklch, var(--bg-surface) 0%, transparent));
 }
 
 .line__gift-icon {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// Figma nodes 112:1858–1885 (шкала) + 112:2147 (прилиплий стан з фейдом)
-// Два кореневі елементи: повідомлення прокручується, шкала прилипає під хедером.
+// Figma states 156:6854 · 158:7074 · 158:7117 · 158:7221 · 158:7267 (шкала)
+// Досягнуті пороги — зелений підпис з галочкою. Прилипає разом з панеллю CartGifts.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import SkIcon from './SkIcon.vue'
 import { formatAmount, milestones } from '@/data/catalog'
@@ -14,11 +14,24 @@ const props = defineProps<{ subtotal: number }>()
  *   1 семпл reached            → Доставка · 1 семпл · 2 семпли
  *   2 семпли reached           → Доставка · 2 семпли · 3 семпли
  *   3 семпли reached           → Доставка · 3 семпли
- * Stops re-spread between the first and last position as the set changes.
+ * Stops slide between the first, middle and last position as the set changes.
  */
-const TRACK = 362
-const FIRST = 28 // px — first stop centre (Figma)
-const LAST = 356 // px — last stop centre (Figma)
+// Stop centres in px, anchored to the track edges rather than scaled, so labels keep clear of
+// each other on narrower phones (Figma track is 362px)
+const FIRST = 28 // from the left edge
+const MIDDLE = 206 // fallback before labels are measured (Figma 158:7221)
+const LAST_INSET = 6 // from the right edge (Figma: 356 of 362)
+
+const track = ref<HTMLElement | null>(null)
+const trackWidth = ref(362)
+/** Rendered widths by milestone index: whole label, and its «від N ₴» line */
+const labelWidths = ref<number[]>([])
+const amountWidths = ref<number[]>([])
+const labelEls: HTMLElement[] = []
+const setLabelEl = (i: number) => (el: unknown) => {
+  if (el) labelEls[i] = el as HTMLElement
+}
+let resizeObserver: ResizeObserver | undefined
 
 const reached = computed(() => milestones.filter((m) => props.subtotal >= m.amount).length)
 
@@ -38,15 +51,36 @@ const visibleIdx = computed<number[]>(() => {
 
 const isVisible = (i: number) => visibleIdx.value.includes(i)
 
+// Middle label: centred in the free space between its neighbours' edges, so it gets equal room
+// on both sides and moves right on wider screens. Its text is left-aligned inside.
+const middleLabelPx = computed(() => {
+  const vis = visibleIdx.value
+  const wLeft = labelWidths.value[vis[0]]
+  const wRight = labelWidths.value[vis[vis.length - 1]]
+  if (vis.length < 3 || !wLeft || !wRight) return MIDDLE
+  return (wLeft + trackWidth.value - wRight) / 2
+})
+
+// Middle stop: centred over the «від N ₴» line, which starts at the label's left edge
+const middlePx = computed(() => {
+  const i = visibleIdx.value[1]
+  const wLabel = labelWidths.value[i]
+  const wAmount = amountWidths.value[i]
+  if (visibleIdx.value.length < 3 || !wLabel || !wAmount) return middleLabelPx.value
+  return middleLabelPx.value - wLabel / 2 + wAmount / 2
+})
+
 /** Stop centre as a fraction of the track; hidden stops collapse into their nearest visible neighbour */
 const stops = computed(() => {
   const vis = visibleIdx.value
-  const spread = (k: number) => (vis.length === 1 ? LAST : FIRST + ((LAST - FIRST) * k) / (vis.length - 1)) / TRACK
+  const w = trackWidth.value
+  const last = (w - LAST_INSET) / w
+  const spread = (k: number) => (k === 0 ? FIRST / w : k === vis.length - 1 ? last : middlePx.value / w)
   return milestones.map((_, i) => {
     const k = vis.indexOf(i)
     if (k >= 0) return spread(k)
     const below = [...vis].reverse().find((v) => v < i)
-    return below !== undefined && i < vis[vis.length - 1] ? spread(vis.indexOf(below)) : LAST / TRACK
+    return below !== undefined && i < vis[vis.length - 1] ? spread(vis.indexOf(below)) : last
   })
 })
 
@@ -62,29 +96,40 @@ const progress = computed(() => {
     prevAmount = amount
     prevPos = pos
   }
-  return 1
+  // All reached: the line stops at the last icon, not the track end (Figma 158:7267)
+  return prevPos
 })
 
-/** Labels: first hugs the left edge, last hugs the right, middle ones centre under their stop */
+/** Labels: first hugs the left edge, last hugs the right, middle one centres in the gap between them (text left-aligned) */
 function labelStyle(i: number) {
   const vis = visibleIdx.value
   const k = vis.indexOf(i)
   const hidden = k < 0
   const first = k === 0
   const last = k === vis.length - 1
-  const left = hidden ? `${stops.value[i] * 100}%` : first ? '0%' : last ? '100%' : `${stops.value[i] * 100}%`
-  const shift = hidden ? (stops.value[i] >= LAST / TRACK ? -100 : -50) : first ? 0 : last ? -100 : -50
+  const left = hidden
+    ? `${stops.value[i] * 100}%`
+    : first
+      ? '0%'
+      : last
+        ? '100%'
+        : `${(middleLabelPx.value / trackWidth.value) * 100}%`
+  const shift = hidden ? (stops.value[i] >= (trackWidth.value - LAST_INSET) / trackWidth.value ? -100 : -50) : first ? 0 : last ? -100 : -50
   return {
     left,
     transform: `translateX(${shift}%)`,
-    textAlign: (shift === 0 ? 'left' : shift === -100 ? 'right' : 'center') as 'left' | 'right' | 'center',
+    // Middle label box is centred, but its two lines align left
+    textAlign: (shift === -100 ? 'right' : 'left') as 'left' | 'right',
+    // Lines shrink to their text, so the «від N ₴» width can be measured for the middle stop
+    alignItems: shift === -100 ? 'flex-end' : 'flex-start',
     opacity: hidden ? 0 : 1,
   }
 }
 
-// Figma 112:2407–2409: досягнуте (з галочкою) + наступна ціль приглушено
-const achieved = computed(() => (props.subtotal >= milestones[0].amount ? 'Безкоштовна доставка' : null))
+const caption = (m: (typeof milestones)[number]) =>
+  m.samples === 0 ? 'Безкоштовна доставка' : `${m.samples} ${m.samples === 1 ? 'подарунок' : 'подарунки'}`
 
+// Screen readers only — the visible hint above the scale was removed
 const message = computed(() => {
   const s = props.subtotal
   const next = milestones.find((m) => s < m.amount)
@@ -98,52 +143,31 @@ const fillSpring = spring({ stiffness: 170, damping: 22, mass: 1 })
 const moveSpring = spring({ stiffness: 260, damping: 26, mass: 1 })
 const moveTransition = `left ${moveSpring.duration}ms ${moveSpring.easing}, transform ${moveSpring.duration}ms ${moveSpring.easing}, opacity 0.25s ease`
 
-/* ---------- Stuck detection → show fade ---------- */
-
-const scale = ref<HTMLElement | null>(null)
-const stuck = ref(false)
-let raf = 0
-
-// The cart scrolls the document (see useCart → baseFrozen), so watch the window
-function check() {
-  raf = 0
-  if (!scale.value) return
-  const top = parseFloat(getComputedStyle(scale.value).top) || 0
-  stuck.value = window.scrollY > 0 && scale.value.getBoundingClientRect().top <= top + 0.5
-}
-
-const onScroll = () => (raf ||= requestAnimationFrame(check))
-
 onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true })
-  check()
+  // offsetWidth ignores the translateX on labels; content changes (e.g. the check appearing) re-measure too
+  resizeObserver = new ResizeObserver(() => {
+    if (track.value) trackWidth.value = track.value.offsetWidth || trackWidth.value
+    labelWidths.value = labelEls.map((el) => el?.offsetWidth ?? 0)
+    amountWidths.value = labelEls.map((el) => (el?.firstElementChild as HTMLElement | null)?.offsetWidth ?? 0)
+  })
+  if (track.value) resizeObserver.observe(track.value)
+  labelEls.forEach((el) => el && resizeObserver!.observe(el))
 })
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', onScroll)
-  cancelAnimationFrame(raf)
+  resizeObserver?.disconnect()
 })
 </script>
 
 <template>
-  <div class="progress-msg body-s" aria-live="polite">
-    <p v-if="achieved" class="progress-msg__achieved">
-      <SkIcon name="Check" :size="18" class="progress-msg__check" />
-      {{ achieved }}
-    </p>
-    <p :class="{ 'progress-msg__next': achieved }">{{ message }}</p>
-  </div>
-
   <div
-    ref="scale"
     class="progress"
-    :class="{ 'is-stuck': stuck }"
     role="progressbar"
     :aria-valuenow="Math.round(progress * 100)"
     aria-valuemin="0"
     aria-valuemax="100"
     :aria-valuetext="message"
   >
-    <div class="progress__track">
+    <div ref="track" class="progress__track">
       <div class="progress__rail" />
       <div
         class="progress__fill"
@@ -168,67 +192,24 @@ onBeforeUnmount(() => {
       <div
         v-for="(m, i) in milestones"
         :key="m.amount"
+        :ref="setLabelEl(i)"
         class="progress__label body-s"
         :aria-hidden="!isVisible(i) || undefined"
         :style="{ ...labelStyle(i), transition: moveTransition }"
       >
-        <span>{{ formatAmount(m.amount) }}</span>
-        <span class="progress__label-caption">{{ m.label }}</span>
+        <span class="progress__label-amount">від {{ formatAmount(m.amount) }}</span>
+        <span class="progress__label-caption" :class="{ 'is-reached': subtotal >= m.amount }">
+          <SkIcon v-if="subtotal >= m.amount" name="Check" :size="18" color="var(--status-success-fg)" class="progress__check" />
+          {{ caption(m) }}
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Always two lines tall so adding an item doesn't shift the page; lines sit flush,
-   and the scale's own 16px top padding is the gap to the icons */
-.progress-msg {
-  box-sizing: content-box;
-  min-height: calc(var(--font-line-height-xs) * 2);
-  padding: var(--space-4) var(--space-5) 0;
-}
-
-.progress-msg__achieved {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: -3px;
-}
-
-.progress-msg__check {
-  margin-block: -1px;
-}
-
-.progress-msg__next {
-  color: var(--fg-muted);
-}
-
 .progress {
-  position: sticky;
-  top: var(--drawer-header-h);
-  /* Above the header's own fade overhang */
-  z-index: 11;
   padding: var(--space-4) var(--space-5) 0;
-}
-
-/* Figma 112:2148: canvas → transparent from 43.9%, 131px tall; only when stuck */
-.progress::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 131px;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    var(--bg-canvas) 43.9%,
-    color-mix(in oklch, var(--bg-canvas) 0%, transparent) 100%
-  );
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.progress.is-stuck::before {
-  opacity: 1;
 }
 
 .progress__track {
@@ -287,6 +268,19 @@ onBeforeUnmount(() => {
 }
 
 .progress__label-caption {
+  display: flex;
+  align-items: center;
   color: var(--fg-muted);
+  transition: color 0.3s ease;
+}
+
+.progress__label-caption.is-reached {
+  color: var(--status-success-fg);
+}
+
+/* 18px glyph in a 16px line, nudged 2px left of the label edge (Figma) */
+.progress__check {
+  flex-shrink: 0;
+  margin: -1px 0 -1px -2px;
 }
 </style>

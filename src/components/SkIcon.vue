@@ -23,6 +23,7 @@ import shipping from '@/assets/icons/shipping.svg'
 import caretDownXs from '@/assets/icons/caret-down-xs.svg'
 import radioSelected from '@/assets/icons/radio-selected.svg'
 import chevronDownDropdown from '@/assets/icons/chevron-down-dropdown.svg'
+import sparkle from '@/assets/icons/sparkle.svg'
 
 // Glyphs exported from Figma (Icon component 62:1641 and screen-level icons)
 const glyphs = {
@@ -59,6 +60,8 @@ const glyphs = {
   RadioSelected: radioSelected,
   /** 16px filled triangle — dropdown */
   ChevronDownDropdown: chevronDownDropdown,
+  /** 20px sparkle outline — locked samples hint */
+  Sparkle: sparkle,
 } as const
 
 export type IconName = keyof typeof glyphs

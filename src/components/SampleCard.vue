@@ -1,33 +1,50 @@
 <script setup lang="ts">
-// Figma node 112:1994 (закрито — ціна «1 ₴») і 112:2392 (вибір — чекбокс, обраний з рамкою, інші задізейблені)
+// Figma 161:8204 — картка набору семплів у панелі подарунків: чекбокс, фото праворуч,
+// назва Heading/S і опис Body/S. Обраний — рамка 2px, недоступний (ліміт) — 50% прозорості.
+import { computed, onMounted, ref } from 'vue'
 import SkCheckbox from './SkCheckbox.vue'
-import { formatAmount } from '@/data/catalog'
 
-defineProps<{
+const props = defineProps<{
   title: string
+  description?: string
   image: string
-  price: number
-  /** Choosing is unlocked (сума ≥ 5 000 ₴) */
-  selectable?: boolean
   selected?: boolean
   /** Limit reached and this one isn't selected */
   disabled?: boolean
 }>()
+
+// «Набір семплів “Осінній догляд”» → «Осінній догляд»
+const name = computed(() => props.title.match(/[“"«](.+)[”"»]/)?.[1] ?? props.title)
+
+// The description fills what the title leaves: 2 lines under a 2-line title, 3 under a 1-line one
+const titleEl = ref<HTMLElement | null>(null)
+const descLines = ref(2)
+function measure() {
+  const lineHeight = parseFloat(getComputedStyle(titleEl.value!).lineHeight) || 20
+  descLines.value = titleEl.value!.offsetHeight > lineHeight * 1.5 ? 2 : 3
+}
+onMounted(() => {
+  measure()
+  document.fonts?.ready.then(measure)
+})
 </script>
 
 <template>
   <button
     class="sample"
-    :class="{ 'is-selectable': selectable, 'is-selected': selected, 'is-disabled': disabled }"
+    :class="{ 'is-selected': selected, 'is-disabled': disabled }"
     type="button"
-    :role="selectable ? 'checkbox' : undefined"
-    :aria-checked="selectable ? !!selected : undefined"
+    role="checkbox"
+    :aria-checked="!!selected"
     :aria-disabled="disabled || undefined"
+    :aria-label="title"
   >
+    <SkCheckbox class="sample__checkbox" :checked="selected" />
     <img class="sample__image" :src="image" alt="" />
-    <SkCheckbox v-if="selectable" class="sample__checkbox" :checked="selected" />
-    <span v-else class="sample__price body-s">{{ formatAmount(price) }}</span>
-    <span class="sample__title body-s">{{ title }}</span>
+    <span class="sample__text">
+      <span ref="titleEl" class="sample__title heading-s">{{ name }}</span>
+      <span v-if="description" class="sample__desc body-s" :style="{ WebkitLineClamp: descLines }">{{ description }}</span>
+    </span>
   </button>
 </template>
 
@@ -36,8 +53,7 @@ defineProps<{
   position: relative;
   flex-shrink: 0;
   width: 123px;
-  height: 159px;
-  padding: var(--space-2);
+  height: 156px;
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
   color: var(--fg-default);
@@ -46,7 +62,7 @@ defineProps<{
   transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-/* 2px selected border (node 112:2393) — drawn as an overlay so nothing shifts */
+/* 2px selected border — drawn as an overlay so nothing shifts */
 .sample::after {
   content: '';
   position: absolute;
@@ -78,31 +94,50 @@ defineProps<{
   outline-offset: 2px;
 }
 
-.sample__image {
-  width: 107px;
-  height: 107px;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-}
-
-.sample__price {
-  position: absolute;
-  top: 13px;
-  right: var(--space-3);
-  color: var(--neutral-1000);
-}
-
 .sample__checkbox {
   position: absolute;
   top: var(--space-3);
   left: var(--space-3);
 }
 
-.sample__title {
+.sample__image {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+/* Text starts 4px under the photo and stops 12px above the bottom edge */
+.sample__text {
+  position: absolute;
+  top: 68px;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow: hidden;
+}
+
+.sample__title,
+.sample__desc {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   overflow: hidden;
-  margin: 0 var(--space-1);
+}
+
+.sample__title {
+  flex-shrink: 0;
+  -webkit-line-clamp: 2;
+  /* A word wider than the card («бестселери») wraps, so the clamp ends it with «…» */
+  overflow-wrap: anywhere;
+}
+
+.sample__desc {
+  color: var(--neutral-600);
 }
 </style>
