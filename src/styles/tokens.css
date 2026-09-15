@@ -1,0 +1,188 @@
+/*
+ * Skin(tet) design tokens
+ * Source: Figma "Skin(tet) · Checkout" → local variables & styles.
+ * Naming: Figma `group/name` → CSS `--group-name`.
+ * Colors: OKLCH, converted 1:1 from Figma hex values.
+ */
+
+@font-face {
+  font-family: 'Sailec';
+  src: url('/fonts/Sailec-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NibPro-Bold';
+  src: url('/fonts/NibPro-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nib Pro';
+  src: url('/fonts/NibPro-SemiBoldItalic.ttf') format('truetype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  /* 1. Primitives */
+  --neutral-0: oklch(100% 0 0);
+  --neutral-50: oklch(97.02% 0 0);
+  --neutral-100: oklch(94.01% 0 0);
+  --neutral-200: oklch(92.19% 0 0);
+  --neutral-300: oklch(88.53% 0 0);
+  --neutral-400: oklch(78.26% 0 0);
+  --neutral-500: oklch(68.3% 0 0);
+  --neutral-600: oklch(52.78% 0 0);
+  --neutral-700: oklch(42.02% 0 0);
+  --neutral-800: oklch(32.11% 0 0);
+  --neutral-900: oklch(22.21% 0 0);
+  --neutral-1000: oklch(0% 0 0);
+  --green-50: oklch(95.85% 0.0284 148.60);
+  --green-700: oklch(51% 0.1273 152.48);
+  --red-50: oklch(95.6% 0.0218 17.54);
+  --red-700: oklch(51.78% 0.1923 23.39);
+  --amber-50: oklch(97.05% 0.0288 82.60);
+  --amber-700: oklch(56.33% 0.1394 54.05);
+  --blue-50: oklch(95.48% 0.0217 256.73);
+  --blue-700: oklch(47.94% 0.1648 259.19);
+  --alpha-black-80: oklch(22.21% 0 0 / 0.8);
+  --alpha-black-40: oklch(22.21% 0 0 / 0.4);
+  --alpha-black-08: oklch(22.21% 0 0 / 0.08);
+
+  /* 2. Semantic / Color (Light) */
+  --bg-canvas: var(--neutral-0);
+  --bg-surface: var(--neutral-50);
+  --bg-subtle: var(--neutral-100);
+  --bg-inverse: var(--neutral-900);
+  --bg-disabled: var(--neutral-100);
+  --bg-overlay: var(--alpha-black-80);
+  --bg-scrim: var(--alpha-black-40);
+
+  --fg-default: var(--neutral-900);
+  --fg-muted: var(--neutral-500);
+  --fg-subtle: var(--neutral-400);
+  --fg-disabled: var(--neutral-400);
+  --fg-inverse: var(--neutral-0);
+  --fg-link: var(--neutral-900);
+
+  --border-subtle: var(--neutral-100);
+  --border-default: var(--neutral-200);
+  --border-strong: var(--neutral-300);
+  --border-focus: var(--neutral-900);
+  --border-error: var(--red-700);
+
+  --action-primary-bg: var(--neutral-900);
+  --action-primary-bg-hover: var(--neutral-800);
+  --action-primary-bg-active: var(--neutral-1000);
+  --action-primary-bg-disabled: var(--neutral-300);
+  --action-primary-fg: var(--neutral-0);
+  --action-primary-fg-disabled: var(--neutral-500);
+  --action-secondary-bg: var(--neutral-0);
+  --action-secondary-bg-hover: var(--neutral-50);
+  --action-secondary-fg: var(--neutral-900);
+  --action-secondary-border: var(--neutral-900);
+  --action-ghost-bg-hover: var(--neutral-100);
+  --action-ghost-fg: var(--neutral-900);
+
+  --status-success-bg: var(--green-50);
+  --status-success-fg: var(--green-700);
+  --status-success-border: var(--green-700);
+  --status-danger-bg: var(--red-50);
+  --status-danger-fg: var(--red-700);
+  --status-danger-border: var(--red-700);
+  --status-warning-bg: var(--amber-50);
+  --status-warning-fg: var(--amber-700);
+  --status-warning-border: var(--amber-700);
+  --status-info-bg: var(--blue-50);
+  --status-info-fg: var(--blue-700);
+  --status-info-border: var(--blue-700);
+
+  --progress-track: var(--neutral-200);
+  --progress-fill: var(--neutral-900);
+  --progress-fill-complete: var(--green-700);
+
+  --shadow-ambient: var(--alpha-black-08);
+
+  /* 3. Spacing */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-40: 160px;
+
+  /* 4. Radius */
+  --radius-none: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+
+  /* 5. Sizing */
+  --border-width-none: 0px;
+  --border-width-hairline: 1px;
+  --border-width-thick: 2px;
+  --border-width-focus: 2px;
+  --icon-xs: 16px;
+  --icon-sm: 20px;
+  --icon-md: 24px;
+  --icon-lg: 32px;
+  --control-height-sm: 36px;
+  --control-height-md: 44px;
+  --control-height-lg: 52px;
+  --control-tap-target-min: 44px;
+  --thumbnail-cart: 72px;
+  --thumbnail-sample: 56px;
+  --progress-height: 4px;
+  --layout-container-mobile: 390px;
+  --layout-container-desktop: 1200px;
+  --layout-gutter-mobile: 16px;
+  --layout-gutter-desktop: 24px;
+  --layout-sticky-bar-height: 80px;
+
+  /* 6. Typography */
+  --font-family-heading: 'NibPro-Bold', Georgia, serif;
+  --font-family-display: 'Nib Pro', Georgia, serif;
+  --font-family-text: 'Sailec', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 32px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 52px;
+  --font-size-6xl: 56px;
+  --font-line-height-xs: 16px;
+  --font-line-height-sm: 20px;
+  --font-line-height-md: 24px;
+  --font-line-height-lg: 28px;
+  --font-line-height-xl: 36px;
+  --font-line-height-2xl: 38px;
+  --font-line-height-3xl: 52px;
+  --font-line-height-4xl: 56px;
+
+  /* Effect styles */
+  --elevation-s: 0 0 1px oklch(0% 0 0 / 0.16), 0 1px 2px oklch(0% 0 0 / 0.06);
+  --elevation-m: 0 0 1px oklch(0% 0 0 / 0.24), 0 4px 12px oklch(0% 0 0 / 0.08);
+  --elevation-l: 0 0 1px oklch(0% 0 0 / 0.24), 0 8px 24px oklch(0% 0 0 / 0.12);
+}

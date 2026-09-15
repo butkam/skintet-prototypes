@@ -1,0 +1,39 @@
+/* Text styles — mirror Figma local text styles */
+
+.display-xl,
+.display-l,
+.display-m {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0;
+}
+.display-xl { font-size: var(--font-size-6xl); line-height: var(--font-line-height-4xl); }
+.display-l  { font-size: var(--font-size-5xl); line-height: var(--font-line-height-3xl); }
+.display-m  { font-size: var(--font-size-4xl); line-height: var(--font-line-height-2xl); }
+
+.heading-xl,
+.heading-l,
+.heading-m,
+.heading-xs,
+.heading-s {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.heading-xl { font-size: var(--font-size-3xl); line-height: var(--font-line-height-xl); }
+.heading-l  { font-size: var(--font-size-2xl); line-height: var(--font-line-height-lg); }
+.heading-m  { font-size: var(--font-size-xl);  line-height: var(--font-line-height-lg); }
+.heading-xs { font-size: var(--font-size-lg);  line-height: var(--font-line-height-md); }
+.heading-s  { font-size: var(--font-size-md);  line-height: var(--font-line-height-sm); }
+
+.body-l,
+.body-m,
+.body-s {
+  font-family: var(--font-family-text);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.body-l { font-size: var(--font-size-md); line-height: var(--font-line-height-md); }
+.body-m { font-size: var(--font-size-sm); line-height: var(--font-line-height-sm); }
+.body-s { font-size: var(--font-size-xs); line-height: var(--font-line-height-xs); }

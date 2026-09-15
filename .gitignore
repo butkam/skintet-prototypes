@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+*.local
+
+# Local tooling
+.claude/
+
+# Raw design materials (briefs, exports, screenshots) — not part of the app
+/Skin(tet)/
+*.pdf
+/Safari Screenshot*.png
+/*.ttf

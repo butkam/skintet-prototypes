@@ -1,0 +1,86 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Explicit root background — Safari 26 falls back to it behind translucent toolbars */
+  background: var(--bg-canvas);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  /* Text antialiasing: grayscale smoothing (macOS Safari/Chrome/Firefox) + kerning & ligatures */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  /* Brand faces ship a single weight/style each — never let the browser fake bold/italic */
+  font-synthesis: none;
+}
+
+body {
+  margin: 0;
+  /* Screens slide in from off-canvas — never let that create a horizontal scroll */
+  overflow-x: clip;
+  min-height: 100dvh;
+  background: var(--bg-canvas);
+  color: var(--fg-default);
+  font-family: var(--font-family-text);
+  font-size: var(--font-size-md);
+  line-height: var(--font-line-height-md);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: var(--fg-link);
+}
+
+p,
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+/*
+ * Sticky header with a background fade: canvas colour at the top → transparent,
+ * so scrolling content gradually disappears under the header.
+ * Used by AppNavigation and CartDrawer.
+ */
+.header-fade {
+  --header-fade-overhang: var(--space-6);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-fade::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 calc(-1 * var(--header-fade-overhang)) 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Eased stops avoid a visible hard edge where the fade begins */
+  background: linear-gradient(
+    to bottom,
+    var(--bg-canvas) 0%,
+    color-mix(in oklch, var(--bg-canvas) 94%, transparent) 40%,
+    color-mix(in oklch, var(--bg-canvas) 76%, transparent) 60%,
+    color-mix(in oklch, var(--bg-canvas) 40%, transparent) 80%,
+    color-mix(in oklch, var(--bg-canvas) 0%, transparent) 100%
+  );
+}
