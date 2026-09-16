@@ -10,12 +10,19 @@ export type PaymentMethod = 'card' | 'installments' | 'cod'
 export type Bank = 'monobank' | 'privatbank'
 export type GroupKind = 'device' | 'cosmetics'
 
+export type PaymentStatus = 'pending' | 'paid' | 'failed'
+
 export type PlacedOrder = {
   number: string
   phone: string
   deliveryShort: string
-  rows: { label: string; amount: number }[]
+  rows: { label: string; amount: number; status: PaymentStatus }[]
+  /** Prototype: the last split payment fails once, to show the error state */
+  failShown?: boolean
 }
+
+/** Prototype: how long the «bank» takes to answer */
+const BANK_DELAY_MS = 1200
 
 /* ---------- Shared state (one checkout per session) ---------- */
 
@@ -43,23 +50,32 @@ const plans = reactive<Record<GroupKind, { payments: number; bank: Bank }>>({
   cosmetics: { payments: 2, bank: 'privatbank' },
 })
 
+/** Profile creation after the order: the number being confirmed and when the last SMS code went out */
+const profile = reactive({ phone: '', codeSentAt: 0 })
+
 const deliveryConfirmed = ref(false)
 const placedOrder = ref<PlacedOrder | null>(null)
 
 // Survives reloads, so Back always lands on a filled-in step
 persist(
   'checkout',
-  () => ({ v: 2, contact, delivery, payment, plans, deliveryConfirmed: deliveryConfirmed.value, placedOrder: placedOrder.value }),
+  () => ({ v: 2, contact, delivery, payment, plans, profile, deliveryConfirmed: deliveryConfirmed.value, placedOrder: placedOrder.value }),
   (saved) => {
     Object.assign(contact, saved.contact)
     Object.assign(delivery, saved.delivery)
     // v1 sessions carry the old preselected «Після доставки» — don't bring it back
     if (saved.v === 2) Object.assign(payment, saved.payment)
     Object.assign(plans, saved.plans)
+    if (saved.profile) Object.assign(profile, saved.profile)
     deliveryConfirmed.value = saved.deliveryConfirmed
     placedOrder.value = saved.placedOrder
+    // Orders saved before payment statuses existed were fully paid
+    placedOrder.value?.rows.forEach((r) => (r.status ??= 'paid'))
   },
 )
+
+/** Seconds before the SMS code can be requested again */
+export const RESEND_SECONDS = 60
 
 /* ---------- Installment rules ---------- */
 
@@ -171,12 +187,12 @@ export function useCheckout() {
       const title =
         devices.length === 1 && devices[0].qty === 1
           ? (devices[0].shortName ?? devices[0].title)
-          : `Апарати (${devices.reduce((n, l) => n + l.qty, 0)} ${pluralPositions(devices.length)})`
+          : `Апарати (${devices.reduce((n, l) => n + l.qty, 0)}\u00a0${pluralPositions(devices.length)})`
       list.push({ kind: 'device', title, amount: sum(devices) + (cosmetics.length ? 0 : extras) })
     }
     if (cosmetics.length) {
       const n = cosmetics.reduce((c, l) => c + l.qty, 0)
-      list.push({ kind: 'cosmetics', title: `Косметика (${n} ${pluralPositions(n)})`, amount: sum(cosmetics) + extras })
+      list.push({ kind: 'cosmetics', title: `Косметика (${n}\u00a0${pluralPositions(n)})`, amount: sum(cosmetics) + extras })
     }
 
     return list.map((g, i) => {
@@ -229,11 +245,14 @@ export function useCheckout() {
         ? groups.value.map((g) => ({
             label: isSplit.value ? `Оплата ${g.index}, ${g.title}` : `Перший платіж, ${g.title}`,
             amount: g.first,
+            // Split installments are paid one by one on the next screen
+            status: (isSplit.value ? 'pending' : 'paid') as PaymentStatus,
           }))
         : [
             {
               label: payment.method === 'card' ? 'Оплачено карткою' : 'Оплата при отриманні',
               amount: cart.total.value,
+              status: 'paid' as PaymentStatus,
             },
           ]
 
@@ -243,13 +262,34 @@ export function useCheckout() {
       deliveryShort: deliveryShort.value,
       rows,
     }
+  }
+
+  /** Empties the cart and checkout choices after an order. Called once the payment screen is gone —
+   *  clearing right away rebuilt that screen (empty cart, collapsed plans) while it was still sliding out */
+  function settleOrder() {
     cart.clear()
     deliveryConfirmed.value = false
     payment.method = null
   }
 
+  /** Pays the first unpaid part of a split order (simulated bank) */
+  async function payNext() {
+    const order = placedOrder.value
+    const row = order?.rows.find((r) => r.status !== 'paid')
+    if (!order || !row) return
+    await new Promise((resolve) => setTimeout(resolve, BANK_DELAY_MS))
+    const isLast = order.rows.filter((r) => r.status !== 'paid').length === 1
+    if (isLast && !order.failShown) {
+      order.failShown = true
+      row.status = 'failed'
+    } else {
+      row.status = 'paid'
+    }
+  }
+
   function resetAfterOrder() {
     placedOrder.value = null
+    Object.assign(profile, { phone: '', codeSentAt: 0 })
   }
 
   return {
@@ -259,6 +299,7 @@ export function useCheckout() {
     plans,
     deliveryConfirmed,
     placedOrder,
+    profile,
     deliveryPriceLabel,
     deliveryTitle,
     recipientLine,
@@ -267,6 +308,8 @@ export function useCheckout() {
     isSplit,
     schedule,
     placeOrder,
+    settleOrder,
+    payNext,
     resetAfterOrder,
   }
 }

@@ -4,6 +4,8 @@ import shoppingBag from '@/assets/icons/shopping-bag.svg'
 import shoppingBagLarge from '@/assets/icons/shopping-bag-large.svg'
 import barsThree from '@/assets/icons/bars-three.svg'
 import crossLarge from '@/assets/icons/cross-large.svg'
+import crossSmall from '@/assets/icons/cross-small.svg'
+import hourglass from '@/assets/icons/hourglass.svg'
 import gift from '@/assets/icons/gift.svg'
 import giftSmall from '@/assets/icons/gift-small.svg'
 import giftSmallDark from '@/assets/icons/gift-small-dark.svg'
@@ -18,6 +20,7 @@ import chevronDownSmall from '@/assets/icons/chevron-down-small.svg'
 import check from '@/assets/icons/check.svg'
 import checkboxChecked from '@/assets/icons/checkbox-checked.svg'
 import peopleCircle from '@/assets/icons/people-circle.svg'
+import peopleCircleLarge from '@/assets/icons/people-circle-large.svg'
 import magnifyingGlass from '@/assets/icons/magnifying-glass.svg'
 import shipping from '@/assets/icons/shipping.svg'
 import caretDownXs from '@/assets/icons/caret-down-xs.svg'
@@ -35,6 +38,10 @@ const glyphs = {
   ShoppingBagLarge: shoppingBagLarge,
   BarsThree: barsThree,
   CrossLarge: crossLarge,
+  /** 16px cross — failed payment */
+  CrossSmall: crossSmall,
+  /** 18px hourglass-01 — payment awaiting */
+  Hourglass: hourglass,
   Gift: gift,
   /** 16px, neutral-300 stroke — progress scale */
   GiftSmall: giftSmall,
@@ -55,6 +62,8 @@ const glyphs = {
   /** 18px filled checkbox, checked state (Checkbox 51:1255) */
   CheckboxChecked: checkboxChecked,
   PeopleCircle: peopleCircle,
+  /** 48px, 2px stroke — profile creation */
+  PeopleCircleLarge: peopleCircleLarge,
   MagnifyingGlass: magnifyingGlass,
   Shipping: shipping,
   /** 12px filled triangle — «Розгорнути» */

@@ -10,6 +10,8 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  /* No double-tap zoom (quick taps on +/−, segments… zoomed the page); pinch-zoom stays */
+  touch-action: manipulation;
   /* Text antialiasing: grayscale smoothing (macOS Safari/Chrome/Firefox) + kerning & ligatures */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -21,14 +23,24 @@ html {
 
 body {
   margin: 0;
+  /* svh, not dvh: dvh changes while iOS Safari collapses its toolbars on scroll — a page shorter than
+     the screen (e.g. «Оплата») then resizes with every scroll step and jitters */
   /* Screens slide in from off-canvas — never let that create a horizontal scroll */
   overflow-x: clip;
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--bg-canvas);
   color: var(--fg-default);
   font-family: var(--font-family-text);
   font-size: var(--font-size-md);
   line-height: var(--font-line-height-md);
+}
+
+/* body's overflow propagates to the viewport, so it doesn't clip: a screen sliding in from the right
+   still widened the page, and iOS Safari zoomed out to fit it. Clip on a regular element instead.
+   Positioned, so the absolutely positioned frame under the cart is clipped too. */
+#app {
+  position: relative;
+  overflow-x: clip;
 }
 
 img {

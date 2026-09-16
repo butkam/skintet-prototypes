@@ -45,7 +45,7 @@ function goToCart() {
 .screen {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--bg-canvas);
 }
 

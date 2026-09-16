@@ -42,7 +42,7 @@ watch(drawerOpen, (open) => {
 .app-frame {
   max-width: 440px;
   margin-inline: auto;
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--bg-canvas);
 }
 

@@ -8,7 +8,8 @@ import { onBeforeUnmount, onMounted } from 'vue'
  * Sticky bars that cover content are marked with `data-sticky-top`.
  */
 
-const FIELD = 'input:not([type="checkbox"]):not([type="radio"]), textarea, select'
+// The keyboard hand-off proxy (keyboardHandoff.ts) is invisible — nothing to reveal
+const FIELD = 'input:not([type="checkbox"]):not([type="radio"]):not([data-keyboard-proxy]), textarea, select'
 /** Breathing room between a field and whatever covers it */
 const GAP = 16
 
@@ -86,15 +87,27 @@ export function useKeyboardAvoid() {
     reveal()
   }
 
-  // Focus moving to another field fires focusin right after — that one wins
-  const onFocusOut = () => settle()
+  /** When a field last lost focus — the keyboard is still sliding away for a moment after that */
+  let blurredAt = -Infinity
+  const KEYBOARD_HIDE_MS = 1000
 
-  // Keyboard opening/closing resizes the visual viewport
+  // Focus moving to another field fires focusin right after — that one wins
+  const onFocusOut = (e: FocusEvent) => {
+    if (!isField(e.target as Element)) return
+    blurredAt = performance.now()
+    settle()
+  }
+
+  // Keyboard opening/closing resizes the visual viewport. So does Safari collapsing its toolbars
+  // on scroll — reacting to that scrolled the page mid-gesture (jitter on short pages like «Оплата»),
+  // so only resizes around a field's focus count.
   let lastHeight = window.visualViewport?.height ?? window.innerHeight
   const onViewportResize = () => {
     const height = window.visualViewport!.height
     const grew = height > lastHeight
     lastHeight = height
+    const keyboard = isField(document.activeElement) || performance.now() - blurredAt < KEYBOARD_HIDE_MS
+    if (!keyboard) return
     if (grew) settle()
     else reveal()
   }

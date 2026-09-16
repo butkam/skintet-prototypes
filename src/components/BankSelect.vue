@@ -3,7 +3,7 @@
 // Native <select> overlay → the OS picker on mobile.
 import SkIcon from './SkIcon.vue'
 import { BANKS, type Bank } from '@/composables/useCheckout'
-import monobankLogo from '@/assets/images/bank-monobank.png'
+import monobankLogo from '@/assets/images/bank-monobank.svg'
 import privatbankLogo from '@/assets/images/bank-privatbank.jpg'
 
 const model = defineModel<Bank>({ required: true })
@@ -41,7 +41,8 @@ const logos: Record<Bank, string> = { monobank: monobankLogo, privatbank: privat
   place-items: center;
   width: var(--icon-md);
   height: var(--icon-md);
-  border-radius: var(--radius-sm);
+  /* Round: the monobank mark comes as a circle */
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
@@ -49,15 +50,6 @@ const logos: Record<Bank, string> = { monobank: monobankLogo, privatbank: privat
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.bank-select__logo--monobank {
-  background: var(--neutral-900);
-}
-.bank-select__logo--monobank img {
-  width: 216%;
-  height: auto;
-  max-width: none;
 }
 
 

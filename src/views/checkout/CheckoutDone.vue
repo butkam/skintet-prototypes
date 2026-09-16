@@ -1,17 +1,56 @@
 <script setup lang="ts">
-// Figma «Замовлення прийнято» (node 125:5422)
-import { onMounted, ref } from 'vue'
+// Figma «Замовлення прийнято» (node 125:5422); split installments paid one by one:
+// awaiting (186:8838 → 186:8910) and a failed payment (125:5786)
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import SkIcon from '@/components/SkIcon.vue'
+import SkIcon, { type IconName } from '@/components/SkIcon.vue'
 import SkButton from '@/components/SkButton.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
-import { useCheckout } from '@/composables/useCheckout'
+import { useCheckout, type PaymentStatus } from '@/composables/useCheckout'
 import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 
 const router = useRouter()
-const { placedOrder, resetAfterOrder } = useCheckout()
+const { placedOrder, payNext, resetAfterOrder } = useCheckout()
 const order = placedOrder.value!
+
+const STATUS_ICON: Record<PaymentStatus, { name: IconName; size: number; color: string }> = {
+  paid: { name: 'Check', size: 18, color: 'var(--status-success-fg)' },
+  pending: { name: 'Hourglass', size: 18, color: 'var(--status-warning-fg)' },
+  failed: { name: 'CrossSmall', size: 16, color: 'var(--status-danger-fg)' },
+}
+const ORDINALS = ['першу', 'другу', 'третю']
+
+const unpaid = computed(() => order.rows.find((r) => r.status !== 'paid'))
+const failed = computed(() => unpaid.value?.status === 'failed')
+const paidCount = computed(() => order.rows.filter((r) => r.status === 'paid').length)
+// A single paid row is a card / COD / one-group installments order: the old «paid» view
+const split = computed(() => order.rows.length > 1)
+
+const title = computed(() => {
+  if (!failed.value) return `Замовлення ${order.number} прийнято`
+  return paidCount.value ? (paidCount.value === 1 ? 'Одну оплату завершено' : 'Частину оплат завершено') : 'Оплату не завершено'
+})
+
+const failedNote = computed(() => {
+  const i = order.rows.findIndex((r) => r.status === 'failed')
+  const which = split.value ? `${ORDINALS[i] ?? ''} ` : ''
+  return `Замовлення не скасоване. Завершіть ${which}оплату — доставка залишиться одна.`
+})
+
+const paying = ref(false)
+async function pay() {
+  if (paying.value) return
+  paying.value = true
+  await payNext()
+  paying.value = false
+}
+
+const payLabel = computed(() => {
+  if (paying.value) return 'Очікуємо відповідь банку…'
+  const amount = formatPrice(unpaid.value?.amount ?? 0)
+  return failed.value ? `Завершити оплату · ${amount}` : `Оплатити · ${amount}`
+})
 
 const icon = ref<HTMLElement | null>(null)
 onMounted(() => {
@@ -35,20 +74,32 @@ function toCatalog() {
 
     <main class="done">
       <span ref="icon" class="done__icon"><SkIcon name="ShoppingBagLarge" :size="48" /></span>
-      <h1 class="done__title heading-s">Замовлення {{ order.number }} прийнято</h1>
+      <h1 class="done__title heading-s">{{ title }}</h1>
       <p class="done__text body-s">Статус надішлемо в SMS на {{ order.phone }}. Відправимо завтра, {{ order.deliveryShort }}.</p>
 
       <ul class="done__rows">
         <li v-for="row in order.rows" :key="row.label" class="done__row">
-          <SkIcon name="Check" :size="18" />
+          <span class="done__status">
+            <Transition name="status" mode="out-in">
+              <SkIcon :key="row.status" v-bind="STATUS_ICON[row.status]" />
+            </Transition>
+          </span>
           <span class="done__label body-m">{{ row.label }}</span>
           <span class="heading-s">{{ formatPrice(row.amount) }}</span>
         </li>
       </ul>
 
+      <p v-if="failed" class="done__note body-m" role="alert">{{ failedNote }}</p>
+
       <div class="done__actions">
-        <SkButton block>Створити профіль</SkButton>
-        <SkButton variant="secondary" block @click="toCatalog">Перейти до каталогу</SkButton>
+        <template v-if="unpaid">
+          <SkButton block :disabled="paying" @click="pay">{{ payLabel }}</SkButton>
+          <SkButton v-if="failed" variant="secondary" block>Написати менеджеру</SkButton>
+        </template>
+        <template v-else>
+          <SkButton block @click="router.push({ name: 'checkout-profile' })">Створити профіль</SkButton>
+          <SkButton variant="secondary" block @click="toCatalog">Перейти до каталогу</SkButton>
+        </template>
       </div>
     </main>
   </div>
@@ -88,10 +139,22 @@ function toCatalog() {
 }
 
 .done__row {
+  /* Wrapped labels: price sits on the first line's baseline, the icon is centred on that line */
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
   color: var(--action-secondary-fg);
+}
+
+/* Fixed slot, so labels stay aligned whichever status icon (16 or 18px) is shown.
+   One text line tall, pinned to the top */
+.done__status {
+  display: grid;
+  place-items: center;
+  align-self: flex-start;
+  width: 18px;
+  height: var(--font-line-height-sm);
+  flex-shrink: 0;
 }
 
 .done__label {
@@ -104,11 +167,35 @@ function toCatalog() {
   font-variant-numeric: tabular-nums;
 }
 
+/* Figma 125:5853: left-aligned, 20px in from the card edges */
+.done__note {
+  align-self: stretch;
+  margin-top: var(--space-2);
+  padding-inline: var(--space-5);
+  text-align: left;
+  color: var(--fg-default);
+}
+
 .done__actions {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   width: 100%;
   margin-top: 36px;
+}
+
+/* Status change: the old icon fades out, the new one pops in */
+.status-enter-active {
+  transition: opacity 0.2s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.status-leave-active {
+  transition: opacity 0.12s ease;
+}
+.status-enter-from {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.status-leave-to {
+  opacity: 0;
 }
 </style>

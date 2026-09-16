@@ -1,14 +1,14 @@
 <script setup lang="ts">
 // Figma «Оплата» (node 112:1567) і «Декілька платежів» (node 112:1613)
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import SkOptionCard from '@/components/SkOptionCard.vue'
 import SkButton from '@/components/SkButton.vue'
 import SkSegmented from '@/components/SkSegmented.vue'
 import BankSelect from '@/components/BankSelect.vue'
+import CartPromo from '@/components/CartPromo.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutSummaryRow from '@/components/checkout/CheckoutSummaryRow.vue'
-import CheckoutOrder from '@/components/checkout/CheckoutOrder.vue'
 import { useCart } from '@/composables/useCart'
 import { PAYMENT_OPTIONS, useCheckout } from '@/composables/useCheckout'
 import { formatAmount, formatMonthly, formatPrice, pluralPayments } from '@/data/catalog'
@@ -17,7 +17,7 @@ import { backTo } from '@/router'
 
 const router = useRouter()
 const cart = useCart()
-const { payment, plans, deliveryTitle, recipientLine, groups, isSplit, schedule, placeOrder } = useCheckout()
+const { payment, plans, deliveryTitle, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } = useCheckout()
 
 const installments = computed(() => payment.method === 'installments')
 
@@ -42,8 +42,13 @@ function submit() {
     return
   }
   placeOrder()
+  placed = true
   router.replace({ name: 'checkout-done' })
 }
+
+// Unmounted only after the slide-out transition — the screen keeps its content while it leaves
+let placed = false
+onUnmounted(() => placed && settleOrder())
 </script>
 
 <template>
@@ -88,7 +93,7 @@ function submit() {
                 <div v-if="isSplit" class="info">
                   <p class="body-m">Замовлення розділиться на дві оплати</p>
                   <p class="info__text body-s">
-                    Кількість платежів залежить від типу товару: апарати — до 6, косметика — до 3. Це одне замовлення й одна доставка.
+                    Кількість платежів залежить від типу товару: апарати&nbsp;— до 6, косметика&nbsp;— до 3. Це одне&nbsp;замовлення й одна&nbsp;доставка.
                   </p>
                 </div>
 
@@ -135,11 +140,8 @@ function submit() {
         </div>
       </section>
 
-      <SkButton class="promo" variant="secondary" block>+ Додати промокод</SkButton>
-
-      <div v-if="!installments" class="order">
-        <CheckoutOrder />
-      </div>
+      <!-- Same promo state as in the cart: a code applied there shows up here already applied -->
+      <CartPromo class="promo" />
 
       <div class="page__cta">
         <SkButton block @click="submit">{{ ctaLabel }}</SkButton>
@@ -332,10 +334,6 @@ function submit() {
 
 .promo {
   margin-top: 36px;
-}
-
-.order {
-  margin: 36px var(--space-1) 0;
 }
 
 /* In normal flow at the end of the page (not sticky), followed by the legal note */

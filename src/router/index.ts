@@ -23,6 +23,11 @@ export const router = createRouter({
         { path: '', name: 'checkout-delivery', meta: { step: 1 }, component: () => import('@/views/checkout/CheckoutDelivery.vue') },
         { path: 'payment', name: 'checkout-payment', meta: { step: 2 }, component: () => import('@/views/checkout/CheckoutPayment.vue') },
         { path: 'done', name: 'checkout-done', meta: { step: 3 }, component: () => import('@/views/checkout/CheckoutDone.vue') },
+        // Figma «Підтвердіть номер телефону» 125:5862 — after every payment went through
+        // meta.step only orders screens for the slide direction — sub-steps of «Створення профілю» go in between
+        { path: 'profile', name: 'checkout-profile', meta: { step: 3.1 }, component: () => import('@/views/checkout/CheckoutProfile.vue') },
+        // Figma «Введіть код з SMS» 125:5940
+        { path: 'profile/code', name: 'checkout-profile-code', meta: { step: 3.2 }, component: () => import('@/views/checkout/CheckoutProfileCode.vue') },
       ],
     },
   ],
@@ -33,6 +38,11 @@ router.beforeEach((to) => {
   const { lines } = useCart()
   const { deliveryConfirmed, placedOrder } = useCheckout()
   if (to.name === 'checkout-done') return placedOrder.value ? true : { name: 'base' }
+  if (to.name === 'checkout-profile-code' && !useCheckout().profile.phone) return { name: 'checkout-profile' }
+  if (to.name === 'checkout-profile' || to.name === 'checkout-profile-code') {
+    if (!placedOrder.value) return { name: 'base' }
+    return placedOrder.value.rows.every((r) => r.status === 'paid') ? true : { name: 'checkout-done' }
+  }
   if (to.path.startsWith('/checkout') && !lines.value.length) return { name: 'base' }
   if (to.name === 'checkout-payment' && !deliveryConfirmed.value) return { name: 'checkout-delivery' }
   return true

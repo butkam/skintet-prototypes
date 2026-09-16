@@ -31,12 +31,24 @@ watch(
   },
 )
 
+// Clip the off-screen part only while sliding: a permanent overflow clip around the pages made iOS Safari
+// lag their sticky bars (steps, summary row) behind the scroll — they jittered
+const sliding = ref(0)
+const track = (done: () => void) => {
+  sliding.value++
+  return () => {
+    sliding.value--
+    done()
+  }
+}
+
 const slide = spring({ stiffness: 380, damping: 39, mass: 1 }) // critically damped — no overshoot
 const PARALLAX = '-30%'
 
-function onEnter(el: Element, done: () => void) {
+function onEnter(el: Element, finish: () => void) {
+  if (instant.value) return finish()
+  const done = track(finish)
   const page = el as HTMLElement
-  if (instant.value) return done()
   if (prefersReducedMotion()) {
     page.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 }).onfinish = done
     return
@@ -54,11 +66,14 @@ function onEnter(el: Element, done: () => void) {
   }
 }
 
-function onLeave(el: Element, done: () => void) {
+function onLeave(el: Element, finish: () => void) {
+  if (instant.value) return finish()
+  const done = track(finish)
   const page = el as HTMLElement
-  if (instant.value) return done()
   // Take the old page out of flow but keep it visually where it is — the router scrolls to top next
   page.style.top = `${-window.scrollY}px`
+  // Reach the bottom of the screen, so a shorter page underneath never peeks out below it
+  page.style.minHeight = `calc(${window.scrollY}px + 100lvh - var(--checkout-header-h))`
   page.classList.add('is-leaving')
   if (prefersReducedMotion()) {
     page.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }).onfinish = done
@@ -86,7 +101,7 @@ function onLeave(el: Element, done: () => void) {
       </button>
     </header>
 
-    <div class="checkout__pages">
+    <div class="checkout__pages" :class="{ 'is-sliding': sliding }">
       <RouterView v-slot="{ Component, route: r }">
         <Transition :css="false" @enter="onEnter" @leave="onLeave">
           <component :is="Component" :key="r.name" class="checkout__page" />
@@ -99,7 +114,7 @@ function onLeave(el: Element, done: () => void) {
 <style scoped>
 .checkout {
   --checkout-header-h: calc(env(safe-area-inset-top) + 56px);
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--bg-canvas);
 }
 
@@ -148,7 +163,10 @@ function onLeave(el: Element, done: () => void) {
 
 .checkout__pages {
   position: relative;
-  /* Hide the off-screen part while sliding, without creating a scroll container */
+}
+
+/* Hide the off-screen part while sliding, without creating a scroll container */
+.checkout__pages.is-sliding {
   overflow-x: clip;
 }
 
@@ -162,6 +180,12 @@ function onLeave(el: Element, done: () => void) {
   left: 0;
   right: 0;
   pointer-events: none;
+}
+
+/* Sliding pages cover the whole screen: a short page (e.g. «Замовлення прийнято») otherwise
+   ended mid-screen and the other page, moving at a different speed, showed below it */
+.checkout__page.is-sliding {
+  min-height: calc(100lvh - var(--checkout-header-h));
 }
 
 .checkout__page.is-above {
