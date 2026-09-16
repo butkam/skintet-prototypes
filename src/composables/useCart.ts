@@ -45,7 +45,33 @@ const delivery = computed(() => (freeDelivery.value ? 0 : DELIVERY_PRICE))
 
 const sampleLines = computed(() => lines.value.filter((l) => l.kind === 'sample'))
 const samplesTotal = computed(() => sampleLines.value.reduce((s, l) => s + l.price * l.qty, 0))
-const total = computed(() => subtotal.value + giftsTotal.value + samplesTotal.value + delivery.value)
+
+/* ---------- Промокод ---------- */
+
+/** Прототип: єдиний робочий код — −10% на товари без знижки */
+const PROMO_CODES: Record<string, { percent: number; label: string }> = {
+  SKIN10: { percent: 10, label: '−10% на догляд' },
+}
+const promoCode = ref<string | null>(null)
+persist('promo', () => promoCode.value, (saved) => (promoCode.value = saved))
+
+const promo = computed(() => (promoCode.value ? { code: promoCode.value, ...PROMO_CODES[promoCode.value] } : null))
+/** Сума товарів без знижки — на неї діє промокод */
+const promoBase = computed(() => goods.value.filter((l) => !l.oldPrice).reduce((s, l) => s + l.price * l.qty, 0))
+const promoDiscount = computed(() => (promo.value ? Math.round(promoBase.value * promo.value.percent) / 100 : 0))
+
+/** Застосовує код; повертає текст помилки або null */
+function applyPromo(raw: string): string | null {
+  const code = raw.trim().toUpperCase()
+  if (!PROMO_CODES[code]) return 'Такого промокоду не існує. Перевірте, чи правильно його введено.'
+  if (!promoBase.value) return 'Промокод не діє на товари зі знижкою.'
+  promoCode.value = code
+  return null
+}
+
+const total = computed(
+  () => subtotal.value + giftsTotal.value + samplesTotal.value + delivery.value - promoDiscount.value,
+)
 const samplesAllowed = computed(() =>
   milestones.reduce((n, m) => (subtotal.value >= m.amount ? m.samples : n), 0 as number),
 )
@@ -114,6 +140,7 @@ function decrement(id: string) {
 /** Після оформлення замовлення */
 function clear() {
   lines.value = []
+  promoCode.value = null
 }
 
 function remove(id: string) {
@@ -156,6 +183,11 @@ export function useCart() {
     delivery,
     freeDelivery,
     total,
+    promo,
+    promoBase,
+    promoDiscount,
+    applyPromo,
+    removePromo: () => (promoCode.value = null),
     sampleLines,
     samplesAllowed,
     drawerOpen,

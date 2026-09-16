@@ -3,9 +3,12 @@ import CartDrawer from '@/components/CartDrawer.vue'
 import { watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
+import { useKeyboardAvoid } from '@/composables/useKeyboardAvoid'
 import { backTo } from '@/router'
 
 const { baseFrozen, baseTop, drawerOpen } = useCart()
+useKeyboardAvoid()
+
 const route = useRoute()
 const router = useRouter()
 
@@ -61,6 +64,8 @@ watch(drawerOpen, (open) => {
   }
   .app-frame {
     box-shadow: var(--elevation-s);
+    /* No shadow under the bottom edge — overscroll would reveal it as a hairline */
+    clip-path: inset(-24px -24px 0 -24px);
   }
 }
 </style>

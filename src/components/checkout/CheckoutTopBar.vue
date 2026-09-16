@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Figma 112:1544 / 112:1593 / 125:5494 — sticky steps bar with progress line
-// canvas → transparent fade at the bottom so content disappears under it
-import { nextTick, onMounted, ref, watch } from 'vue'
+// Steps bar: solid, hard edge. The slot bar below it fades out at the bottom so content disappears under it
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { spring } from '@/motion/spring'
 import { backTo } from '@/router'
 
@@ -14,6 +14,10 @@ const steps = [
 ] as const
 
 const list = ref<HTMLElement | null>(null)
+const nav = ref<HTMLElement | null>(null)
+// The slot bar sticks right under the steps
+const navHeight = ref(0)
+let resizeObserver: ResizeObserver | undefined
 const fill = ref(0)
 const animate = ref(false)
 const s = spring({ stiffness: 170, damping: 26, mass: 1 })
@@ -36,7 +40,10 @@ onMounted(() => {
     measure()
   })
   document.fonts?.ready.then(measure)
+  resizeObserver = new ResizeObserver(() => (navHeight.value = nav.value?.offsetHeight ?? 0))
+  if (nav.value) resizeObserver.observe(nav.value)
 })
+onBeforeUnmount(() => resizeObserver?.disconnect())
 watch(() => props.step, () => nextTick(measure))
 
 function go(i: number) {
@@ -46,8 +53,10 @@ function go(i: number) {
 </script>
 
 <template>
-  <div class="topbar">
-    <nav class="topbar__steps" aria-label="Кроки оформлення">
+  <!-- Steps and the slot bar are separate sticky layers: content marked [data-topbar-scroll]
+       (e.g. the expanded order) unsticks and scrolls away under the steps -->
+  <div class="topbar" :style="{ '--topbar-steps-h': `${navHeight}px` }">
+    <nav ref="nav" class="topbar__steps" aria-label="Кроки оформлення" data-sticky-top>
       <ol ref="list" class="topbar__list">
         <template v-for="(item, i) in steps" :key="item.label">
           <li
@@ -69,22 +78,59 @@ function go(i: number) {
         />
       </div>
     </nav>
-    <div v-if="$slots.default" class="topbar__content">
+    <div v-if="$slots.default" class="topbar__content" data-sticky-top>
       <slot />
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Children stick within the page, not within this wrapper */
 .topbar {
+  display: contents;
+}
+
+.topbar__steps,
+.topbar__content {
   position: sticky;
+  padding-inline: var(--space-5);
+}
+
+.topbar__steps {
   top: var(--checkout-header-h);
   z-index: 15;
-  padding: var(--space-4) var(--space-5) var(--space-4);
+  /* Ends right at the progress line, so scrolling content disappears exactly under it */
+  padding-top: var(--space-4);
+}
+.topbar__steps:last-child {
+  padding-bottom: var(--space-4);
+}
+
+/* The 16px gap under the line belongs to the slot bar */
+.topbar__content {
+  top: calc(var(--checkout-header-h) + var(--topbar-steps-h));
+  z-index: 14;
+  padding-block: var(--space-4);
+}
+
+/* Unstuck: scrolls with the page, passing under the steps */
+.topbar__content:has([data-topbar-scroll]) {
+  position: relative;
+  top: auto;
+}
+
+/* Steps: solid canvas, hard edge — content passes under it without a fade */
+.topbar__steps::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--bg-canvas);
 }
 
 /* Figma: solid canvas, fading out over the last 18px */
-.topbar::before {
+.topbar__content::before {
   content: '';
   position: absolute;
   inset: 0 0 -18px 0;
@@ -96,6 +142,7 @@ function go(i: number) {
     color-mix(in oklch, var(--bg-canvas) 0%, transparent) 100%
   );
 }
+
 
 .topbar__list {
   display: flex;
@@ -134,7 +181,4 @@ function go(i: number) {
   background: var(--progress-fill);
 }
 
-.topbar__content {
-  margin-top: var(--space-4);
-}
 </style>

@@ -2,6 +2,7 @@
 // Figma "Input" (node 107:739), Type = Single: pill radius/full, 48h, padding space/5, Body/M.
 // States: Default · Hover (border/strong) · Focus (border/focus 2px) · Error (status/danger 2px + message).
 import { computed, nextTick, ref, useAttrs } from 'vue'
+import SkIcon from './SkIcon.vue'
 
 // Extra attrs/listeners (role, aria-*, @focus, @keydown…) go to the <input>; class/style stay on the root
 defineOptions({ inheritAttrs: false })
@@ -18,6 +19,8 @@ defineProps<{
   inputmode?: 'text' | 'tel' | 'email' | 'numeric' | 'search'
   autocomplete?: string
   error?: string
+  /** Filled in correctly — green check at the end (an error wins) */
+  valid?: boolean
   name?: string
 }>()
 
@@ -61,7 +64,10 @@ function onChange(e: Event) {
         @input="onInput"
         @change="onChange"
       />
-      <slot name="trailing" />
+      <Transition name="sk-input-check" mode="out-in">
+        <SkIcon v-if="valid && !error" class="sk-input__check" name="Check" :size="18" color="var(--status-success-fg)" />
+        <span v-else-if="$slots.trailing" class="sk-input__trailing"><slot name="trailing" /></span>
+      </Transition>
     </label>
     <Transition name="sk-input-error">
       <p v-if="error" class="sk-input__error body-s" role="alert">{{ error }}</p>
@@ -71,6 +77,8 @@ function onChange(e: Event) {
 
 <style scoped>
 .sk-input {
+  /* Safari's AutoFill yellow, so filled fields read as autofilled */
+  --sk-input-autofill-bg: #fbfdc4;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -119,6 +127,41 @@ function onChange(e: Event) {
   color: var(--fg-default);
   /* 14px per design; iOS focus auto-zoom is disabled via maximum-scale in index.html */
   font-size: var(--font-size-sm);
+}
+
+/* AutoFill paints only the <input> box, leaving the pill's padding white — tint the whole pill instead.
+   The inset shadow is the only way to recolour WebKit's autofill background. */
+/* Separate rules: an unsupported selector would void a shared list */
+.sk-input__field:has(.sk-input__control:autofill) {
+  background: var(--sk-input-autofill-bg);
+}
+.sk-input__field:has(.sk-input__control:-webkit-autofill) {
+  background: var(--sk-input-autofill-bg);
+}
+.sk-input__control:-webkit-autofill,
+.sk-input__control:-webkit-autofill:hover,
+.sk-input__control:-webkit-autofill:focus {
+  -webkit-box-shadow: inset 0 0 0 100px var(--sk-input-autofill-bg);
+  -webkit-text-fill-color: var(--fg-default);
+  caret-color: var(--fg-default);
+}
+
+.sk-input__trailing {
+  display: contents;
+}
+
+.sk-input-check-enter-active {
+  transition: opacity 0.15s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sk-input-check-leave-active {
+  transition: opacity 0.1s ease;
+}
+.sk-input-check-enter-from {
+  opacity: 0;
+  transform: scale(0.6);
+}
+.sk-input-check-leave-to {
+  opacity: 0;
 }
 
 .sk-input__control::placeholder {

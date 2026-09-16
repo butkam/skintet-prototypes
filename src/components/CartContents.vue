@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
 import CartLineItem from './CartLineItem.vue'
+import CartPromo from './CartPromo.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, samples } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
@@ -61,7 +62,7 @@ function onLeave(el: Element, done: () => void) {
     </TransitionGroup>
 
     <div class="cart__promo">
-      <SkButton variant="secondary" block>+ Додати промокод</SkButton>
+      <CartPromo />
     </div>
 
     <dl class="summary">
@@ -76,6 +77,10 @@ function onLeave(el: Element, done: () => void) {
       <div v-if="pickedSamples" class="summary__row">
         <dt class="body-m">Семпли у подарунок, {{ pickedSamples }} × {{ formatAmount(samples[0].price) }}</dt>
         <dd class="body-m">{{ formatPrice(cart.samplesTotal.value) }}</dd>
+      </div>
+      <div v-if="cart.promo.value" class="summary__row">
+        <dt class="body-m">Промокод {{ cart.promo.value.code }}</dt>
+        <dd class="body-m summary__discount">−{{ formatPrice(cart.promoDiscount.value) }}</dd>
       </div>
       <div class="summary__row">
         <dt class="body-m">Доставка</dt>
@@ -153,6 +158,10 @@ function onLeave(el: Element, done: () => void) {
 .summary dt,
 .summary dd {
   margin: 0;
+}
+
+.summary .summary__discount {
+  color: var(--status-success-fg);
 }
 
 

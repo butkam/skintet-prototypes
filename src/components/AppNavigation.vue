@@ -28,7 +28,7 @@ watch(
 </script>
 
 <template>
-  <header class="app-nav header-fade">
+  <header class="app-nav header-fade" data-sticky-top>
     <button class="app-nav__action" type="button" aria-label="Меню" @click="$emit('menu')">
       <SkIcon name="BarsThree" />
     </button>

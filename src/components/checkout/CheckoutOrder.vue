@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // «Замовлення · N позицій / Розгорнути ▾ / сума» (Figma 112:1545–1550) — expands to the order contents
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import SkIcon from '@/components/SkIcon.vue'
 import CheckoutSummaryRow from './CheckoutSummaryRow.vue'
 import { useCart } from '@/composables/useCart'
@@ -10,13 +10,25 @@ import { formatPrice } from '@/data/catalog'
 const cart = useCart()
 const { positions, deliveryPriceLabel } = useCheckout()
 const open = ref(false)
+const root = ref<HTMLElement | null>(null)
+
+// Expanded, the order leaves the sticky bar and scrolls with the page (see CheckoutTopBar).
+// Keep it where it is on screen at the moment it unsticks/sticks.
+async function toggle() {
+  const before = root.value?.getBoundingClientRect().top ?? 0
+  open.value = !open.value
+  await nextTick()
+  if (!open.value) return
+  const shift = (root.value?.getBoundingClientRect().top ?? 0) - before
+  if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: 'instant' })
+}
 </script>
 
 <template>
-  <div class="order">
+  <div ref="root" class="order" :data-topbar-scroll="open || undefined">
     <CheckoutSummaryRow icon="ShoppingBag" :title="`Замовлення · ${positions}`">
       <template #caption>
-        <button class="order__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
+        <button class="order__toggle body-s" type="button" :aria-expanded="open" @click="toggle">
           {{ open ? 'Згорнути' : 'Розгорнути' }}
           <SkIcon name="CaretDownXs" :size="12" class="order__caret" :class="{ 'is-open': open }" />
         </button>
@@ -35,12 +47,13 @@ const open = ref(false)
               <p class="order__line-title body-m">{{ line.title }}</p>
               <p class="order__line-meta body-s">{{ line.qty }} × {{ formatPrice(line.price) }}</p>
             </div>
-            <span class="heading-s">{{ formatPrice(line.price * line.qty) }}</span>
+            <span class="body-m">{{ formatPrice(line.price * line.qty) }}</span>
           </li>
         </ul>
         <dl class="order__totals">
-          <div><dt class="body-m">Доставка</dt><dd class="heading-s">{{ deliveryPriceLabel }}</dd></div>
-          <div v-if="cart.giftCount.value"><dt class="body-m">Подарунки, {{ cart.giftCount.value }}</dt><dd class="heading-s">{{ formatPrice(cart.giftsTotal.value) }}</dd></div>
+          <div><dt class="body-m">Доставка</dt><dd class="body-m">{{ deliveryPriceLabel }}</dd></div>
+          <div v-if="cart.giftCount.value"><dt class="body-m">Подарунки, {{ cart.giftCount.value }}</dt><dd class="body-m">{{ formatPrice(cart.giftsTotal.value) }}</dd></div>
+          <div v-if="cart.promo.value"><dt class="body-m">Промокод {{ cart.promo.value.code }}</dt><dd class="body-m order__discount">−{{ formatPrice(cart.promoDiscount.value) }}</dd></div>
         </dl>
       </div>
     </div>
@@ -94,7 +107,7 @@ const open = ref(false)
   gap: var(--space-3);
 }
 
-.order__line > .heading-s {
+.order__line > .body-m {
   flex-shrink: 0;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -140,5 +153,9 @@ const open = ref(false)
 .order__totals dt,
 .order__totals dd {
   margin: 0;
+}
+
+.order__totals .order__discount {
+  color: var(--status-success-fg);
 }
 </style>

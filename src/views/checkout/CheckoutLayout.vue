@@ -76,7 +76,7 @@ function onLeave(el: Element, done: () => void) {
 
 <template>
   <div class="checkout">
-    <header class="checkout-header">
+    <header class="checkout-header" data-sticky-top>
       <RouterLink to="/" class="checkout-header__logo" aria-label="Skin(tet) — на головну">
         <img :src="logo" alt="Skin(tet)" />
       </RouterLink>

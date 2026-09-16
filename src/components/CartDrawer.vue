@@ -179,7 +179,7 @@ function onPointerUp(e: PointerEvent) {
       >
         <div class="drawer__body" :class="{ 'drawer__body--filled': lines.length }">
           <!-- Header lives inside the scroller so content fades out beneath it -->
-          <header class="drawer__header header-fade" :class="{ 'drawer__header--solid': lines.length }">
+          <header class="drawer__header header-fade" data-sticky-top :class="{ 'drawer__header--solid': lines.length }">
             <button ref="closeButton" class="drawer__icon-btn" type="button" aria-label="Закрити кошик" @click="closeDrawer">
               <SkIcon name="CrossLarge" />
             </button>
@@ -237,6 +237,8 @@ function onPointerUp(e: PointerEvent) {
   background: var(--bg-canvas);
   color: var(--fg-default);
   box-shadow: var(--elevation-l);
+  /* No shadow under the bottom edge: iOS rubber-band overscroll would reveal it as a hairline */
+  clip-path: inset(-48px -48px 0 -48px);
   touch-action: pan-y;
   will-change: transform;
 }

@@ -27,12 +27,32 @@ const lockedHint = computed(() => {
 
 const pickerTitle = computed(() => {
   const n = cart.samplesAllowed.value
-  return `Оберіть ${n} ${n === 1 ? 'набір' : 'набори'} семплів`
+  return `Оберіть ${n} ${n === 1 ? 'набір' : 'набори'} семплів у подарунок`
+})
+
+// Collapsed toggle: invite to pick while slots are free, then progress to the next gift
+const toggleLabel = computed(() => {
+  if (!limitReached.value) return 'Оберіть безкоштовні семпли'
+  const n = picked.value
+  const next = milestones.find((m) => cart.subtotal.value < m.amount)
+  if (!next) return 'Вітаємо, ви обрали всі подарунки!'
+  const noun = n === 1 ? 'подарунок' : n < 5 ? 'подарунки' : 'подарунків'
+  return `Ви обрали ${n} ${noun}, до наступного ще ${formatAmount(next.amount - cart.subtotal.value)}`
 })
 
 const open = ref(false)
 // Slight overshoot: the arrow springs a touch past flat on its way over
 const flip = spring({ stiffness: 320, damping: 24, mass: 1 })
+// Picked samples move to the end of the list — but only from the second opening on,
+// so cards never jump while the user is choosing
+const order = ref(samples.map((s) => s.id))
+let opens = 0
+watch(open, (value) => {
+  if (!value || ++opens < 2) return
+  order.value = [...samples].sort((a, b) => Number(cart.hasSample(a.id)) - Number(cart.hasSample(b.id))).map((s) => s.id)
+})
+const orderedSamples = computed(() => order.value.map((id) => samples.find((s) => s.id === id)!))
+
 // Dropping below the threshold hides the picker
 watch(unlocked, (value) => {
   if (!value) open.value = false
@@ -69,7 +89,7 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 </script>
 
 <template>
-  <div class="gifts" :style="{ marginBottom: `${-overlap}px` }">
+  <div class="gifts" data-sticky-top :style="{ marginBottom: `${-overlap}px` }">
     <div class="gifts__sheet" :class="{ 'is-open': open }">
       <CartProgress :subtotal="cart.subtotal.value" />
 
@@ -85,12 +105,12 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
         <div ref="picker" class="gifts__picker" :class="{ 'is-open': open }" :inert="!open || undefined">
           <div class="gifts__picker-inner">
             <div class="gifts__head">
-              <h3 id="gifts-title" class="heading-s">{{ pickerTitle }}</h3>
+              <h3 id="gifts-title" class="body-s">{{ pickerTitle }}</h3>
               <span class="gifts__counter body-s" aria-live="polite">{{ picked }}/{{ cart.samplesAllowed.value }}</span>
             </div>
             <div class="gifts__track" role="group" aria-labelledby="gifts-title">
               <SampleCard
-                v-for="s in samples"
+                v-for="s in orderedSamples"
                 :key="s.id"
                 :title="s.title"
                 :description="s.description"
@@ -104,7 +124,7 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
         </div>
 
         <button class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
-          {{ open ? 'Закрити' : 'Оберіть безкоштовні семпли' }}
+          {{ open ? 'Закрити' : toggleLabel }}
           <!-- Figma IconChevronLargeRight turned down, redrawn as a 1px stroke along the glyph's centre line
                so it can flip: it flattens into a line and bends the other way -->
           <svg class="gifts__chevron" :class="{ 'is-up': open }" viewBox="0 8.81 24 7.28" aria-hidden="true">
@@ -176,13 +196,13 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
   transition-delay: 0.08s;
 }
 
-/* 26px under the scale labels, 16px to the cards */
+/* 29px under the scale labels, 17px to the cards */
 .gifts__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-top: 26px;
+  margin-top: 29px;
   padding-inline: var(--space-5);
   color: var(--fg-default);
 }
@@ -197,7 +217,7 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
   display: flex;
   gap: var(--space-3);
   /* 4px breathing room so the selected-border spring isn't clipped */
-  margin: 12px 0 -4px;
+  margin: 13px 0 -4px;
   padding: 4px var(--space-5);
   overflow-x: auto;
   overflow-y: hidden;

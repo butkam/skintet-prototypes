@@ -4,7 +4,7 @@ import { computed, ref, useId } from 'vue'
 import SkInput from '@/components/SkInput.vue'
 import { findCity, searchCities, type City } from '@/data/cities'
 
-defineProps<{ error?: string }>()
+defineProps<{ error?: string; valid?: boolean }>()
 const model = defineModel<string>({ default: '' })
 const emit = defineEmits<{ input: [] }>()
 
@@ -72,6 +72,7 @@ function onKeydown(e: KeyboardEvent) {
       placeholder="Місто"
       autocomplete="off"
       :error="error"
+      :valid="valid"
       role="combobox"
       aria-autocomplete="list"
       :aria-expanded="expanded"

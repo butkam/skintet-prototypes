@@ -50,6 +50,18 @@ function validate() {
   return Object.keys(e) as Field[]
 }
 
+// Green check at the end of a field once it's filled in correctly
+const valid = computed<Record<Field, boolean>>(() => ({
+  phone: phoneDigits(contact.phone).length === 12,
+  firstName: !!contact.firstName.trim(),
+  lastName: !!contact.lastName.trim(),
+  email: /^\S+@\S+\.\S+$/.test(contact.email.trim()),
+  city: !!findCity(delivery.city),
+  branch: !!delivery.branch.trim(),
+  address: !!delivery.address.trim(),
+  locker: !!delivery.locker.trim(),
+}))
+
 // Re-validate live once the user has tried to continue
 function touch() {
   if (submitted.value) validate()
@@ -157,6 +169,7 @@ function focusNext(field: Field) {
             inputmode="tel"
             autocomplete="tel"
             :error="errors.phone"
+            :valid="valid.phone"
             enterkeyhint="next"
             @input="onPhone"
             @keydown.enter.prevent="focusNext('phone')"
@@ -168,6 +181,7 @@ function focusNext(field: Field) {
               placeholder="Ім’я"
               autocomplete="given-name"
               :error="errors.firstName"
+              :valid="valid.firstName"
               enterkeyhint="next"
               @input="onContact('firstName')"
               @keydown.enter.prevent="focusNext('firstName')"
@@ -178,6 +192,7 @@ function focusNext(field: Field) {
               placeholder="Прізвище"
               autocomplete="family-name"
               :error="errors.lastName"
+              :valid="valid.lastName"
               enterkeyhint="next"
               @input="onContact('lastName')"
               @keydown.enter.prevent="focusNext('lastName')"
@@ -191,6 +206,7 @@ function focusNext(field: Field) {
             inputmode="email"
             autocomplete="email"
             :error="errors.email"
+            :valid="valid.email"
             enterkeyhint="next"
             @input="onContact('email')"
             @keydown.enter.prevent="focusNext('email')"
@@ -211,7 +227,7 @@ function focusNext(field: Field) {
           <span class="np-logo"><img :src="novaPoshta" alt="Нова Пошта" /></span>
         </h2>
 
-        <CityField :ref="setRef('city')" v-model="delivery.city" :error="errors.city" @input="touch" />
+        <CityField :ref="setRef('city')" v-model="delivery.city" :error="errors.city" :valid="valid.city" @input="touch" />
 
         <div class="methods" role="radiogroup" aria-label="Спосіб доставки">
           <template v-for="m in methods" :key="m.id">
@@ -231,6 +247,7 @@ function focusNext(field: Field) {
                   placeholder="Номер або адреса відділення"
                   inputmode="search"
                   :error="errors.branch"
+                  :valid="valid.branch"
                   @input="touch"
                 />
                 <SkInput
@@ -240,6 +257,7 @@ function focusNext(field: Field) {
                   placeholder="Вулиця, будинок, квартира"
                   autocomplete="street-address"
                   :error="errors.address"
+                  :valid="valid.address"
                   @input="touch"
                 />
                 <SkInput
@@ -249,6 +267,7 @@ function focusNext(field: Field) {
                   placeholder="Номер або адреса поштомату"
                   inputmode="search"
                   :error="errors.locker"
+                  :valid="valid.locker"
                   @input="touch"
                 >
                   <template #trailing><SkIcon name="MagnifyingGlass" /></template>
