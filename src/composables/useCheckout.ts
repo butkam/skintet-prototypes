@@ -21,13 +21,17 @@ export type PlacedOrder = {
 
 const contact = reactive({ phone: '', firstName: '', lastName: '', email: '', subscribe: false })
 
-const delivery = reactive({
-  city: '',
-  method: 'branch' as DeliveryMethod,
-  // «Останнє відділення яким ви користувались» — prefilled as in the design
+/** What the customer used last time — prefilled as in the design */
+export const LAST_DELIVERY: Readonly<Record<'city' | 'branch' | 'address' | 'locker', string>> = {
+  city: 'Дніпро',
   branch: '№ 12 · вул. Хрещатик, 22',
-  address: '',
-  locker: '',
+  address: 'вул. Донецьке шосе, 7',
+  locker: '№ 34512 · просп. Дмитра Яворницького, 52',
+}
+
+const delivery = reactive({
+  ...LAST_DELIVERY,
+  method: 'branch' as DeliveryMethod,
 })
 
 // Nothing preselected — the customer picks a method themselves

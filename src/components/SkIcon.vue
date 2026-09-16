@@ -24,6 +24,9 @@ import caretDownXs from '@/assets/icons/caret-down-xs.svg'
 import radioSelected from '@/assets/icons/radio-selected.svg'
 import chevronDownDropdown from '@/assets/icons/chevron-down-dropdown.svg'
 import sparkle from '@/assets/icons/sparkle.svg'
+import shop from '@/assets/icons/shop.svg'
+import home from '@/assets/icons/home.svg'
+import packageBox from '@/assets/icons/package.svg'
 
 // Glyphs exported from Figma (Icon component 62:1641 and screen-level icons)
 const glyphs = {
@@ -62,6 +65,12 @@ const glyphs = {
   ChevronDownDropdown: chevronDownDropdown,
   /** 20px sparkle outline — locked samples hint */
   Sparkle: sparkle,
+  /** 16px outline — delivery method «Відділення» */
+  Shop: shop,
+  /** 16px outline — delivery method «Адресна» */
+  Home: home,
+  /** 16px outline — delivery method «Поштомат» */
+  Package: packageBox,
 } as const
 
 export type IconName = keyof typeof glyphs

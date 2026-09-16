@@ -7,7 +7,8 @@ import { formatPrice, pluralItems, type CartLine } from '@/data/catalog'
 const props = defineProps<{ line: CartLine }>()
 const emit = defineEmits<{ increment: []; decrement: []; toggle: [] }>()
 
-const locked = computed(() => props.line.kind === 'sample')
+// Gift samples: one of each — removable, but the quantity can't grow
+const single = computed(() => props.line.kind === 'sample')
 const setCount = computed(() => props.line.setItems?.length ?? 0)
 </script>
 
@@ -48,23 +49,22 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
     </div>
 
     <div class="line__controls">
-      <div class="qty" :class="{ 'qty--locked': locked }">
+      <div class="qty">
         <button
           class="qty__btn"
           type="button"
-          :disabled="locked"
           :aria-label="line.qty > 1 ? 'Зменшити кількість' : 'Видалити товар'"
           @click="emit('decrement')"
         >
           <!-- Trash drawn smaller than +/− (it reads heavier); the 32px button and 44px tap area stay -->
           <SkIcon
-            :name="locked ? 'TrashCanDisabled' : line.qty > 1 ? 'MinusMedium' : 'TrashCan'"
-            :size="locked || line.qty === 1 ? 28 : 32"
+            :name="line.qty > 1 ? 'MinusMedium' : 'TrashCan'"
+            :size="line.qty === 1 ? 28 : 32"
           />
         </button>
         <span class="qty__value body-l" aria-live="polite">{{ line.qty }}</span>
-        <button class="qty__btn" type="button" :disabled="locked" aria-label="Збільшити кількість" @click="emit('increment')">
-          <SkIcon :name="locked ? 'PlusMediumDisabled' : 'PlusMedium'" :size="32" />
+        <button class="qty__btn" type="button" :disabled="single" aria-label="Збільшити кількість" @click="emit('increment')">
+          <SkIcon :name="single ? 'PlusMediumDisabled' : 'PlusMedium'" :size="32" />
         </button>
       </div>
       <div class="line__prices">
@@ -283,10 +283,6 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.qty--locked .qty__value {
-  color: var(--neutral-400);
-}
-
 .line__prices {
   display: flex;
   flex-direction: column;

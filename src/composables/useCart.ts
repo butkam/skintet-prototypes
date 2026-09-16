@@ -130,7 +130,7 @@ function increment(id: string) {
 
 function decrement(id: string) {
   const line = lines.value.find((l) => l.id === id)
-  if (!line || line.kind === 'sample') return
+  if (!line) return
   if (line.qty > 1) {
     line.qty--
     trimSamples()

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-// «Замовлення · N позицій / Розгорнути ▾ / сума» (Figma 112:1545–1550) — expands to the order contents
+// «Замовлення · N позицій / Розгорнути / сума» (Figma 112:1545–1550) — expands to the order contents
 import { nextTick, ref } from 'vue'
-import SkIcon from '@/components/SkIcon.vue'
 import CheckoutSummaryRow from './CheckoutSummaryRow.vue'
 import { useCart } from '@/composables/useCart'
 import { useCheckout } from '@/composables/useCheckout'
@@ -30,7 +29,6 @@ async function toggle() {
       <template #caption>
         <button class="order__toggle body-s" type="button" :aria-expanded="open" @click="toggle">
           {{ open ? 'Згорнути' : 'Розгорнути' }}
-          <SkIcon name="CaretDownXs" :size="12" class="order__caret" :class="{ 'is-open': open }" />
         </button>
       </template>
       <template #aside>
@@ -64,17 +62,12 @@ async function toggle() {
 .order__toggle {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  position: relative;
+  /* Pulled 3px up towards «Замовлення»; the padding keeps the tap area */
+  top: -3px;
   margin: -4px -6px;
   padding: 4px 6px;
   color: var(--action-primary-fg-disabled);
-}
-
-.order__caret {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.order__caret.is-open {
-  transform: scaleY(-1);
 }
 
 .order__details {

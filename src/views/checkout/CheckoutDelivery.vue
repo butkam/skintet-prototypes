@@ -1,27 +1,43 @@
 <script setup lang="ts">
-// Figma «Дані й доставка» (node 112:1507)
+// Figma «Дані й доставка» (node 112:1507); delivery method states — 145:6600 · 174:8568 · 176:8690
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import SkIcon from '@/components/SkIcon.vue'
+import SkIcon, { type IconName } from '@/components/SkIcon.vue'
 import SkInput from '@/components/SkInput.vue'
 import SkCheckbox from '@/components/SkCheckbox.vue'
-import SkOptionCard from '@/components/SkOptionCard.vue'
+import SkSegmented from '@/components/SkSegmented.vue'
 import SkButton from '@/components/SkButton.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutOrder from '@/components/checkout/CheckoutOrder.vue'
 import CityField from '@/components/checkout/CityField.vue'
 import { findCity } from '@/data/cities'
-import { formatPhoneInput, phoneDigits, useCheckout, type DeliveryMethod } from '@/composables/useCheckout'
+import { LAST_DELIVERY, formatPhoneInput, phoneDigits, useCheckout, type DeliveryMethod } from '@/composables/useCheckout'
 import novaPoshta from '@/assets/images/nova-poshta.png'
 
 const router = useRouter()
-const { contact, delivery, deliveryConfirmed, deliveryPriceLabel } = useCheckout()
+const { contact, delivery, deliveryConfirmed } = useCheckout()
 
-const methods: { id: DeliveryMethod; label: string; hint: string }[] = [
-  { id: 'branch', label: 'Відділення', hint: 'До 3-х робочих днів' },
-  { id: 'courier', label: 'Адресна', hint: 'До 5-х робочих днів' },
-  { id: 'locker', label: 'Поштомат', hint: 'До 3-х робочих днів' },
-]
+const METHODS: DeliveryMethod[] = ['branch', 'courier', 'locker']
+// `lastUsed` — hint under the field while it still holds the prefilled value (LAST_DELIVERY)
+const methodMeta: Record<DeliveryMethod, { label: string; icon: IconName; lastUsed: string }> = {
+  branch: { label: 'Відділення', icon: 'Shop', lastUsed: 'Останнє відділення яким ви користувались.' },
+  courier: { label: 'Адресна', icon: 'Home', lastUsed: 'Остання адреса яку ви вказували.' },
+  locker: { label: 'Поштомат', icon: 'Package', lastUsed: 'Останній поштомат яким ви користувались.' },
+}
+const detailField = computed<'branch' | 'address' | 'locker'>(() =>
+  delivery.method === 'courier' ? 'address' : delivery.method,
+)
+const showLastUsed = computed(() => delivery[detailField.value] === LAST_DELIVERY[detailField.value])
+
+// The prefilled branch, address and locker belong to the last city — drop them once the customer changes it
+function onCity() {
+  if (delivery.city !== LAST_DELIVERY.city) {
+    for (const f of ['branch', 'address', 'locker'] as const) {
+      if (delivery[f] === LAST_DELIVERY[f]) delivery[f] = ''
+    }
+  }
+  touch()
+}
 
 /* ---------- Validation ---------- */
 
@@ -32,8 +48,6 @@ const refs = reactive<Partial<Record<Field, Focusable | null>>>({})
 const setRef = (f: Field) => (el: unknown) => (refs[f] = el as Focusable | null)
 const submitted = ref(false)
 
-const detailField = computed<Field>(() => (delivery.method === 'courier' ? 'address' : delivery.method))
-
 function validate() {
   const e: Partial<Record<Field, string>> = {}
   if (phoneDigits(contact.phone).length !== 12) e.phone = 'Вкажіть номер телефону повністю'
@@ -43,8 +57,8 @@ function validate() {
   if (!delivery.city.trim()) e.city = 'Вкажіть місто'
   else if (!findCity(delivery.city)) e.city = 'Оберіть місто зі списку'
   if (delivery.method === 'branch' && !delivery.branch.trim()) e.branch = 'Оберіть відділення'
-  if (delivery.method === 'courier' && !delivery.address.trim()) e.address = 'Вкажіть адресу'
-  if (delivery.method === 'locker' && !delivery.locker.trim()) e.locker = 'Оберіть поштомат'
+  if (delivery.method === 'courier' && !delivery.address.trim()) e.address = 'Вкажіть вулицю й дім'
+  if (delivery.method === 'locker' && !delivery.locker.trim()) e.locker = 'Вкажіть поштомат'
   for (const k of Object.keys(errors) as Field[]) delete errors[k]
   Object.assign(errors, e)
   return Object.keys(e) as Field[]
@@ -227,63 +241,58 @@ function focusNext(field: Field) {
           <span class="np-logo"><img :src="novaPoshta" alt="Нова Пошта" /></span>
         </h2>
 
-        <CityField :ref="setRef('city')" v-model="delivery.city" :error="errors.city" :valid="valid.city" @input="touch" />
+        <CityField :ref="setRef('city')" v-model="delivery.city" :error="errors.city" :valid="valid.city" @input="onCity" />
 
-        <div class="methods" role="radiogroup" aria-label="Спосіб доставки">
-          <template v-for="m in methods" :key="m.id">
-            <SkOptionCard
-              :label="m.label"
-              :meta="deliveryPriceLabel"
-              :hint="m.hint"
-              :selected="delivery.method === m.id"
-              @select="delivery.method = m.id; touch()"
-            />
-            <Transition name="reveal">
-              <div v-if="delivery.method === m.id" class="method-detail">
-                <SkInput
-                  v-if="m.id === 'branch'"
-                  :ref="setRef('branch')"
-                  v-model="delivery.branch"
-                  placeholder="Номер або адреса відділення"
-                  inputmode="search"
-                  :error="errors.branch"
-                  :valid="valid.branch"
-                  @input="touch"
-                />
-                <SkInput
-                  v-else-if="m.id === 'courier'"
-                  :ref="setRef('address')"
-                  v-model="delivery.address"
-                  placeholder="Вулиця, будинок, квартира"
-                  autocomplete="street-address"
-                  :error="errors.address"
-                  :valid="valid.address"
-                  @input="touch"
-                />
-                <SkInput
-                  v-else
-                  :ref="setRef('locker')"
-                  v-model="delivery.locker"
-                  placeholder="Номер або адреса поштомату"
-                  inputmode="search"
-                  :error="errors.locker"
-                  :valid="valid.locker"
-                  @input="touch"
-                >
-                  <template #trailing><SkIcon name="MagnifyingGlass" /></template>
-                </SkInput>
-                <p v-if="m.id === 'branch' && !errors[detailField]" class="method-detail__hint body-s">
-                  Останнє відділення яким ви користувались.
-                </p>
-              </div>
-            </Transition>
+        <SkSegmented v-model="delivery.method" class="methods" :options="METHODS" label="Спосіб доставки" block @update:model-value="touch">
+          <template #default="{ option, active }">
+            <SkIcon :name="methodMeta[option].icon" :size="16" :color="active ? 'var(--fg-default)' : 'var(--fg-muted)'" />
+            {{ methodMeta[option].label }}
           </template>
+        </SkSegmented>
+
+        <div class="method-detail">
+          <SkInput
+            v-if="delivery.method === 'branch'"
+            :ref="setRef('branch')"
+            v-model="delivery.branch"
+            placeholder="Номер відділення"
+            inputmode="search"
+            :error="errors.branch"
+            :valid="valid.branch"
+            @input="touch"
+          />
+          <SkInput
+            v-else-if="delivery.method === 'courier'"
+            :ref="setRef('address')"
+            v-model="delivery.address"
+            placeholder="Вулиця, дім"
+            autocomplete="street-address"
+            :error="errors.address"
+            :valid="valid.address"
+            @input="touch"
+          />
+          <SkInput
+            v-else
+            :ref="setRef('locker')"
+            v-model="delivery.locker"
+            placeholder="Номер поштомату"
+            inputmode="search"
+            :error="errors.locker"
+            :valid="valid.locker"
+            @input="touch"
+          />
+          <p v-if="showLastUsed" class="method-detail__hint body-s">{{ methodMeta[delivery.method].lastUsed }}</p>
         </div>
       </section>
 
       <div class="page__cta">
         <SkButton block @click="next">Перейти до оплати</SkButton>
       </div>
+
+      <p class="legal body-s">
+        Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
+        приймаєте їх.
+      </p>
     </main>
   </div>
 </template>
@@ -301,6 +310,10 @@ function focusNext(field: Field) {
   gap: var(--space-4);
   padding: 0 var(--space-2);
   margin-bottom: var(--space-4);
+}
+
+.section__title--np {
+  gap: var(--space-2);
   color: var(--action-secondary-fg);
 }
 
@@ -363,9 +376,6 @@ function focusNext(field: Field) {
 }
 
 .methods {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
   margin-top: var(--space-4);
 }
 
@@ -373,8 +383,7 @@ function focusNext(field: Field) {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  /* Sits 8px under its card (16px list gap − 8px) */
-  margin-top: calc(var(--space-2) - var(--space-4));
+  margin-top: var(--space-4);
 }
 
 .method-detail__hint {
@@ -382,19 +391,15 @@ function focusNext(field: Field) {
   color: var(--fg-muted);
 }
 
-.reveal-enter-active {
-  transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.reveal-enter-from {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-.reveal-leave-active {
-  display: none;
-}
-
-/* In normal flow at the end of the page (not sticky) */
+/* In normal flow at the end of the page (not sticky), followed by the legal note */
 .page__cta {
   margin-top: var(--space-8);
+}
+
+.legal {
+  margin: var(--space-3) auto 0;
+  max-width: 335px;
+  text-align: center;
+  color: var(--fg-muted);
 }
 </style>
