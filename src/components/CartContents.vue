@@ -113,7 +113,7 @@ function onLeave(el: Element, done: () => void) {
       </div>
     </dl>
 
-    <div class="cart__checkout" :class="{ 'cart__checkout--pinned': cart.giftsOpen.value }">
+    <div class="cart__checkout">
       <SkButton class="cart__checkout-btn" block @click="order">
         {{ orderLabel }}
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
@@ -194,26 +194,5 @@ function onLeave(el: Element, done: () => void) {
 .cart__checkout {
   margin-top: var(--space-8);
   padding: 0 var(--space-5);
-}
-
-/* Поки панель подарунків відкрита, кожен обраний набір додає рядок вище кнопки —
-   документ росте і кнопка тікає з екрана. Прилипання тримає її на очах,
-   а в самому низу кошика вона стає на своє звичайне місце. */
-.cart__checkout--pinned {
-  position: sticky;
-  bottom: calc(env(safe-area-inset-bottom) + var(--space-5));
-  z-index: 5;
-  padding-block: var(--space-3);
-}
-
-/* Зверху список зникає під градієнтом, знизу фон добирає смугу відступу,
-   інакше в ній проглядали б рядки під прилиплою кнопкою */
-.cart__checkout--pinned::before {
-  content: '';
-  position: absolute;
-  inset: calc(var(--space-6) * -1) 0 calc((env(safe-area-inset-bottom) + var(--space-5)) * -1);
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--bg-canvas) var(--space-6));
 }
 </style>
