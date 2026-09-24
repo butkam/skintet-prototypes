@@ -34,9 +34,14 @@ const pickedSamples = computed(() => cart.sampleLines.value.length)
 const giftsOffered = ref(false)
 const giftsLeft = computed(() => cart.samplesAllowed.value - pickedSamples.value)
 
-// Поки подарунок не забрано, кнопка каже, з чим саме піде замовлення
+// Поки не обрано жодного подарунка, кнопка каже, що замовлення піде без них.
+// Щойно щось обрано — це вже звичайне «Замовити», хай і з вільними слотами
 const orderLabel = computed(() =>
-  giftsOffered.value && giftsLeft.value > 0 ? (giftsLeft.value === 1 ? 'Без подарунка' : 'Без подарунків') : 'Замовити',
+  giftsOffered.value && giftsLeft.value > 0 && !pickedSamples.value
+    ? giftsLeft.value === 1
+      ? 'Без подарунка'
+      : 'Без подарунків'
+    : 'Замовити',
 )
 
 // Дія живе в панелі, лише поки та відкрита: інакше (сума впала нижче порогу)

@@ -117,7 +117,9 @@ watch(open, async (value) => {
   ready.value = false
   await Promise.all([preloadSamples(), wait(SKELETON_MIN_MS)])
   if (openId === id && open.value) ready.value = true
-})
+  // immediate: кошик може з'явитись з уже розгорнутою панеллю (Назад з оформлення
+  // відкриває його через ?cart, не згортаючи) — без цього скелетон лишався б назавжди
+}, { immediate: true })
 
 // Dropping below the threshold hides the picker
 watch(unlocked, (value) => {
