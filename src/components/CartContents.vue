@@ -5,7 +5,6 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
-import CartGiftSheet from './CartGiftSheet.vue'
 import CartLineItem from './CartLineItem.vue'
 import CartPromo from './CartPromo.vue'
 import { useCart } from '@/composables/useCart'
@@ -29,21 +28,23 @@ const pickedSamples = computed(() => cart.sampleLines.value.length)
 
 /* ---------- Подарунок перед оформленням ---------- */
 
-// Лишився вільний слот і від подарунків не відмовились — спершу пропонуємо обрати
-const giftPrompt = ref(false)
+// Перший тап по «Замовити» з вільним слотом не веде на оформлення, а розгортає
+// панель подарунків — вона липка, тож видно і її, і кнопку. Другий тап іде далі.
+const giftsOffered = ref(false)
 const giftsLeft = computed(() => cart.samplesAllowed.value - pickedSamples.value)
 
+// Поки подарунок не забрано, кнопка каже, з чим саме піде замовлення
+const orderLabel = computed(() =>
+  giftsOffered.value && giftsLeft.value > 0 ? (giftsLeft.value === 1 ? 'Без подарунка' : 'Без подарунків') : 'Замовити',
+)
+
 function order() {
-  if (giftsLeft.value > 0 && !cart.samplesDeclined.value) {
-    giftPrompt.value = true
+  if (!giftsOffered.value && giftsLeft.value > 0 && !cart.samplesDeclined.value) {
+    giftsOffered.value = true
+    cart.giftsOpen.value = true
     return
   }
   checkout()
-}
-
-// Даємо шторці поїхати вниз, і аж тоді запускаємо перехід на оформлення
-function onGiftPromptConfirm() {
-  setTimeout(checkout, prefersReducedMotion() ? 0 : 200)
 }
 
 function toggleSet(id: string) {
@@ -112,11 +113,9 @@ function onLeave(el: Element, done: () => void) {
       </div>
     </dl>
 
-    <CartGiftSheet v-model="giftPrompt" @confirm="onGiftPromptConfirm" />
-
     <div class="cart__checkout">
       <SkButton class="cart__checkout-btn" block @click="order">
-        Замовити
+        {{ orderLabel }}
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
       </SkButton>
     </div>

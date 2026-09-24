@@ -45,7 +45,8 @@ const toggleLabel = computed(() => {
   return `Ви обрали ${n} ${noun}, до наступного ще ${formatAmount(next.amount - cart.subtotal.value)}`
 })
 
-const open = ref(false)
+// Стан спільний з кошиком: «Замовити» відкриває цю саму панель
+const open = cart.giftsOpen
 // Slight overshoot: the arrow springs a touch past flat on its way over
 const flip = spring({ stiffness: 320, damping: 24, mass: 1 })
 // Picked samples move to the end of the list — but only from the second opening on,

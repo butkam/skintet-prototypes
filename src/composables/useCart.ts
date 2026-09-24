@@ -149,6 +149,9 @@ function remove(id: string) {
   trimSamples()
 }
 
+/** Панель подарунків розгорнута. Спільний стан: «Замовити» теж уміє її відкрити */
+const giftsOpen = ref(false)
+
 /** Свідома відмова від подарункових семплів: панель згортається до повідомлення */
 const samplesDeclined = ref(false)
 persist('samples-declined', () => samplesDeclined.value, (saved) => (samplesDeclined.value = saved))
@@ -205,6 +208,7 @@ export function useCart() {
     sampleLines,
     samplesAllowed,
     samplesDeclined,
+    giftsOpen,
     declineSamples,
     resumeSamples,
     drawerOpen,
@@ -219,7 +223,12 @@ export function useCart() {
     clear,
     hasSample,
     toggleSample,
-    openDrawer: () => (drawerOpen.value = true),
+    // Кошик щоразу відкривається згорнутим (Figma 160:7315), навіть якщо минулого
+    // разу панель подарунків лишилась розгорнутою
+    openDrawer: () => {
+      giftsOpen.value = false
+      drawerOpen.value = true
+    },
     closeDrawer: () => (drawerOpen.value = false),
   }
 }
