@@ -15,7 +15,7 @@ export type CartLine = {
   price: number
   oldPrice?: number
   qty: number
-  gift?: { title: string; price: number }
+  gift?: { title: string; price: number; image?: string }
   /** Для оплати частинами: апарати — до 6 платежів, косметика — до 3 */
   category?: 'device' | 'cosmetics'
   /** Коротка назва для графіку платежів, напр. «LED-маска» */
@@ -42,7 +42,7 @@ export const exoPdrn: Omit<CartLine, 'qty'> = {
   image: exoImage,
   price: 4100,
   oldPrice: 5950,
-  gift: { title: 'Брендовий масажер для ліфтингу Medik8 у подарунок', price: 1 },
+  gift: { title: 'Брендовий масажер для ліфтингу Medik8 у подарунок', price: 1, image: setItem2 },
 }
 
 export const samples: Sample[] = [
@@ -130,4 +130,17 @@ export function pluralSamples(n: number) {
   if (mod10 === 1 && mod100 !== 11) return 'семпл'
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'семпли'
   return 'семплів'
+}
+
+/** безкоштовний семпл · безкоштовні семпли · безкоштовних семплів */
+export function pluralFreeSamples(n: number) {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  const adjective =
+    mod10 === 1 && mod100 !== 11
+      ? 'безкоштовний'
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+        ? 'безкоштовні'
+        : 'безкоштовних'
+  return `${adjective} ${pluralSamples(n)}`
 }

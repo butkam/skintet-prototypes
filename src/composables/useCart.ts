@@ -141,11 +141,25 @@ function decrement(id: string) {
 function clear() {
   lines.value = []
   promoCode.value = null
+  samplesDeclined.value = false
 }
 
 function remove(id: string) {
   lines.value = lines.value.filter((l) => l.id !== id)
   trimSamples()
+}
+
+/** Свідома відмова від подарункових семплів: панель згортається до повідомлення */
+const samplesDeclined = ref(false)
+persist('samples-declined', () => samplesDeclined.value, (saved) => (samplesDeclined.value = saved))
+
+function declineSamples() {
+  lines.value = lines.value.filter((l) => l.kind !== 'sample')
+  samplesDeclined.value = true
+}
+
+function resumeSamples() {
+  samplesDeclined.value = false
 }
 
 /** Якщо сума впала нижче порогу — прибираємо зайві семпли */
@@ -190,6 +204,9 @@ export function useCart() {
     removePromo: () => (promoCode.value = null),
     sampleLines,
     samplesAllowed,
+    samplesDeclined,
+    declineSamples,
+    resumeSamples,
     drawerOpen,
     baseFrozen,
     baseScrollY,

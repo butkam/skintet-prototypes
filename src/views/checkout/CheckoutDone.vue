@@ -46,11 +46,11 @@ async function pay() {
   paying.value = false
 }
 
-const payLabel = computed(() => {
-  if (paying.value) return 'Очікуємо відповідь банку…'
-  const amount = formatPrice(unpaid.value?.amount ?? 0)
-  return failed.value ? `Завершити оплату · ${amount}` : `Оплатити · ${amount}`
-})
+const payLabel = computed(() =>
+  paying.value ? 'Очікуємо відповідь банку…' : failed.value ? 'Завершити оплату' : 'Оплатити',
+)
+/** Поки чекаємо банк — самий лише текст, без суми й роздільника */
+const payAmount = computed(() => (paying.value ? '' : formatPrice(unpaid.value?.amount ?? 0)))
 
 const icon = ref<HTMLElement | null>(null)
 onMounted(() => {
@@ -93,7 +93,10 @@ function toCatalog() {
 
       <div class="done__actions">
         <template v-if="unpaid">
-          <SkButton block :disabled="paying" @click="pay">{{ payLabel }}</SkButton>
+          <SkButton block :disabled="paying" @click="pay">
+            {{ payLabel }}
+            <template v-if="payAmount" #amount>{{ payAmount }}</template>
+          </SkButton>
           <SkButton v-if="failed" variant="secondary" block>Написати менеджеру</SkButton>
         </template>
         <template v-else>

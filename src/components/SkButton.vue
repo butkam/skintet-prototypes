@@ -9,6 +9,9 @@ withDefaults(
   }>(),
   { variant: 'primary', disabled: false, type: 'button', block: false },
 )
+
+// `amount` — сума праворуч від назви дії, відділена не мідлдотом, а тонкою неконтрастною рискою
+defineSlots<{ default?: () => unknown; amount?: () => unknown }>()
 </script>
 
 <template>
@@ -19,6 +22,10 @@ withDefaults(
     :class="[`sk-button--${variant}`, { 'sk-button--block': block }]"
   >
     <slot />
+    <template v-if="$slots.amount">
+      <span class="sk-button__rule" aria-hidden="true" />
+      <slot name="amount" />
+    </template>
   </button>
 </template>
 
@@ -33,6 +40,18 @@ withDefaults(
   border: var(--border-width-hairline) solid transparent;
   white-space: nowrap;
   transition: background-color 0.15s ease;
+}
+
+/* Трохи нижча за рядок тексту, майже зливається з фоном кнопки.
+   margin додається до gap кнопки — разом 16px повітря з кожного боку */
+.sk-button__rule {
+  flex: none;
+  width: 1px;
+  height: 0.875em;
+  margin-inline: var(--space-2);
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.3;
 }
 
 .sk-button--block {

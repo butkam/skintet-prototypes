@@ -1,6 +1,7 @@
 // Демо-товари з актуального каталогу https://skintet.com/catalog (станом на 14.09.2026)
 // Фото — прямі посилання на CDN сайту.
 // Подарунки до товарів (gift) — демо-заглушки для прототипу, не реальні акції.
+// Фото подарунка — теж із каталогу: у прототипі беремо найближчий за змістом кадр.
 import type { CartLine } from './catalog'
 
 export type DemoProduct = Omit<CartLine, 'qty' | 'kind'> & { kind: 'product' | 'set'; brand: string; url: string }
@@ -57,7 +58,7 @@ export const demoProducts: DemoProduct[] = [
     description: 'Сироватка для омолодження шкіри з екзосомами та PDRN • 30 мл',
     price: 5000,
     image: '21/ef/60523ca0eb848a7f484a8039b421',
-    gift: { title: 'Брендовий масажер для ліфтингу Medik8 у подарунок', price: 1 },
+    gift: { title: 'Брендовий масажер для ліфтингу Medik8 у подарунок', price: 1, image: img('24/f5/ec3d6f0b9f770ccb91807c43390b') },
   }),
   product({
     id: 'total-moisture-daily-cleansing-gel',
@@ -66,7 +67,7 @@ export const demoProducts: DemoProduct[] = [
     description: 'Гель для очищення шкіри з магнітами вологи та пребіотиками • 145 мл',
     price: 1900,
     image: '85/0b/7131ab118f84a705054b77f28eaf',
-    gift: { title: 'Брендова косметичка Medik8 у подарунок', price: 1 },
+    gift: { title: 'Брендова косметичка Medik8 у подарунок', price: 1, image: img('c3/ce/edabbf7cf22a86b411e3aea0d654') },
   }),
   product({
     id: 'neuropeptide-corrective-brightening-under-eye-cream',
@@ -115,7 +116,7 @@ export const demoProducts: DemoProduct[] = [
     description: 'Туш для вій • 8 г',
     price: 1800,
     image: '7c/d6/77c759c0f71aef79fb1f87e125b5',
-    gift: { title: 'Мініатюра No Makeup Skin Tint у подарунок', price: 1 },
+    gift: { title: 'Мініатюра No Makeup Skin Tint у подарунок', price: 1, image: img('c4/24/e9d69e6a72057cc717355b61e3e8') },
   }),
   product({
     id: 'lift-complex-cream',
@@ -140,7 +141,7 @@ export const demoProducts: DemoProduct[] = [
     description: 'Маска-кондиціонер для волосся 5 в 1 • 90 мл',
     price: 2075,
     image: 'c9/1e/45f54a06ec9f45f4ee8a2ff4753c',
-    gift: { title: 'Шовкова резинка для волосся Revitalash у подарунок', price: 1 },
+    gift: { title: 'Шовкова резинка для волосся Revitalash у подарунок', price: 1, image: img('a3/f9/2e39f4195c9b885c5e6fcc57d1e5') },
   }),
   product({
     id: 'neuropeptide-deep-crease-serum',
@@ -149,7 +150,7 @@ export const demoProducts: DemoProduct[] = [
     description: 'Сироватка для омолодження шкіри з нейропептидами • 30 мл',
     price: 8500,
     image: 'e6/cf/a6d222eee0814082a51f4cf1b163',
-    gift: { title: 'Мініатюра Neuropeptide Night Cream у подарунок', price: 1 },
+    gift: { title: 'Мініатюра Neuropeptide Night Cream у подарунок', price: 1, image: img('8c/5c/bb4ef4fc14825903c7a1a1c2d50d') },
   }),
   set({
     id: 'spa-ritual-apeer',

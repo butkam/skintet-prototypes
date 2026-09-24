@@ -1,12 +1,17 @@
 <script setup lang="ts">
 // Figma states 156:6854 · 158:7074 · 158:7117 · 158:7221 · 158:7267 (шкала)
-// Досягнуті пороги — зелений підпис з галочкою. Прилипає разом з панеллю CartGifts.
+// Доступний поріг — темний підпис; отриманий — зелений з галочкою. Прилипає разом з панеллю CartGifts.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import SkIcon from './SkIcon.vue'
 import { formatAmount, milestones } from '@/data/catalog'
 import { spring } from '@/motion/spring'
 
-const props = defineProps<{ subtotal: number }>()
+const props = defineProps<{ subtotal: number; picked: number }>()
+
+/** Поріг пройдено — подарунок доступний */
+const isAvailable = (m: (typeof milestones)[number]) => props.subtotal >= m.amount
+/** Подарунок справді отримано: доставка вмикається сама, семпли треба ще обрати */
+const isClaimed = (m: (typeof milestones)[number]) => isAvailable(m) && (m.samples === 0 || props.picked >= m.samples)
 
 /*
  * Visible milestones depend on how far the order got (Доставка always stays):
@@ -198,8 +203,8 @@ onBeforeUnmount(() => {
         :style="{ ...labelStyle(i), transition: moveTransition }"
       >
         <span class="progress__label-amount">від {{ formatAmount(m.amount) }}</span>
-        <span class="progress__label-caption" :class="{ 'is-reached': subtotal >= m.amount }">
-          <SkIcon v-if="subtotal >= m.amount" name="Check" :size="18" color="var(--status-success-fg)" class="progress__check" />
+        <span class="progress__label-caption" :class="{ 'is-available': isAvailable(m), 'is-claimed': isClaimed(m) }">
+          <SkIcon v-if="isClaimed(m)" name="Check" :size="18" color="var(--status-success-fg)" class="progress__check" />
           {{ caption(m) }}
         </span>
       </div>
@@ -274,7 +279,12 @@ onBeforeUnmount(() => {
   transition: color 0.3s ease;
 }
 
-.progress__label-caption.is-reached {
+/* Доступно, але ще не обрано — просто активний підпис */
+.progress__label-caption.is-available {
+  color: var(--fg-default);
+}
+
+.progress__label-caption.is-claimed {
   color: var(--status-success-fg);
 }
 
