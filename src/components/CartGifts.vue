@@ -16,6 +16,8 @@ const props = defineProps<{
   offering?: boolean
   /** Назва цієї дії — рахує кошик, бо вона залежить від того, скільки слотів вільні */
   actionLabel?: string
+  /** Широкий кошик: панель у потоці своєї колонки, не липне й не лягає поверх товарів */
+  inline?: boolean
 }>()
 
 const emit = defineEmits<{ order: [] }>()
@@ -121,10 +123,17 @@ watch(open, async (value) => {
   // відкриває його через ?cart, не згортаючи) — без цього скелетон лишався б назавжди
 }, { immediate: true })
 
-// Dropping below the threshold hides the picker
+// Dropping below the threshold hides the picker. У колонці широкого кошика місця досить,
+// тож щойно семпли доступні, вибір одразу розгорнутий
+const openInline = () => {
+  if (props.inline && unlocked.value && !cart.samplesDeclined.value) open.value = true
+}
+openInline()
 watch(unlocked, (value) => {
   if (!value) open.value = false
+  else openInline()
 })
+watch(() => props.inline, openInline)
 
 function toggleSample(sample: (typeof samples)[number], e: MouseEvent) {
   if (cart.toggleSample(sample) || prefersReducedMotion()) return
@@ -162,6 +171,10 @@ let resizeObserver: ResizeObserver | undefined
 
 function syncHeight() {
   if (!root.value || !sheet.value) return
+  if (props.inline) {
+    root.value.style.height = ''
+    return
+  }
   // Дробові розміри, не offsetHeight: округлення до цілого лишало ±0.5px дихання
   const full = sheet.value.getBoundingClientRect().height
   const grown = picker.value?.getBoundingClientRect().height ?? 0
@@ -175,7 +188,7 @@ onMounted(() => {
   if (sheet.value) resizeObserver.observe(sheet.value)
 })
 // The picker only exists once samples unlock
-watch(picker, () => syncHeight())
+watch([picker, () => props.inline], () => syncHeight(), { flush: 'post' })
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   clearTimeout(collapseTimer)
@@ -183,7 +196,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="root" class="gifts" data-sticky-top>
+  <div ref="root" class="gifts" :class="{ 'gifts--inline': inline }" :data-sticky-top="inline ? undefined : ''">
     <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open }">
       <CartProgress :subtotal="cart.subtotal.value" :picked="picked" :declined="cart.samplesDeclined.value" />
 
@@ -498,6 +511,32 @@ onBeforeUnmount(() => {
 
 .gifts__chevron.is-up path {
   transform: scaleY(-1);
+}
+
+/* ---------- Широкий кошик: панель у потоці колонки ---------- */
+
+.gifts--inline {
+  position: static;
+  height: auto;
+}
+
+.gifts--inline .gifts__sheet {
+  position: static;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Семпли сіткою 2×2 замість каруселі: мишею горизонтальну стрічку не прогорнеш */
+.gifts--inline .gifts__track {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  overflow: visible;
+}
+.gifts--inline .gifts__track > * {
+  width: auto;
+}
+.gifts--inline .gifts__slot :deep(.sample) {
+  width: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {

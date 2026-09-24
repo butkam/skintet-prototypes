@@ -52,6 +52,11 @@ html.cart-still #app {
   overflow-x: visible;
 }
 
+/* Широкий кошик відкритий (CartDrawer → setModal): екран під затемненням не гортається */
+html.cart-modal {
+  overflow: hidden;
+}
+
 img {
   display: block;
   max-width: 100%;

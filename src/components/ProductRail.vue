@@ -10,9 +10,10 @@ import { prefersReducedMotion } from '@/motion/spring'
 import { snap, tween } from '@/motion/tween'
 
 // `ids` — бажані товари, першими в стрічці. Коли з них поза кошиком лишилось менше `min`,
-// стрічка добирає інші засоби з каталогу (без апаратів) — спершу ті, яких ще немає в кошику
+// стрічка добирає інші засоби з каталогу (без апаратів) — спершу ті, яких ще немає в кошику.
+// `wrap` — широкий кошик: картки сіткою, бо горизонтальну стрічку мишею не прогорнеш
 const props = withDefaults(
-  defineProps<{ title: string; ids: string[]; align?: 'center' | 'start'; min?: number }>(),
+  defineProps<{ title: string; ids: string[]; align?: 'center' | 'start'; min?: number; wrap?: boolean }>(),
   { align: 'center', min: 4 },
 )
 
@@ -73,6 +74,11 @@ async function onAdd(id: string) {
 function onLeave(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (prefersReducedMotion()) return done()
+  // У сітці клітинка не стискається — картка просто згасає, решта стає на її місце
+  if (props.wrap) {
+    tween(240, (p) => (node.style.opacity = `${1 - p}`), done)
+    return
+  }
   const width = node.getBoundingClientRect().width
   // border-box: without the padding going too the card would stop at 16px and then jump
   const padding = parseFloat(getComputedStyle(node).paddingLeft)
@@ -112,7 +118,7 @@ function onCollapse(el: Element, done: () => void) {
 
 <template>
   <Transition :css="false" @leave="onCollapse">
-    <section v-if="items.length" ref="root" class="rail" :aria-labelledby="titleId">
+    <section v-if="items.length" ref="root" class="rail" :class="{ 'rail--wrap': wrap }" :aria-labelledby="titleId">
       <h3 :id="titleId" class="rail__title heading-s" :class="`rail__title--${align}`">{{ title }}</h3>
       <TransitionGroup tag="div" class="rail__track" :css="false" @leave="onLeave">
         <ProductMiniCard
@@ -154,5 +160,15 @@ function onCollapse(el: Element, done: () => void) {
 }
 .rail__track::-webkit-scrollbar {
   display: none;
+}
+
+/* Три картки в ряд, притиснуті до країв рядка: колонка 440px лишає між ними ~12px,
+   а якщо смуга прокрутки забере місце — трохи менше, але ряд не розвалиться на два */
+.rail--wrap .rail__track {
+  display: grid;
+  grid-template-columns: repeat(3, 123px);
+  justify-content: space-between;
+  gap: var(--space-3) 0;
+  overflow: visible;
 }
 </style>

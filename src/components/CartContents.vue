@@ -1,19 +1,22 @@
 <script setup lang="ts">
 // Figma "iPhone 17 - 9" (node 112:1857) — кошик з товарами
 // Прилипання: шкала під хедером, «Замовити» внизу (node 112:2021)
+// Широкий екран: дві колонки — ліворуч подарунки, рекомендовані й промокод, праворуч товари й оформлення
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
-import CartLineItem from './CartLineItem.vue'
+import CartLines from './CartLines.vue'
 import CartPromo from './CartPromo.vue'
+import CartSummary from './CartSummary.vue'
 import ProductRail from './ProductRail.vue'
 import { useCart } from '@/composables/useCart'
-import { formatAmount, formatPrice, samples } from '@/data/catalog'
+import { useWideCart } from '@/composables/useWideCart'
+import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
-import { snap, tween } from '@/motion/tween'
 
 const cart = useCart()
+const wide = useWideCart()
 const router = useRouter()
 
 // «Замовити» → оформлення: close the cart, and land the next page at the top
@@ -56,67 +59,56 @@ const orderLabel = computed(() =>
 )
 
 // Дія живе в панелі, лише поки та відкрита: інакше (сума впала нижче порогу)
-// кошик лишився б узагалі без кнопки
-const offering = computed(() => giftsOffered.value && cart.giftsOpen.value)
+// кошик лишився б узагалі без кнопки. На широкому екрані панель — сусідня колонка,
+// тож кнопка лишається на своєму місці під підсумком
+const offering = computed(() => !wide.value && giftsOffered.value && cart.giftsOpen.value)
+
+// Ліва колонка гортається окремо: на пропозицію подарунка повертаємо її до шкали
+const side = ref<HTMLElement | null>(null)
 
 function order() {
   if (!giftsOffered.value && giftsLeft.value > 0 && !cart.samplesDeclined.value) {
     giftsOffered.value = true
     cart.giftsOpen.value = true
+    side.value?.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'instant' : 'smooth' })
     return
   }
   checkout()
 }
-
-function toggleSet(id: string) {
-  const line = cart.lines.value.find((l) => l.id === id)
-  if (line) line.expanded = !line.expanded
-}
-
-/* Line removal: fade + collapse height */
-// Висоту, відступи й рамку веде скрипт, кроками по цілому фізичному пікселю
-// (див. motion/tween). Через WAAPI вони інтерполювались дробово, і на iPhone,
-// поки рядок згортався (наприклад, знятий семпл), кошик під ним дрижав.
-function onLeave(el: Element, done: () => void) {
-  const node = el as HTMLElement
-  if (prefersReducedMotion()) return done()
-
-  const cs = getComputedStyle(node)
-  const height = node.getBoundingClientRect().height
-  const padding = parseFloat(cs.paddingBottom)
-  const border = parseFloat(cs.borderBottomWidth)
-  // Проміжок між рядками теж зникає, інакше після згортання лишилась би дірка
-  const gap = parseFloat(getComputedStyle(node.parentElement!).rowGap) || 0
-
-  node.style.overflow = 'hidden'
-  tween(
-    280,
-    (p) => {
-      node.style.opacity = `${1 - p}`
-      node.style.height = `${snap(height * (1 - p))}px`
-      node.style.paddingBottom = `${snap(padding * (1 - p))}px`
-      node.style.borderBottomWidth = `${snap(border * (1 - p))}px`
-      node.style.marginBottom = `${-snap(gap * p)}px`
-    },
-    done,
-  )
-}
 </script>
 
 <template>
-  <div class="cart">
+  <div v-if="wide" class="cart cart--wide">
+    <div class="cart__side">
+      <div ref="side" class="cart__scroll">
+        <CartGifts inline />
+        <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" wrap :ids="RECOMMENDED_IDS" />
+      </div>
+      <div class="cart__foot cart__foot--promo">
+        <CartPromo />
+      </div>
+    </div>
+
+    <div class="cart__main">
+      <div class="cart__scroll">
+        <CartLines class="cart__lines" />
+      </div>
+      <div class="cart__foot">
+        <CartSummary />
+        <div class="cart__checkout">
+          <SkButton block @click="order">
+            {{ orderLabel }}
+            <template #amount>{{ formatPrice(cart.total.value) }}</template>
+          </SkButton>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-else class="cart">
     <CartGifts :offering="offering" :action-label="orderLabel" @order="checkout" />
 
-    <TransitionGroup tag="div" class="lines" :css="false" @leave="onLeave">
-      <CartLineItem
-        v-for="line in cart.lines.value"
-        :key="line.id"
-        :line="line"
-        @increment="cart.increment(line.id)"
-        @decrement="cart.decrement(line.id)"
-        @toggle="toggleSet(line.id)"
-      />
-    </TransitionGroup>
+    <CartLines class="cart__lines" />
 
     <div class="cart__promo">
       <CartPromo />
@@ -124,35 +116,10 @@ function onLeave(el: Element, done: () => void) {
 
     <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
 
-    <dl class="summary">
-      <div class="summary__row">
-        <dt class="body-m">Товари, {{ cart.goodsCount.value }}</dt>
-        <dd class="body-m">{{ formatPrice(cart.subtotal.value) }}</dd>
-      </div>
-      <div v-if="cart.giftCount.value" class="summary__row">
-        <dt class="body-m">Подарунки, {{ cart.giftCount.value }}</dt>
-        <dd class="body-m">{{ formatPrice(cart.giftsTotal.value) }}</dd>
-      </div>
-      <div v-if="pickedSamples" class="summary__row">
-        <dt class="body-m">Семпли у подарунок, {{ pickedSamples }} × {{ formatAmount(samples[0].price) }}</dt>
-        <dd class="body-m">{{ formatPrice(cart.samplesTotal.value) }}</dd>
-      </div>
-      <div v-if="cart.promo.value" class="summary__row">
-        <dt class="body-m">Промокод {{ cart.promo.value.code }}</dt>
-        <dd class="body-m summary__discount">−{{ formatPrice(cart.promoDiscount.value) }}</dd>
-      </div>
-      <div class="summary__row">
-        <dt class="body-m">Доставка</dt>
-        <dd class="body-m">{{ cart.freeDelivery.value ? 'Безкоштовна' : formatPrice(cart.delivery.value) }}</dd>
-      </div>
-      <div class="summary__row summary__row--total">
-        <dt class="body-m">До сплати</dt>
-        <dd class="heading-s">{{ formatPrice(cart.total.value) }}</dd>
-      </div>
-    </dl>
+    <CartSummary class="cart__summary" />
 
     <div v-if="!offering" class="cart__checkout">
-      <SkButton class="cart__checkout-btn" block @click="order">
+      <SkButton block @click="order">
         {{ orderLabel }}
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
       </SkButton>
@@ -167,19 +134,9 @@ function onLeave(el: Element, done: () => void) {
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-5));
 }
 
-/* ---------- Lines (node 132:6136) ---------- */
-
-.lines {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  /* 20px under the gifts panel (Figma 160:7315) */
+/* 20px under the gifts panel (Figma 160:7315) */
+.cart__lines {
   margin-top: var(--space-5);
-  padding-inline: var(--space-5);
-}
-
-.lines > :last-child {
-  border-bottom: 0;
 }
 
 /* ---------- Promo & summary (nodes 112:1976–1990) ---------- */
@@ -194,48 +151,66 @@ function onLeave(el: Element, done: () => void) {
   margin-top: var(--space-8);
 }
 
-.summary {
-  display: flex;
-  flex-direction: column;
-  margin: var(--space-8) 0 0;
-  padding-inline: var(--space-5);
+.cart__summary {
+  margin-top: var(--space-8);
 }
-
-/* Figma 112:2369 — label and value Body/M; only «До сплати» value is Heading/S */
-.summary__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding-block: var(--space-2);
-  color: var(--fg-default);
-}
-
-.summary dd {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.summary__row:first-child {
-  padding-top: 0;
-}
-.summary__row + .summary__row {
-  border-top: var(--border-width-hairline) solid var(--border-subtle);
-}
-
-.summary dt,
-.summary dd {
-  margin: 0;
-}
-
-.summary .summary__discount {
-  color: var(--status-success-fg);
-}
-
 
 /* ---------- Checkout (in normal flow at the end of the cart, not sticky) ---------- */
 
 .cart__checkout {
   margin-top: var(--space-8);
   padding: 0 var(--space-5);
+}
+
+/* ---------- Широкий екран: дві колонки однакової ширини ---------- */
+
+/* Кожна колонка гортається сама; низ колонок (промокод і оформлення) стоїть на місці */
+.cart--wide {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-bottom: 0;
+}
+
+.cart__side,
+.cart__main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cart__side {
+  border-right: var(--border-width-hairline) solid var(--border-default);
+}
+
+.cart__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--space-8);
+}
+
+.cart--wide .cart__rail {
+  margin-top: var(--space-6);
+}
+
+.cart__foot {
+  flex-shrink: 0;
+  padding: var(--space-5) 0 calc(env(safe-area-inset-bottom) + var(--space-5));
+  border-top: var(--border-width-hairline) solid var(--border-default);
+}
+
+.cart__foot .cart__checkout {
+  margin-top: var(--space-5);
+}
+
+/* Смуга промокоду (Figma 223:2931) сама дає лінії, тож без межі футера.
+   Її рядок стоїть на одній висоті з «Замовити» сусідньої колонки: 6px — власний відступ смуги */
+.cart__foot--promo {
+  --promo-inset: var(--space-5);
+  padding: 0 0 calc(env(safe-area-inset-bottom) + var(--space-5) - 6px);
+  border-top: 0;
 }
 </style>

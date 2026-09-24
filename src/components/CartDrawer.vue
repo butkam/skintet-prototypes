@@ -6,9 +6,12 @@ import SkButton from './SkButton.vue'
 import ProductRail from './ProductRail.vue'
 import CartContents from './CartContents.vue'
 import { useCart } from '@/composables/useCart'
+import { useWideCart } from '@/composables/useWideCart'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 
 const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer } = useCart()
+// Широкий екран: дровер справа поверх затемненого екрана, а не на місці мобільної колонки
+const wide = useWideCart()
 
 // Різні товари з демо-каталогу — кожен зі своїм фото й ціною
 const VIEWED_IDS = [
@@ -37,10 +40,25 @@ watch(drawerOpen, (open) => {
   // Document scrolls to 0 on enter, so this keeps the screen where it was on-screen
   baseTop.value = -window.scrollY
   baseFrozen.value = true
+  setModal(wide.value)
 })
 
 // Обрізання body і #app знімає клас на <html> (див. base.css) — вони поза компонентом
 watch(baseCovered, (still) => document.documentElement.classList.toggle('cart-still', still))
+
+// Широкий кошик — фіксований шар поверх екрана, що лишається видно під затемненням:
+// сторінка під ним не гортається (див. base.css → html.cart-modal)
+function setModal(on: boolean) {
+  document.documentElement.classList.toggle('cart-modal', on)
+}
+
+// Вікно розтягнули чи звузили з відкритим кошиком: перемикаємо режим на льоту
+watch(wide, (isWide) => {
+  if (!drawerOpen.value || !baseFrozen.value) return
+  setModal(isWide)
+  baseCovered.value = !isWide
+  if (!isWide) window.scrollTo({ top: 0, behavior: 'instant' })
+})
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && drawerOpen.value) closeDrawer()
@@ -50,6 +68,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   baseFrozen.value = false
   baseCovered.value = false
+  setModal(false)
 })
 
 /* ---------- Enter / leave animations ---------- */
@@ -57,6 +76,7 @@ onBeforeUnmount(() => {
 function onEnter(el: Element, done: () => void) {
   const p = el.querySelector<HTMLElement>('.drawer')!
   window.scrollTo({ top: 0, behavior: 'instant' })
+  el.querySelector<HTMLElement>('.drawer-scrim')?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: 'ease-out' })
   if (prefersReducedMotion()) {
     p.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 }).onfinish = done
     return
@@ -69,7 +89,8 @@ function onEnter(el: Element, done: () => void) {
 }
 
 function onAfterEnter() {
-  baseCovered.value = true
+  // Широкий кошик закриває екран лише частково — той лишається видно під затемненням
+  baseCovered.value = !wide.value
   nextTick(() => closeButton.value?.focus({ preventScroll: true }))
 }
 
@@ -80,8 +101,11 @@ function onLeave(el: Element, done: () => void) {
   // Елемент, що зникає, Vue вже не оновлює — повертаємо обрізання й тінь вручну
   el.classList.remove('is-still')
 
-  // Forward (→ checkout): cart exits left while the new screen underneath slides in from the right
-  if (drawerExit.value === 'forward' && !prefersReducedMotion()) {
+  el.querySelector<HTMLElement>('.drawer-scrim')?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'forwards' })
+
+  // Forward (→ checkout): cart exits left while the new screen underneath slides in from the right.
+  // Широкий кошик просто їде назад управо — оформлення вже стоїть під ним
+  if (drawerExit.value === 'forward' && !wide.value && !prefersReducedMotion()) {
     const frame = document.querySelector<HTMLElement>('.app-frame')
     const sp = spring(slideSpring)
     const opts = { duration: sp.duration, easing: sp.easing, fill: 'forwards' as const }
@@ -109,6 +133,7 @@ function onAfterLeave() {
   drawerExit.value = 'close'
   // Put the screen back into normal flow and restore where the user was
   baseFrozen.value = false
+  setModal(false)
   nextTick(() => {
     window.scrollTo({ top: baseScrollY.value, behavior: 'instant' })
     if (!forward) returnFocus?.focus({ preventScroll: true })
@@ -121,7 +146,8 @@ function onAfterLeave() {
 const drag = { tracking: false, active: false, startX: 0, startY: 0, dx: 0, lastX: 0, lastT: 0, velocity: 0, pointerId: -1 }
 
 function onPointerDown(e: PointerEvent) {
-  if (e.pointerType === 'mouse' && e.button !== 0) return
+  // Мишею дровер не тягнуть — на широкому екрані закривають хрестиком, Esc чи кліком по затемненню
+  if (e.pointerType === 'mouse' && (e.button !== 0 || wide.value)) return
   if ((e.target as HTMLElement).closest('button, a, .rail__track, .gifts__track')) return
   Object.assign(drag, { tracking: true, active: false, startX: e.clientX, startY: e.clientY, dx: 0, lastX: e.clientX, lastT: e.timeStamp, velocity: 0, pointerId: e.pointerId })
 }
@@ -175,7 +201,7 @@ function onPointerUp(e: PointerEvent) {
   el.animate([{ transform: `translateX(${drag.dx}px)` }, { transform: 'translateX(0)' }], { duration: sp.duration, easing: sp.easing })
     .onfinish = () => {
       el.style.willChange = ''
-      baseCovered.value = true
+      baseCovered.value = !wide.value
     }
   el.style.transform = ''
 }
@@ -184,10 +210,12 @@ function onPointerUp(e: PointerEvent) {
 <template>
   <Transition :css="false" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave" @after-leave="onAfterLeave">
     <!-- In normal document flow (not fixed) so iOS Safari shows it behind the bottom toolbar -->
-    <div v-if="drawerOpen" class="drawer-root" :class="{ 'is-still': baseCovered }">
+    <div v-if="drawerOpen" class="drawer-root" :class="{ 'is-still': baseCovered, 'drawer-root--wide': wide }">
+      <div v-if="wide" class="drawer-scrim" aria-hidden="true" @click="closeDrawer" />
       <section
         ref="panel"
         class="drawer"
+        :class="{ 'drawer--split': wide && lines.length }"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
@@ -220,7 +248,7 @@ function onPointerUp(e: PointerEvent) {
             <SkButton variant="secondary" @click="closeDrawer">Перейти до товарів</SkButton>
           </div>
 
-          <ProductRail v-if="!lines.length" class="viewed" title="Ви переглядали" :ids="VIEWED_IDS" />
+          <ProductRail v-if="!lines.length" class="viewed" title="Ви переглядали" :wrap="wide" :ids="VIEWED_IDS" />
         </div>
       </section>
     </div>
@@ -285,6 +313,66 @@ function onPointerUp(e: PointerEvent) {
 .drawer::after {
   left: 100%;
   background: linear-gradient(to right, oklch(0% 0 0 / 0.12), transparent);
+}
+
+/* ---------- Широкий екран: дровер справа поверх затемнення ---------- */
+
+/* Фіксований шар на весь екран: екран під ним заморожений і видно крізь затемнення */
+.drawer-root--wide {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.drawer-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-scrim);
+}
+
+/* Порожній кошик — одна колонка як на телефоні; з товарами — дві по 440px.
+   Ширину не анімуємо: вміст однаково змінюється цілком, а колонки посередині переходу стискались */
+.drawer-root--wide .drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  max-width: 100%;
+  min-height: 0;
+  margin: 0;
+  box-shadow: var(--elevation-l);
+}
+.drawer-root--wide .drawer--split {
+  width: 880px;
+}
+.drawer-root--wide .drawer::before,
+.drawer-root--wide .drawer::after {
+  display: none;
+}
+
+/* Гортається сам дровер (порожній стан), а з товарами — кожна колонка окремо */
+.drawer-root--wide .drawer__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.drawer-root--wide .drawer__body--filled {
+  overflow: hidden;
+}
+
+/* Заголовок ліворуч, хрестик праворуч — як у бокових панелях на десктопі */
+.drawer-root--wide .drawer__header {
+  flex-direction: row-reverse;
+  padding: var(--space-5) var(--space-6);
+}
+.drawer-root--wide .drawer__icon-btn {
+  margin: -10px -10px -10px 0;
+}
+.drawer-root--wide .drawer__title {
+  position: static;
+  transform: none;
 }
 
 /* ---------- Header (node 112:2222) ---------- */
