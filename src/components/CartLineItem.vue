@@ -152,11 +152,16 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   transform: scaleY(-1);
 }
 
-/* Height animation via grid 0fr → 1fr */
+/* Висота міняється одним кроком, без анімації.
+   Поки вона росла плавно, кошик перекомпоновувався щокадру, а drawer — це один
+   композитний шар на весь екран: WebKit перемальовував його цілком, і текст на
+   дробових позиціях щоразу растеризувався інакше. На iPhone це видно як дрижання
+   всього екрана (заміряно: 60fps, жоден елемент не зсувається, і все одно тремтить).
+   Тепер перекомпоновка одна, а м'якість дає проявлення самого списку — opacity і
+   transform ідуть на композиторі й не чіпають компоновку. */
 .line__set {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .line__set.is-open {
   grid-template-rows: 1fr;
@@ -171,9 +176,20 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  opacity: 0;
+  transform: translateY(-4px);
 }
 .line__set.is-open .line__set-list {
   padding-top: var(--space-2);
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line__set.is-open .line__set-list {
+    transition: none;
+  }
 }
 
 .line__set-item {
