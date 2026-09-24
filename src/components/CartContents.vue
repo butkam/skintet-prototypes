@@ -7,6 +7,7 @@ import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
 import CartLineItem from './CartLineItem.vue'
 import CartPromo from './CartPromo.vue'
+import ProductRail from './ProductRail.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, samples } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
@@ -26,6 +27,16 @@ async function checkout() {
 }
 
 const pickedSamples = computed(() => cart.sampleLines.value.length)
+
+// Під промокодом; те, що вже в кошику, стрічка ховає сама
+const RECOMMENDED_IDS = [
+  'lift-complex-cream',
+  'neuropeptide-deep-crease-serum',
+  'advanced-pro-collagen-peptide-cream',
+  'liquid-peptides-advanced-mp',
+  'niacinamide-peptides',
+  'cold-plasma-plus-advanced-hydrating-complex',
+]
 
 /* ---------- Подарунок перед оформленням ---------- */
 
@@ -111,6 +122,8 @@ function onLeave(el: Element, done: () => void) {
       <CartPromo />
     </div>
 
+    <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
+
     <dl class="summary">
       <div class="summary__row">
         <dt class="body-m">Товари, {{ cart.goodsCount.value }}</dt>
@@ -172,8 +185,13 @@ function onLeave(el: Element, done: () => void) {
 /* ---------- Promo & summary (nodes 112:1976–1990) ---------- */
 
 .cart__promo {
+  /* Strip runs edge to edge; its row lines up with the lines above */
+  --promo-inset: var(--space-5);
   margin-top: var(--space-4);
-  padding-inline: var(--space-5);
+}
+
+.cart__rail {
+  margin-top: var(--space-8);
 }
 
 .summary {

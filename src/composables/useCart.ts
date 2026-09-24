@@ -112,9 +112,9 @@ function pickDemoProduct(): DemoProduct {
   return random(fresh.length ? fresh : demoProducts)
 }
 
-/** Adds a demo product (see pickDemoProduct) and returns it */
-function add(): DemoProduct {
-  const product = pickDemoProduct()
+/** Adds the given product, or a demo pick (see pickDemoProduct) when no id is passed; returns it */
+function add(id?: string): DemoProduct {
+  const product = (id && demoProducts.find((p) => p.id === id)) || pickDemoProduct()
 
   if (!lines.value.length && SEED_DEMO_ON_FIRST_ADD) {
     lines.value = demoLines()

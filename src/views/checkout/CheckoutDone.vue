@@ -70,7 +70,7 @@ function toCatalog() {
 
 <template>
   <div class="page">
-    <CheckoutTopBar :step="3" />
+    <CheckoutTopBar :step="2" />
 
     <main class="done">
       <span ref="icon" class="done__icon"><SkIcon name="ShoppingBagLarge" :size="48" /></span>

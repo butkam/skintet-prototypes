@@ -3,19 +3,20 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
 import SkButton from './SkButton.vue'
-import ProductMiniCard from './ProductMiniCard.vue'
+import ProductRail from './ProductRail.vue'
 import CartContents from './CartContents.vue'
 import { useCart } from '@/composables/useCart'
 import { prefersReducedMotion, spring } from '@/motion/spring'
-import viewedImage from '@/assets/images/product-viewed.png'
 
-const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer, add } = useCart()
+const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer } = useCart()
 
-const recentlyViewed = [
-  { id: 1, title: 'Exo-PDRN Prismatic+ Super Mega Pro Max Deluxe with amazing formula', price: '1 700,00 ₴', image: viewedImage },
-  { id: 2, title: 'Міцелярна вода для очищення', price: '4 600,00 ₴', image: viewedImage },
-  { id: 3, title: 'Calmwise Soothing Cleanser Amazing Formular', price: '10 305,00 ₴', image: viewedImage },
-  { id: 4, title: 'Exo-PDRN Prismatic+ Super Mega Pro Max Deluxe with amazing formula', price: '1 700,00 ₴', image: viewedImage },
+// Різні товари з демо-каталогу — кожен зі своїм фото й ціною
+const VIEWED_IDS = [
+  'niacinamide-peptides',
+  'neuropeptide-corrective-brightening-under-eye-cream',
+  'cold-plasma-plus-advanced-hydrating-complex',
+  'neuropeptide-the-cleansing-balm',
+  'haircare-triple-keratin-repair-shampoo',
 ]
 
 const panel = ref<HTMLElement | null>(null)
@@ -121,7 +122,7 @@ const drag = { tracking: false, active: false, startX: 0, startY: 0, dx: 0, last
 
 function onPointerDown(e: PointerEvent) {
   if (e.pointerType === 'mouse' && e.button !== 0) return
-  if ((e.target as HTMLElement).closest('button, a, .viewed__track, .gifts__track')) return
+  if ((e.target as HTMLElement).closest('button, a, .rail__track, .gifts__track')) return
   Object.assign(drag, { tracking: true, active: false, startX: e.clientX, startY: e.clientY, dx: 0, lastX: e.clientX, lastT: e.timeStamp, velocity: 0, pointerId: e.pointerId })
 }
 
@@ -201,7 +202,10 @@ function onPointerUp(e: PointerEvent) {
             <button ref="closeButton" class="drawer__icon-btn" type="button" aria-label="Закрити кошик" @click="closeDrawer">
               <SkIcon name="CrossLarge" />
             </button>
-            <h2 id="cart-drawer-title" class="drawer__title body-m">Кошик · {{ count }}</h2>
+            <!-- Figma 218:2861: «Кошик» + кількість курсивом Nib Pro -->
+            <h2 id="cart-drawer-title" class="drawer__title body-m">
+              Кошик<span v-if="count" class="drawer__count">({{ count }})</span>
+            </h2>
           </header>
 
           <CartContents v-if="lines.length" />
@@ -216,19 +220,7 @@ function onPointerUp(e: PointerEvent) {
             <SkButton variant="secondary" @click="closeDrawer">Перейти до товарів</SkButton>
           </div>
 
-          <section v-if="!lines.length" class="viewed" aria-labelledby="viewed-title">
-            <h3 id="viewed-title" class="viewed__title heading-s">Ви переглядали</h3>
-            <div class="viewed__track">
-              <ProductMiniCard
-                v-for="item in recentlyViewed"
-                :key="item.id"
-                :title="item.title"
-                :price="item.price"
-                :image="item.image"
-                @add="add"
-              />
-            </div>
-          </section>
+          <ProductRail v-if="!lines.length" class="viewed" title="Ви переглядали" :ids="VIEWED_IDS" />
         </div>
       </section>
     </div>
@@ -340,8 +332,17 @@ function onPointerUp(e: PointerEvent) {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
   font-weight: 400;
   white-space: nowrap;
+}
+
+.drawer__count {
+  font-family: var(--font-family-display);
+  font-style: italic;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -386,26 +387,5 @@ function onPointerUp(e: PointerEvent) {
 .viewed {
   margin-top: auto;
   padding-top: var(--space-12);
-}
-
-.viewed__title {
-  text-align: center;
-  margin-bottom: var(--space-3);
-}
-
-.viewed__track {
-  display: flex;
-  gap: var(--space-3);
-  padding-inline: var(--space-5);
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: var(--space-5);
-  scrollbar-width: none;
-  touch-action: pan-x pan-y;
-}
-.viewed__track::-webkit-scrollbar {
-  display: none;
 }
 </style>

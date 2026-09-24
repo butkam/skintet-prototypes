@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Figma 169:8280 — промокод: кнопка → поле з «Застосувати» (default · focus · error) → застосований код з «Видалити»
 // Одна кнопка на всі стани: «+ Додати промокод» стискається праворуч у «Застосувати», а поле виростає з-під неї.
-// `band` (Figma 223:2931, «Оплата») — закритий промокод як смуга на всю ширину з текстовою кнопкою.
+// Figma 223:2931 — закритий промокод як смуга на всю ширину з текстовою кнопкою (кошик і «Оплата»).
 // Висота смуги не змінюється: відкриваючись, кнопка так само стискається в «Застосувати» й отримує
 // фон і обводку, а лінії й градієнт смуги згасають.
 import { computed, nextTick, ref } from 'vue'
@@ -11,8 +11,6 @@ import SkInput from './SkInput.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount } from '@/data/catalog'
 import { spring } from '@/motion/spring'
-
-defineProps<{ band?: boolean }>()
 
 const cart = useCart()
 
@@ -64,7 +62,7 @@ function onInput() {
 </script>
 
 <template>
-  <div class="promo" :class="{ 'promo--band': band, 'is-open': open }">
+  <div class="promo" :class="{ 'is-open': open }">
     <div class="promo__row">
       <p v-if="cart.promo.value" class="promo__applied body-m" role="status">
         <SkIcon name="Check" :size="18" color="var(--status-success-fg)" />
@@ -165,18 +163,19 @@ function onInput() {
   color: var(--fg-muted);
 }
 
-/* ---------- Band (Figma 223:2931) ---------- */
+/* ---------- Strip (Figma 223:2931) ---------- */
 
-/* 60px strip: the 48px row sits 6px from its hairlines. The parent bleeds it to the screen edges */
-.promo--band {
+/* 60px strip: the 48px row sits 6px from its hairlines. The parent bleeds it to the screen edges
+   and sets --promo-inset to line the row up with its own content */
+.promo {
   position: relative;
   isolation: isolate;
-  padding: 6px var(--space-4);
+  padding: 6px var(--promo-inset, var(--space-4));
 }
 
 /* Hairlines and the neutral/100 glow (70%) share one radial fade from the centre — the lines
    thin out to nothing towards the edges, like the fill */
-.promo--band::before {
+.promo::before {
   --glow: circle 214.5px at 50% 50%;
   content: '';
   position: absolute;
@@ -189,12 +188,12 @@ function onInput() {
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
-.promo--band.is-open::before {
+.promo.is-open::before {
   opacity: 0;
 }
 
 /* Closed: a text button lying on the strip — no fill, no outline */
-.promo--band .promo__action:not(.is-open) {
+.promo__action:not(.is-open) {
   background: transparent;
   border-color: transparent;
 }
@@ -211,7 +210,7 @@ function onInput() {
 
 @media (prefers-reduced-motion: reduce) {
   .promo__action,
-  .promo--band::before {
+  .promo::before {
     transition: none !important;
   }
 }

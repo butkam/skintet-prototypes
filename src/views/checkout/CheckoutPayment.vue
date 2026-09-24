@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Figma «Оплата» (node 112:1567) і «Декілька платежів» (node 112:1613)
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkOptionCard from '@/components/SkOptionCard.vue'
 import SkButton from '@/components/SkButton.vue'
@@ -39,16 +39,8 @@ const wallet = ref<Wallet | null>(detectWallet())
 if (wallet.value === 'google') loadGooglePay().catch(() => (wallet.value = null))
 const walletPay = computed(() => (payment.method === 'card' ? wallet.value : null))
 
-const methodError = ref('')
-const methodsSection = ref<HTMLElement | null>(null)
-watch(() => payment.method, () => (methodError.value = ''))
-
+// Кнопка з'являється лише після вибору способу оплати, тож тут він уже є
 function submit() {
-  if (!payment.method) {
-    methodError.value = 'Оберіть спосіб оплати'
-    methodsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    return
-  }
   placeOrder()
   placed = true
   router.replace({ name: 'checkout-done' })
@@ -76,11 +68,8 @@ onUnmounted(() => placed && settleOrder())
     </CheckoutTopBar>
 
     <main class="page__content">
-      <section ref="methodsSection" aria-labelledby="payment-title">
+      <section aria-labelledby="payment-title">
         <h2 id="payment-title" class="section__title heading-s">Спосіб оплати</h2>
-        <Transition name="method-error">
-          <p v-if="methodError" class="method-error body-s" role="alert">{{ methodError }}</p>
-        </Transition>
 
         <div class="methods" role="radiogroup" aria-label="Спосіб оплати">
           <SkOptionCard label="Онлайн карткою" :selected="payment.method === 'card'" @select="payment.method = 'card'">
@@ -154,13 +143,16 @@ onUnmounted(() => placed && settleOrder())
       </section>
 
       <!-- Same promo state as in the cart: a code applied there shows up here already applied -->
-      <CartPromo class="promo" band />
+      <CartPromo class="promo" />
 
-      <div class="page__cta">
+      <div v-if="payment.method" class="page__cta">
         <template v-if="walletPay">
           <WalletButton :wallet="walletPay" @pay="submit" />
           <!-- Не в кожного картка в гаманці — звичайна оплата лишається поруч -->
-          <SkButton variant="secondary" block @click="submit">Оплатити картою</SkButton>
+          <SkButton variant="secondary" block @click="submit">
+            Картою
+            <template #amount>{{ cta.amount }}</template>
+          </SkButton>
         </template>
         <SkButton v-else block @click="submit">
           {{ cta.action }}
@@ -168,7 +160,7 @@ onUnmounted(() => placed && settleOrder())
         </SkButton>
       </div>
 
-      <p class="legal body-s">
+      <p v-if="payment.method" class="legal body-s">
         Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
         приймаєте їх.
       </p>
@@ -187,20 +179,6 @@ onUnmounted(() => placed && settleOrder())
   padding: 0 var(--space-2);
   margin-bottom: var(--space-4);
   color: var(--action-secondary-fg);
-}
-
-.method-error {
-  margin: calc(var(--space-2) - var(--space-4)) 0 var(--space-4);
-  padding: 0 var(--space-2);
-  color: var(--status-danger-fg);
-}
-
-.method-error-enter-active {
-  transition: opacity 0.15s ease, transform 0.2s ease;
-}
-.method-error-enter-from {
-  opacity: 0;
-  transform: translateY(-4px);
 }
 
 .methods {

@@ -244,14 +244,14 @@ export function useCheckout() {
     const rows =
       payment.method === 'installments'
         ? groups.value.map((g) => ({
-            label: isSplit.value ? `Оплата ${g.index}, ${g.title}` : `Перший платіж, ${g.title}`,
+            label: isSplit.value ? `Оплата ${g.index}, ${g.title}` : 'Оплачено',
             amount: g.first,
             // Split installments are paid one by one on the next screen
             status: (isSplit.value ? 'pending' : 'paid') as PaymentStatus,
           }))
         : [
             {
-              label: payment.method === 'card' ? 'Оплачено карткою' : 'Оплата при отриманні',
+              label: payment.method === 'card' ? 'Оплачено' : 'Оплата при отриманні',
               amount: cart.total.value,
               status: 'paid' as PaymentStatus,
             },
