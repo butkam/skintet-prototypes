@@ -43,7 +43,9 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
     </div>
 
     <div v-if="line.gift" class="line__gift">
-      <span class="line__gift-icon"><SkIcon name="GiftSmallDark" :size="16" /></span>
+      <!-- Фото подарунка, як у прев'ю складу набору; іконка лишається запасним варіантом -->
+      <img v-if="line.gift.image" class="line__gift-thumb" :src="line.gift.image" alt="" />
+      <span v-else class="line__gift-icon"><SkIcon name="GiftSmallDark" :size="16" /></span>
       <span class="line__gift-title body-s">{{ line.gift.title }}</span>
       <span class="line__gift-price heading-s">{{ formatPrice(line.gift.price) }}</span>
     </div>
@@ -208,7 +210,8 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   /* Starts 4px left of the text column, as in the design */
   width: calc(100% - var(--thumbnail-sample) - var(--space-3));
   padding: var(--space-2) 0 var(--space-2) var(--space-2);
-  border-radius: var(--radius-full) 0 0 var(--radius-full);
+  /* Концентрично до фото: його скруглення + відступ від краю пілюлі */
+  border-radius: calc(var(--radius-sm) + var(--space-2)) 0 0 calc(var(--radius-sm) + var(--space-2));
   background: linear-gradient(to right, var(--bg-surface), color-mix(in oklch, var(--bg-surface) 0%, transparent));
 }
 
@@ -220,6 +223,16 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   height: var(--icon-md);
   border-radius: var(--radius-full);
   background: var(--neutral-0);
+}
+
+/* Same 24px square as the set previews */
+.line__gift-thumb {
+  flex-shrink: 0;
+  width: var(--icon-md);
+  height: var(--icon-md);
+  border-radius: var(--radius-sm);
+  background: var(--neutral-0);
+  object-fit: cover;
 }
 
 .line__gift-title {

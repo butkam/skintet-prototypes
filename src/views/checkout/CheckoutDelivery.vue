@@ -11,18 +11,22 @@ import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutOrder from '@/components/checkout/CheckoutOrder.vue'
 import CityField from '@/components/checkout/CityField.vue'
 import { findCity } from '@/data/cities'
+import { formatPrice } from '@/data/catalog'
+import { useCart } from '@/composables/useCart'
 import { LAST_DELIVERY, formatPhoneInput, phoneDigits, useCheckout, type DeliveryMethod } from '@/composables/useCheckout'
 import novaPoshta from '@/assets/images/nova-poshta.png'
 
 const router = useRouter()
+const cart = useCart()
 const { contact, delivery, deliveryConfirmed } = useCheckout()
 
 const METHODS: DeliveryMethod[] = ['branch', 'courier', 'locker']
-// `lastUsed` — hint under the field while it still holds the prefilled value (LAST_DELIVERY)
-const methodMeta: Record<DeliveryMethod, { label: string; icon: IconName; lastUsed: string }> = {
-  branch: { label: 'Відділення', icon: 'Shop', lastUsed: 'Останнє відділення яким ви користувались.' },
-  courier: { label: 'Адресна', icon: 'Home', lastUsed: 'Остання адреса яку ви вказували.' },
-  locker: { label: 'Поштомат', icon: 'Package', lastUsed: 'Останній поштомат яким ви користувались.' },
+// `eta` — скільки йде посилка цим способом; `lastUsed` — hint under the field while it still
+// holds the prefilled value (LAST_DELIVERY)
+const methodMeta: Record<DeliveryMethod, { label: string; icon: IconName; eta: string; lastUsed: string }> = {
+  branch: { label: 'Відділення', icon: 'Shop', eta: 'До 3-х робочих днів', lastUsed: 'Останнє відділення яким ви користувались.' },
+  courier: { label: 'Адресна', icon: 'Home', eta: 'До 5-ти робочих днів', lastUsed: 'Остання адреса яку ви вказували.' },
+  locker: { label: 'Поштомат', icon: 'Package', eta: 'До 3-х робочих днів', lastUsed: 'Останній поштомат яким ви користувались.' },
 }
 const detailField = computed<'branch' | 'address' | 'locker'>(() =>
   delivery.method === 'courier' ? 'address' : delivery.method,
@@ -250,6 +254,16 @@ function focusNext(field: Field) {
           </template>
         </SkSegmented>
 
+        <!-- Figma 145:6600 — терміни доставки. Безкоштовна дописується до фрази зеленим,
+             а реальна вартість виноситься в правий край рядка. -->
+        <p class="eta body-m" aria-live="polite">
+          <span>
+            {{ methodMeta[delivery.method].eta
+            }}<template v-if="cart.freeDelivery.value">, <span class="eta__free">безкоштовно</span></template>
+          </span>
+          <span v-if="!cart.freeDelivery.value" class="eta__price">{{ formatPrice(cart.delivery.value) }}</span>
+        </p>
+
         <div class="method-detail">
           <SkInput
             v-if="delivery.method === 'branch'"
@@ -379,11 +393,29 @@ function focusNext(field: Field) {
   margin-top: var(--space-4);
 }
 
+/* 12px під сегментед-контролом, 20px до поля з деталями способу */
+.eta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-5);
+  padding: 0 var(--space-5);
+  color: var(--fg-default);
+}
+
+.eta__free {
+  color: var(--status-success-fg);
+}
+
+.eta__price {
+  flex-shrink: 0;
+}
+
 .method-detail {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin-top: var(--space-4);
 }
 
 .method-detail__hint {

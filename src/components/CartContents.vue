@@ -93,7 +93,10 @@ function onLeave(el: Element, done: () => void) {
     </dl>
 
     <div class="cart__checkout">
-      <SkButton class="cart__checkout-btn" block @click="checkout">Замовити · {{ formatPrice(cart.total.value) }}</SkButton>
+      <SkButton class="cart__checkout-btn" block @click="checkout">
+        Замовити
+        <template #amount>{{ formatPrice(cart.total.value) }}</template>
+      </SkButton>
     </div>
   </div>
 </template>

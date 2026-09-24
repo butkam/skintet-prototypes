@@ -84,9 +84,10 @@ export const PAYMENT_OPTIONS: Record<GroupKind, number[]> = {
   cosmetics: [2, 3],
 }
 
-export const BANKS: { id: Bank; name: string }[] = [
-  { id: 'monobank', name: 'Monobank' },
-  { id: 'privatbank', name: 'ПриватБанк' },
+/** `short` — label on the bank segmented control, where the logo already carries the brand */
+export const BANKS: { id: Bank; name: string; short: string }[] = [
+  { id: 'monobank', name: 'Monobank', short: 'Mono' },
+  { id: 'privatbank', name: 'ПриватБанк', short: 'Приват' },
 ]
 
 /* ---------- Helpers ---------- */

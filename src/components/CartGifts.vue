@@ -3,10 +3,12 @@
 // Липка панель під хедером: шкала + семпли. Розгорнутий вибір лягає поверх товарів, не зсуваючи їх.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
+import SkButton from './SkButton.vue'
 import CartProgress from './CartProgress.vue'
 import SampleCard from './SampleCard.vue'
+import SampleCardSkeleton from './SampleCardSkeleton.vue'
 import { useCart } from '@/composables/useCart'
-import { formatAmount, milestones, samples } from '@/data/catalog'
+import { formatAmount, milestones, pluralFreeSamples, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 
 const cart = useCart()
@@ -32,7 +34,11 @@ const pickerTitle = computed(() => {
 
 // Collapsed toggle: invite to pick while slots are free, then progress to the next gift
 const toggleLabel = computed(() => {
-  if (!limitReached.value) return 'Оберіть безкоштовні семпли'
+  if (!limitReached.value) {
+    // Щойно щось обрано — кажемо, скільки слотів лишилось, а не загальне запрошення
+    const left = cart.samplesAllowed.value - picked.value
+    return picked.value ? `Оберіть ще ${left} ${pluralFreeSamples(left)}` : 'Оберіть безкоштовні семпли'
+  }
   const n = picked.value
   const next = milestones.find((m) => cart.subtotal.value < m.amount)
   if (!next) return 'Вітаємо, ви обрали всі подарунки!'
@@ -47,11 +53,61 @@ const flip = spring({ stiffness: 320, damping: 24, mass: 1 })
 // so cards never jump while the user is choosing
 const order = ref(samples.map((s) => s.id))
 let opens = 0
-watch(open, (value) => {
-  if (!value || ++opens < 2) return
-  order.value = [...samples].sort((a, b) => Number(cart.hasSample(a.id)) - Number(cart.hasSample(b.id))).map((s) => s.id)
-})
 const orderedSamples = computed(() => order.value.map((id) => samples.find((s) => s.id === id)!))
+
+/* ---------- Opening in three beats: height → skeleton → cards ---------- */
+
+// The panel used to unfold and dump everything at once. Now the frame opens first,
+// a skeleton holds the cards' place while their images decode, and only then do the
+// cards fade in one after another.
+const HEIGHT_MS = 400 // matches the grid-rows transition below
+const SKELETON_MIN_MS = 380 // skeleton stays at least until the panel has finished unfolding
+
+const ready = ref(false)
+let imagesReady: Promise<unknown> | null = null
+const preloadSamples = () =>
+  (imagesReady ??= Promise.all(
+    samples.map(
+      (s) =>
+        new Promise((resolve) => {
+          const img = new Image()
+          img.onload = img.onerror = resolve
+          img.src = s.image
+        }),
+    ),
+  ))
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+let openId = 0
+let collapseTimer: number | undefined
+
+watch(open, async (value) => {
+  clearTimeout(collapseTimer)
+  const id = ++openId
+
+  if (!value) {
+    // Swap back to the skeleton only once the panel is actually shut, so the change never flashes
+    collapseTimer = window.setTimeout(() => {
+      if (openId === id) ready.value = false
+    }, HEIGHT_MS)
+    return
+  }
+
+  // Reorder while the skeleton still covers the track — the cards never visibly jump
+  if (++opens >= 2) {
+    order.value = [...samples].sort((a, b) => Number(cart.hasSample(a.id)) - Number(cart.hasSample(b.id))).map((s) => s.id)
+  }
+
+  if (prefersReducedMotion()) {
+    ready.value = true
+    return
+  }
+
+  ready.value = false
+  await Promise.all([preloadSamples(), wait(SKELETON_MIN_MS)])
+  if (openId === id && open.value) ready.value = true
+})
 
 // Dropping below the threshold hides the picker
 watch(unlocked, (value) => {
@@ -65,6 +121,12 @@ function toggleSample(sample: (typeof samples)[number], e: MouseEvent) {
     [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(0)' }],
     { duration: 320, easing: 'ease-out' },
   )
+}
+
+// Відмова (Figma 208:1858 → 208:2098): прибираємо обрані семпли, згортаємо панель
+function decline() {
+  cart.declineSamples()
+  open.value = false
 }
 
 /* ---------- Overlay: the picker grows over the list instead of pushing it ---------- */
@@ -85,13 +147,16 @@ watch(picker, (el, prev) => {
   if (el) resizeObserver?.observe(el)
   else overlap.value = 0
 })
-onBeforeUnmount(() => resizeObserver?.disconnect())
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  clearTimeout(collapseTimer)
+})
 </script>
 
 <template>
   <div class="gifts" data-sticky-top :style="{ marginBottom: `${-overlap}px` }">
     <div class="gifts__sheet" :class="{ 'is-open': open }">
-      <CartProgress :subtotal="cart.subtotal.value" />
+      <CartProgress :subtotal="cart.subtotal.value" :picked="picked" />
 
       <!-- Locked: how much is left to the next goal -->
       <p v-if="!unlocked" class="gifts__hint body-s" aria-live="polite">
@@ -108,22 +173,43 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
               <h3 id="gifts-title" class="body-s">{{ pickerTitle }}</h3>
               <span class="gifts__counter body-s" aria-live="polite">{{ picked }}/{{ cart.samplesAllowed.value }}</span>
             </div>
-            <div class="gifts__track" role="group" aria-labelledby="gifts-title">
-              <SampleCard
-                v-for="s in orderedSamples"
-                :key="s.id"
-                :title="s.title"
-                :description="s.description"
-                :image="s.image"
-                :selected="cart.hasSample(s.id)"
-                :disabled="limitReached && !cart.hasSample(s.id)"
-                @click="toggleSample(s, $event)"
-              />
+            <!-- Skeleton and cards share one grid cell: the track keeps its height through the swap -->
+            <div class="gifts__stack">
+              <div class="gifts__track gifts__track--skeleton" :class="{ 'is-gone': ready }" aria-hidden="true">
+                <SampleCardSkeleton v-for="(s, i) in samples" :key="s.id" :style="{ '--d': `${i * 90}ms` }" />
+              </div>
+              <div
+                class="gifts__track"
+                :class="{ 'is-ready': ready }"
+                role="group"
+                aria-labelledby="gifts-title"
+                :inert="!ready || undefined"
+              >
+                <div v-for="(s, i) in orderedSamples" :key="s.id" class="gifts__slot" :style="{ '--d': `${i * 45}ms` }">
+                  <SampleCard
+                    :title="s.title"
+                    :description="s.description"
+                    :image="s.image"
+                    :selected="cart.hasSample(s.id)"
+                    :disabled="limitReached && !cart.hasSample(s.id)"
+                    @click="toggleSample(s, $event)"
+                  />
+                </div>
+              </div>
             </div>
+            <SkButton class="gifts__decline" variant="secondary" block @click="decline">
+              Відмовитись від подарунків
+            </SkButton>
           </div>
         </div>
 
-        <button class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
+        <!-- Figma 208:2098 — замість тогла лишається рядок з поверненням до вибору -->
+        <p v-if="cart.samplesDeclined.value" class="gifts__declined body-s">
+          <span>Ви відмовились від подарункових семплів</span>
+          <button class="gifts__resume" type="button" @click="cart.resumeSamples()">Хочу семпли</button>
+        </p>
+
+        <button v-else class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
           {{ open ? 'Закрити' : toggleLabel }}
           <!-- Figma IconChevronLargeRight turned down, redrawn as a 1px stroke along the glyph's centre line
                so it can flip: it flattens into a line and bends the other way -->
@@ -213,11 +299,18 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
   font-variant-numeric: tabular-nums;
 }
 
+/* 13px under the head; -4px keeps the selected-border spring from being clipped */
+.gifts__stack {
+  display: grid;
+  margin: 13px 0 -4px;
+}
+.gifts__stack > * {
+  grid-area: 1 / 1;
+}
+
 .gifts__track {
   display: flex;
   gap: var(--space-3);
-  /* 4px breathing room so the selected-border spring isn't clipped */
-  margin: 13px 0 -4px;
   padding: 4px var(--space-5);
   overflow-x: auto;
   overflow-y: hidden;
@@ -229,6 +322,70 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 }
 .gifts__track::-webkit-scrollbar {
   display: none;
+}
+
+/* The skeleton fades out from under the cards it was holding the place for */
+.gifts__track--skeleton {
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.24s ease;
+}
+.gifts__track--skeleton.is-gone {
+  opacity: 0;
+}
+/* No point sweeping a skeleton nobody can see */
+.gifts__picker:not(.is-open) :deep(.sk-card)::after,
+.gifts__track--skeleton.is-gone :deep(.sk-card)::after {
+  animation-play-state: paused;
+}
+
+/* Cards arrive one after another, a beat apart (--d) */
+.gifts__slot {
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.26s ease, transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.gifts__track.is-ready .gifts__slot {
+  opacity: 1;
+  transform: none;
+  transition-delay: var(--d);
+}
+
+/* Figma 208:2006 — кнопка відмови під каруселлю, на всю ширину панелі */
+.gifts__decline {
+  width: calc(100% - var(--space-5) * 2);
+  margin: var(--space-5) var(--space-5) 0;
+}
+
+/* ---------- Declined (208:2098): рядок замість тогла ---------- */
+
+.gifts__declined {
+  box-sizing: border-box;
+  display: flex;
+  /* Посилання тримається першого рядка, коли текст переноситься на вузькому екрані */
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  /* Панель не нижча за згорнутий стан, але й не обрізає другий рядок */
+  min-height: var(--gifts-footer-h);
+  margin: 0;
+  /* Текст на тій самій висоті, що й «Оберіть безкоштовні семпли» */
+  padding: calc(var(--space-5) - (20px - var(--font-line-height-xs)) / 2) var(--space-5) var(--space-2);
+  color: var(--fg-default);
+}
+
+.gifts__resume {
+  flex-shrink: 0;
+  color: var(--fg-default);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.gifts__resume:focus-visible {
+  outline: var(--border-width-focus) solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 
 /* ---------- Toggle: «Оберіть безкоштовні семпли ⌄» / «Закрити ⌃» ---------- */
@@ -275,6 +432,14 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 @media (prefers-reduced-motion: reduce) {
   .gifts__chevron path {
     transition: none !important;
+  }
+  .gifts__slot {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .gifts__track--skeleton {
+    transition: none;
   }
 }
 </style>
