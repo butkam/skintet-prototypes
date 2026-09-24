@@ -6,9 +6,19 @@ import SkIcon from './SkIcon.vue'
 import CartProgress from './CartProgress.vue'
 import SampleCard from './SampleCard.vue'
 import SampleCardSkeleton from './SampleCardSkeleton.vue'
+import SkButton from './SkButton.vue'
 import { useCart } from '@/composables/useCart'
-import { formatAmount, milestones, pluralFreeSamples, samples } from '@/data/catalog'
+import { formatAmount, formatPrice, milestones, pluralFreeSamples, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
+
+const props = defineProps<{
+  /** Кошик попросив обрати подарунок: дія переїжджає в панель, виходів з неї більше нема */
+  offering?: boolean
+  /** Назва цієї дії — рахує кошик, бо вона залежить від того, скільки слотів вільні */
+  actionLabel?: string
+}>()
+
+const emit = defineEmits<{ order: [] }>()
 
 const cart = useCart()
 
@@ -174,13 +184,16 @@ onBeforeUnmount(() => {
 
       <template v-else>
         <div ref="picker" class="gifts__picker" :class="{ 'is-open': open }" :inert="!open || undefined">
-          <div class="gifts__picker-inner">
+          <div class="gifts__picker-inner" :class="{ 'is-offering': offering }">
             <div class="gifts__head">
               <h3 id="gifts-title" class="body-s">{{ pickerTitle }}</h3>
               <span class="gifts__counter body-s" aria-live="polite">{{ picked }}/{{ cart.samplesAllowed.value }}</span>
             </div>
-            <!-- Figma 212:2305 — тиха відмова під заголовком, подалі від «Закрити» -->
-            <button class="gifts__decline link body-s" type="button" @click="decline">Відмовитись від подарунків</button>
+            <!-- Figma 212:2305 — тиха відмова під заголовком, подалі від «Закрити».
+                 Під час пропозиції її замінює кнопка «Без подарунків» — два виходи поруч зайві -->
+            <button v-if="!offering" class="gifts__decline link body-s" type="button" @click="decline">
+              Відмовитись від подарунків
+            </button>
             <!-- Skeleton and cards share one grid cell: the track keeps its height through the swap -->
             <div class="gifts__stack">
               <div class="gifts__track gifts__track--skeleton" :class="{ 'is-gone': ready }" aria-hidden="true">
@@ -205,6 +218,12 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
+
+            <!-- Дія кошика на час вибору живе тут, під каруселлю -->
+            <SkButton v-if="offering" class="gifts__action" block @click="emit('order')">
+              {{ actionLabel }}
+              <template #amount>{{ formatPrice(cart.total.value) }}</template>
+            </SkButton>
           </div>
         </div>
 
@@ -214,7 +233,7 @@ onBeforeUnmount(() => {
           <button class="gifts__resume link" type="button" @click="resume">Хочу семпли</button>
         </p>
 
-        <button v-else class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
+        <button v-else-if="!offering" class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
           {{ open ? 'Закрити' : toggleLabel }}
           <!-- Figma IconChevronLargeRight turned down, redrawn as a 1px stroke along the glyph's centre line
                so it can flip: it flattens into a line and bends the other way -->
@@ -355,6 +374,21 @@ onBeforeUnmount(() => {
   opacity: 1;
   transform: none;
   transition-delay: var(--d);
+}
+
+/* Пропозиція: лінка відмови нема, тож карусель підходить до заголовка на ті ж 17px,
+   що й до його появи; кнопка внизу замикає панель замість тогла */
+.gifts__picker-inner.is-offering .gifts__stack {
+  margin-top: 13px;
+}
+
+.gifts__picker-inner.is-offering {
+  padding-bottom: var(--space-5);
+}
+
+.gifts__action {
+  width: calc(100% - var(--space-5) * 2);
+  margin: var(--space-5) var(--space-5) 0;
 }
 
 /* Figma 212:2305 — відмова як тихий лінк під заголовком: вага менша за «Закрити», тож дві дії

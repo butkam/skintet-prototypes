@@ -38,6 +38,10 @@ const orderLabel = computed(() =>
   giftsOffered.value && giftsLeft.value > 0 ? (giftsLeft.value === 1 ? 'Без подарунка' : 'Без подарунків') : 'Замовити',
 )
 
+// Дія живе в панелі, лише поки та відкрита: інакше (сума впала нижче порогу)
+// кошик лишився б узагалі без кнопки
+const offering = computed(() => giftsOffered.value && cart.giftsOpen.value)
+
 function order() {
   if (!giftsOffered.value && giftsLeft.value > 0 && !cart.samplesDeclined.value) {
     giftsOffered.value = true
@@ -69,7 +73,7 @@ function onLeave(el: Element, done: () => void) {
 
 <template>
   <div class="cart">
-    <CartGifts />
+    <CartGifts :offering="offering" :action-label="orderLabel" @order="checkout" />
 
     <TransitionGroup tag="div" class="lines" :css="false" @leave="onLeave">
       <CartLineItem
@@ -113,7 +117,7 @@ function onLeave(el: Element, done: () => void) {
       </div>
     </dl>
 
-    <div class="cart__checkout">
+    <div v-if="!offering" class="cart__checkout">
       <SkButton class="cart__checkout-btn" block @click="order">
         {{ orderLabel }}
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
