@@ -145,24 +145,35 @@ function resume() {
   open.value = true
 }
 
-/* ---------- Overlay: the picker grows over the list instead of pushing it ---------- */
+/* ---------- Overlay: панель лягає поверх списку, а не розсуває його ---------- */
 
-// The panel sits in flow; a negative bottom margin equal to the picker's current height
-// (updated every frame of the open/close animation) keeps everything below in place.
+// Панель абсолютна, тож її ріст узагалі не змінює потік. Обгортка тримає висоту
+// згорнутого стану — різницю двох розмірів, знятих в один момент.
+//
+// Раніше панель була в потоці, а під неї підкладався від'ємний маржин у висоту
+// пікера. Маржин приходив із ResizeObserver, тобто на кілька кадрів пізніше за
+// сам ріст панелі, — і список під нею через це вібрував усю анімацію.
+const root = ref<HTMLElement | null>(null)
+const sheet = ref<HTMLElement | null>(null)
 const picker = ref<HTMLElement | null>(null)
-const overlap = ref(0)
 let resizeObserver: ResizeObserver | undefined
 
+function syncHeight() {
+  if (!root.value || !sheet.value) return
+  // Дробові розміри, не offsetHeight: округлення до цілого лишало ±0.5px дихання
+  const full = sheet.value.getBoundingClientRect().height
+  const grown = picker.value?.getBoundingClientRect().height ?? 0
+  root.value.style.height = `${full - grown}px`
+}
+
 onMounted(() => {
-  resizeObserver = new ResizeObserver(() => (overlap.value = picker.value?.offsetHeight ?? 0))
-  if (picker.value) resizeObserver.observe(picker.value)
+  // Синхронно, до першої промальовки, щоб список не підстрибнув на кадр
+  syncHeight()
+  resizeObserver = new ResizeObserver(syncHeight)
+  if (sheet.value) resizeObserver.observe(sheet.value)
 })
 // The picker only exists once samples unlock
-watch(picker, (el, prev) => {
-  if (prev) resizeObserver?.unobserve(prev)
-  if (el) resizeObserver?.observe(el)
-  else overlap.value = 0
-})
+watch(picker, () => syncHeight())
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   clearTimeout(collapseTimer)
@@ -170,8 +181,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="gifts" data-sticky-top :style="{ marginBottom: `${-overlap}px` }">
-    <div class="gifts__sheet" :class="{ 'is-open': open }">
+  <div ref="root" class="gifts" data-sticky-top>
+    <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open }">
       <CartProgress :subtotal="cart.subtotal.value" :picked="picked" />
 
       <!-- Locked: how much is left to the next goal -->
@@ -252,10 +263,15 @@ onBeforeUnmount(() => {
   top: var(--drawer-header-h);
   /* Above the header's own fade overhang and the list below */
   z-index: 11;
+  /* Висоту згорнутої панелі ставить syncHeight; розгорнута виходить за межі */
+  height: 0;
 }
 
 /* Figma: canvas, radius/lg at the bottom, Elevation/M */
 .gifts__sheet {
+  /* Поза потоком: анімація відкриття не рухає нічого під панеллю */
+  position: absolute;
+  inset: 0 0 auto;
   /* Everything under the scale in the collapsed state — shared by the locked hint so the
      panel is the same height before and after samples unlock:
      20 (gap) + 16 (text) + 4 (gap) + 7.28 (arrow) + 8 (to the edge) */
