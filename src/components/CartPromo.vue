@@ -1,6 +1,9 @@
 <script setup lang="ts">
 // Figma 169:8280 — промокод: кнопка → поле з «Застосувати» (default · focus · error) → застосований код з «Видалити»
 // Одна кнопка на всі стани: «+ Додати промокод» стискається праворуч у «Застосувати», а поле виростає з-під неї.
+// `band` (Figma 223:2931, «Оплата») — закритий промокод як смуга на всю ширину з текстовою кнопкою.
+// Висота смуги не змінюється: відкриваючись, кнопка так само стискається в «Застосувати» й отримує
+// фон і обводку, а лінії й градієнт смуги згасають.
 import { computed, nextTick, ref } from 'vue'
 import SkButton from './SkButton.vue'
 import SkIcon from './SkIcon.vue'
@@ -8,6 +11,8 @@ import SkInput from './SkInput.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount } from '@/data/catalog'
 import { spring } from '@/motion/spring'
+
+defineProps<{ band?: boolean }>()
 
 const cart = useCart()
 
@@ -59,7 +64,7 @@ function onInput() {
 </script>
 
 <template>
-  <div class="promo">
+  <div class="promo" :class="{ 'promo--band': band, 'is-open': open }">
     <div class="promo__row">
       <p v-if="cart.promo.value" class="promo__applied body-m" role="status">
         <SkIcon name="Check" :size="18" color="var(--status-success-fg)" />
@@ -84,7 +89,7 @@ function onInput() {
       <SkButton
         class="promo__action"
         :class="{ 'is-open': open }"
-        :style="{ transition: `width ${morph.duration}ms ${morph.easing}, background-color 0.15s ease` }"
+        :style="{ transition: `width ${morph.duration}ms ${morph.easing}, background-color 0.15s ease, border-color 0.15s ease` }"
         variant="secondary"
         @click="onAction"
       >
@@ -160,6 +165,40 @@ function onInput() {
   color: var(--fg-muted);
 }
 
+/* ---------- Band (Figma 223:2931) ---------- */
+
+/* 60px strip: the 48px row sits 6px from its hairlines. The parent bleeds it to the screen edges */
+.promo--band {
+  position: relative;
+  isolation: isolate;
+  padding: 6px var(--space-4);
+}
+
+/* Hairlines and the neutral/100 glow (70%) share one radial fade from the centre — the lines
+   thin out to nothing towards the edges, like the fill */
+.promo--band::before {
+  --glow: circle 214.5px at 50% 50%;
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(var(--glow), var(--border-strong), transparent) top / 100% var(--border-width-hairline) no-repeat,
+    radial-gradient(var(--glow), var(--border-strong), transparent) bottom / 100% var(--border-width-hairline) no-repeat,
+    radial-gradient(var(--glow), color-mix(in oklch, var(--neutral-100) 70%, transparent), transparent);
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.promo--band.is-open::before {
+  opacity: 0;
+}
+
+/* Closed: a text button lying on the strip — no fill, no outline */
+.promo--band .promo__action:not(.is-open) {
+  background: transparent;
+  border-color: transparent;
+}
+
 /* Label swap while the button morphs */
 .promo-label-enter-active,
 .promo-label-leave-active {
@@ -171,7 +210,8 @@ function onInput() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .promo__action {
+  .promo__action,
+  .promo--band::before {
     transition: none !important;
   }
 }

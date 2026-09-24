@@ -13,6 +13,8 @@ import { useCart } from '@/composables/useCart'
 import { PAYMENT_OPTIONS, useCheckout } from '@/composables/useCheckout'
 import { formatAmount, formatMonthly, formatPrice, pluralPayments } from '@/data/catalog'
 import PaymentLogos from '@/components/checkout/PaymentLogos.vue'
+import WalletButton from '@/components/checkout/WalletButton.vue'
+import { detectWallet, loadGooglePay, type Wallet } from '@/composables/wallet'
 import { backTo } from '@/router'
 
 const router = useRouter()
@@ -30,6 +32,12 @@ const cta = computed(() =>
     ? { action: 'Оформити', amount: `сьогодні ${formatPrice(schedule.value.today)}` }
     : { action: 'Оплатити', amount: formatPrice(cart.total.value) },
 )
+
+// «Онлайн карткою» → справжня кнопка Apple Pay / Google Pay замість «Оплатити».
+// pay.js тягнемо одразу, щоб кнопка була готова, щойно обрали картку; не завантажився — лишається «Оплатити»
+const wallet = ref<Wallet | null>(detectWallet())
+if (wallet.value === 'google') loadGooglePay().catch(() => (wallet.value = null))
+const walletPay = computed(() => (payment.method === 'card' ? wallet.value : null))
 
 const methodError = ref('')
 const methodsSection = ref<HTMLElement | null>(null)
@@ -146,10 +154,15 @@ onUnmounted(() => placed && settleOrder())
       </section>
 
       <!-- Same promo state as in the cart: a code applied there shows up here already applied -->
-      <CartPromo class="promo" />
+      <CartPromo class="promo" band />
 
       <div class="page__cta">
-        <SkButton block @click="submit">
+        <template v-if="walletPay">
+          <WalletButton :wallet="walletPay" @pay="submit" />
+          <!-- Не в кожного картка в гаманці — звичайна оплата лишається поруч -->
+          <SkButton variant="secondary" block @click="submit">Оплатити картою</SkButton>
+        </template>
+        <SkButton v-else block @click="submit">
           {{ cta.action }}
           <template #amount>{{ cta.amount }}</template>
         </SkButton>
@@ -346,13 +359,17 @@ onUnmounted(() => placed && settleOrder())
 
 /* ---------- Bottom ---------- */
 
+/* Figma 223:2931 — strip across the whole screen, 24px from the options and the button */
 .promo {
-  margin-top: 36px;
+  margin: var(--space-6) calc(var(--space-4) * -1) 0;
 }
 
 /* In normal flow at the end of the page (not sticky), followed by the legal note */
 .page__cta {
-  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
 }
 
 .legal {
