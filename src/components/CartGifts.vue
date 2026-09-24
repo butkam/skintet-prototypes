@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="root" class="gifts" data-sticky-top>
     <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open }">
-      <CartProgress :subtotal="cart.subtotal.value" :picked="picked" />
+      <CartProgress :subtotal="cart.subtotal.value" :picked="picked" :declined="cart.samplesDeclined.value" />
 
       <!-- Locked: how much is left to the next goal -->
       <p v-if="!unlocked" class="gifts__hint body-s" aria-live="polite">

@@ -1,17 +1,25 @@
 <script setup lang="ts">
 // Figma states 156:6854 · 158:7074 · 158:7117 · 158:7221 · 158:7267 (шкала)
-// Доступний поріг — темний підпис; отриманий — зелений з галочкою. Прилипає разом з панеллю CartGifts.
+// Доступний поріг — темний підпис; отриманий — зелений з галочкою; від подарунка відмовились — червоний
+// з хрестиком. Прилипає разом з панеллю CartGifts.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import SkIcon from './SkIcon.vue'
 import { formatAmount, milestones } from '@/data/catalog'
 import { spring } from '@/motion/spring'
 
-const props = defineProps<{ subtotal: number; picked: number }>()
+const props = defineProps<{
+  subtotal: number
+  picked: number
+  /** Покупець відмовився від семплів — доступні подарункові пороги перекреслюються */
+  declined?: boolean
+}>()
 
 /** Поріг пройдено — подарунок доступний */
 const isAvailable = (m: (typeof milestones)[number]) => props.subtotal >= m.amount
 /** Подарунок справді отримано: доставка вмикається сама, семпли треба ще обрати */
 const isClaimed = (m: (typeof milestones)[number]) => isAvailable(m) && (m.samples === 0 || props.picked >= m.samples)
+/** Подарунок був доступний, але від семплів відмовились. Доставка сюди не входить — вона не семпл */
+const isDeclined = (m: (typeof milestones)[number]) => !!props.declined && m.samples > 0 && isAvailable(m)
 
 /*
  * Visible milestones depend on how far the order got (Доставка always stays):
@@ -203,8 +211,12 @@ onBeforeUnmount(() => {
         :style="{ ...labelStyle(i), transition: moveTransition }"
       >
         <span class="progress__label-amount">від {{ formatAmount(m.amount) }}</span>
-        <span class="progress__label-caption" :class="{ 'is-available': isAvailable(m), 'is-claimed': isClaimed(m) }">
-          <SkIcon v-if="isClaimed(m)" name="Check" :size="18" color="var(--status-success-fg)" class="progress__check" />
+        <span
+          class="progress__label-caption"
+          :class="{ 'is-available': isAvailable(m), 'is-claimed': isClaimed(m), 'is-declined': isDeclined(m) }"
+        >
+          <SkIcon v-if="isDeclined(m)" name="CrossSmall" :size="16" color="var(--status-danger-fg)" class="progress__cross" />
+          <SkIcon v-else-if="isClaimed(m)" name="Check" :size="18" color="var(--status-success-fg)" class="progress__check" />
           {{ caption(m) }}
         </span>
       </div>
@@ -288,9 +300,19 @@ onBeforeUnmount(() => {
   color: var(--status-success-fg);
 }
 
+.progress__label-caption.is-declined {
+  color: var(--status-danger-fg);
+}
+
 /* 18px glyph in a 16px line, nudged 2px left of the label edge (Figma) */
 .progress__check {
   flex-shrink: 0;
   margin: -1px 0 -1px -2px;
+}
+
+/* 16px cross takes the same 16px of the line as the check above: glyph starts ~1px from the edge */
+.progress__cross {
+  flex-shrink: 0;
+  margin: 0 2px 0 -2px;
 }
 </style>
