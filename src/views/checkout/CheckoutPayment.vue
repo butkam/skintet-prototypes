@@ -58,7 +58,7 @@ onUnmounted(() => placed && settleOrder())
         <template #aside>
           <RouterLink
             :to="{ name: 'checkout-delivery' }"
-            class="change body-m"
+            class="body-m"
             @click.prevent="backTo({ name: 'checkout-delivery' })"
           >
             Змінити
@@ -164,12 +164,6 @@ onUnmounted(() => placed && settleOrder())
 </template>
 
 <style scoped>
-.change {
-  color: var(--fg-default);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
 .page__content {
   display: flex;
   flex-direction: column;

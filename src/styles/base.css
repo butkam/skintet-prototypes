@@ -57,8 +57,13 @@ button {
   cursor: pointer;
 }
 
-a {
+/* Текстове посилання: текст звичайного кольору, підкреслення світліше — лінія не забиває слово */
+a,
+.link {
   color: var(--fg-link);
+  text-decoration: underline;
+  text-decoration-color: var(--fg-link-underline);
+  text-underline-offset: 2px;
 }
 
 p,

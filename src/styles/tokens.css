@@ -70,6 +70,8 @@
   --fg-disabled: var(--neutral-400);
   --fg-inverse: var(--neutral-0);
   --fg-link: var(--neutral-900);
+  /* Підкреслення світліше за текст: лінія не забиває слово */
+  --fg-link-underline: var(--neutral-300);
 
   --border-subtle: var(--neutral-100);
   --border-default: var(--neutral-200);

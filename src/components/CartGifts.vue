@@ -3,7 +3,6 @@
 // Липка панель під хедером: шкала + семпли. Розгорнутий вибір лягає поверх товарів, не зсуваючи їх.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
-import SkButton from './SkButton.vue'
 import CartProgress from './CartProgress.vue'
 import SampleCard from './SampleCard.vue'
 import SampleCardSkeleton from './SampleCardSkeleton.vue'
@@ -129,6 +128,12 @@ function decline() {
   open.value = false
 }
 
+// Повернення: одразу показуємо вибір — інакше довелось би тапати ще раз по тоглу
+function resume() {
+  cart.resumeSamples()
+  open.value = true
+}
+
 /* ---------- Overlay: the picker grows over the list instead of pushing it ---------- */
 
 // The panel sits in flow; a negative bottom margin equal to the picker's current height
@@ -173,6 +178,8 @@ onBeforeUnmount(() => {
               <h3 id="gifts-title" class="body-s">{{ pickerTitle }}</h3>
               <span class="gifts__counter body-s" aria-live="polite">{{ picked }}/{{ cart.samplesAllowed.value }}</span>
             </div>
+            <!-- Figma 212:2305 — тиха відмова під заголовком, подалі від «Закрити» -->
+            <button class="gifts__decline link body-s" type="button" @click="decline">Відмовитись від подарунків</button>
             <!-- Skeleton and cards share one grid cell: the track keeps its height through the swap -->
             <div class="gifts__stack">
               <div class="gifts__track gifts__track--skeleton" :class="{ 'is-gone': ready }" aria-hidden="true">
@@ -197,16 +204,13 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <SkButton class="gifts__decline" variant="secondary" block @click="decline">
-              Відмовитись від подарунків
-            </SkButton>
           </div>
         </div>
 
         <!-- Figma 208:2098 — замість тогла лишається рядок з поверненням до вибору -->
         <p v-if="cart.samplesDeclined.value" class="gifts__declined body-s">
-          <span>Ви відмовились від подарункових семплів</span>
-          <button class="gifts__resume" type="button" @click="cart.resumeSamples()">Хочу семпли</button>
+          <span>Ви відмовились від подарунків</span>
+          <button class="gifts__resume link" type="button" @click="resume">Хочу семпли</button>
         </p>
 
         <button v-else class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
@@ -299,10 +303,10 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* 13px under the head; -4px keeps the selected-border spring from being clipped */
+/* 20px під лінком відмови (з них 4px дає падинг треку); -4px не дає обрізати пружину рамки обраної картки */
 .gifts__stack {
   display: grid;
-  margin: 13px 0 -4px;
+  margin: 16px 0 -4px;
 }
 .gifts__stack > * {
   grid-area: 1 / 1;
@@ -352,10 +356,27 @@ onBeforeUnmount(() => {
   transition-delay: var(--d);
 }
 
-/* Figma 208:2006 — кнопка відмови під каруселлю, на всю ширину панелі */
+/* Figma 212:2305 — відмова як тихий лінк під заголовком: вага менша за «Закрити», тож дві дії
+   більше не читаються як одна пара */
 .gifts__decline {
-  width: calc(100% - var(--space-5) * 2);
-  margin: var(--space-5) var(--space-5) 0;
+  position: relative;
+  /* block — інакше рядок inline-block додає під лінком ~2.5px базової лінії */
+  display: block;
+  width: fit-content;
+  margin: var(--space-2) var(--space-5) 0;
+}
+
+/* Тап-зона до 32px заввишки, не рухаючи 16px рядок */
+.gifts__decline::after {
+  content: '';
+  position: absolute;
+  inset: -8px -12px;
+}
+
+.gifts__decline:focus-visible {
+  outline: var(--border-width-focus) solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 
 /* ---------- Declined (208:2098): рядок замість тогла ---------- */
@@ -377,9 +398,6 @@ onBeforeUnmount(() => {
 
 .gifts__resume {
   flex-shrink: 0;
-  color: var(--fg-default);
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
 .gifts__resume:focus-visible {

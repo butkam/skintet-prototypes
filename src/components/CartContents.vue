@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // Figma "iPhone 17 - 9" (node 112:1857) — кошик з товарами
 // Прилипання: шкала під хедером, «Замовити» внизу (node 112:2021)
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
+import CartGiftSheet from './CartGiftSheet.vue'
 import CartLineItem from './CartLineItem.vue'
 import CartPromo from './CartPromo.vue'
 import { useCart } from '@/composables/useCart'
@@ -25,6 +26,25 @@ async function checkout() {
 }
 
 const pickedSamples = computed(() => cart.sampleLines.value.length)
+
+/* ---------- Подарунок перед оформленням ---------- */
+
+// Лишився вільний слот і від подарунків не відмовились — спершу пропонуємо обрати
+const giftPrompt = ref(false)
+const giftsLeft = computed(() => cart.samplesAllowed.value - pickedSamples.value)
+
+function order() {
+  if (giftsLeft.value > 0 && !cart.samplesDeclined.value) {
+    giftPrompt.value = true
+    return
+  }
+  checkout()
+}
+
+// Даємо шторці поїхати вниз, і аж тоді запускаємо перехід на оформлення
+function onGiftPromptConfirm() {
+  setTimeout(checkout, prefersReducedMotion() ? 0 : 200)
+}
 
 function toggleSet(id: string) {
   const line = cart.lines.value.find((l) => l.id === id)
@@ -92,8 +112,10 @@ function onLeave(el: Element, done: () => void) {
       </div>
     </dl>
 
+    <CartGiftSheet v-model="giftPrompt" @confirm="onGiftPromptConfirm" />
+
     <div class="cart__checkout">
-      <SkButton class="cart__checkout-btn" block @click="checkout">
+      <SkButton class="cart__checkout-btn" block @click="order">
         Замовити
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
       </SkButton>
