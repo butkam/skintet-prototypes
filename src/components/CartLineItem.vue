@@ -1,8 +1,10 @@
 <script setup lang="ts">
 // Figma nodes 132:6137 (товар з подарунком), 132:6163 / 132:6183 (набір), 132:6233 (семпл)
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
 import { formatPrice, pluralItems, type CartLine } from '@/data/catalog'
+import { prefersReducedMotion } from '@/motion/spring'
+import { snap, tween } from '@/motion/tween'
 
 const props = defineProps<{ line: CartLine }>()
 const emit = defineEmits<{ increment: []; decrement: []; toggle: [] }>()
@@ -10,6 +12,41 @@ const emit = defineEmits<{ increment: []; decrement: []; toggle: [] }>()
 // Gift samples: one of each — removable, but the quantity can't grow
 const single = computed(() => props.line.kind === 'sample')
 const setCount = computed(() => props.line.setItems?.length ?? 0)
+
+/* ---------- Розкриття складу набору ---------- */
+
+// Висоту веде скрипт, кроками по цілому фізичному пікселю (див. motion/tween).
+// Склад не має власної анімації: він нерухомий усередині контейнера, що росте,
+// і просто відкривається, як шухляда. Коли склад проявлявся ще й прозорістю та
+// зсувом, WebKit виносив його в окремий шар, обрізаний контейнером змінної висоти,
+// і на iPhone сам список дрижав.
+const setBox = ref<HTMLElement | null>(null)
+let cancel: (() => void) | undefined
+
+// flush 'pre': міряємо стару висоту до того, як клас is-open її змінить
+watch(
+  () => props.line.expanded,
+  (open) => {
+    const box = setBox.value
+    if (!box) return
+    cancel?.()
+    if (prefersReducedMotion()) {
+      box.style.height = ''
+      return
+    }
+
+    const from = box.getBoundingClientRect().height
+    const to = open ? box.scrollHeight : 0
+    box.style.height = `${from}px`
+    cancel = tween(
+      350,
+      (p) => (box.style.height = `${snap(from + (to - from) * p)}px`),
+      // Далі висоту знову тримає клас: auto для відкритого, 0 для закритого
+      () => (box.style.height = ''),
+    )
+  },
+)
+onBeforeUnmount(() => cancel?.())
 </script>
 
 <template>
@@ -30,7 +67,7 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
             {{ setCount }} {{ pluralItems(setCount) }} в наборі
             <SkIcon name="ChevronDownSmall" :size="16" class="line__chevron" :class="{ 'is-open': line.expanded }" />
           </button>
-          <div class="line__set" :class="{ 'is-open': line.expanded }">
+          <div ref="setBox" class="line__set" :class="{ 'is-open': line.expanded }">
             <ul class="line__set-list">
               <li v-for="(item, i) in line.setItems" :key="i" class="line__set-item">
                 <img class="line__set-thumb" :src="item.image" alt="" />
@@ -152,44 +189,24 @@ const setCount = computed(() => props.line.setItems?.length ?? 0)
   transform: scaleY(-1);
 }
 
-/* Висота міняється одним кроком, без анімації.
-   Поки вона росла плавно, кошик перекомпоновувався щокадру, а drawer — це один
-   композитний шар на весь екран: WebKit перемальовував його цілком, і текст на
-   дробових позиціях щоразу растеризувався інакше. На iPhone це видно як дрижання
-   всього екрана (заміряно: 60fps, жоден елемент не зсувається, і все одно тремтить).
-   Тепер перекомпоновка одна, а м'якість дає проявлення самого списку — opacity і
-   transform ідуть на композиторі й не чіпають компоновку. */
+/* Висоту під час руху веде скрипт (див. setBox); у спокої її тримає клас */
 .line__set {
-  display: grid;
-  grid-template-rows: 0fr;
+  height: 0;
+  overflow: hidden;
 }
 .line__set.is-open {
-  grid-template-rows: 1fr;
+  height: auto;
 }
 
+/* Відступ зверху постійний: інакше перемикання класу міняло б висоту
+   ще до того, як скрипт її поміряє */
 .line__set-list {
-  min-height: 0;
-  overflow: hidden;
   margin: 0;
-  padding: 0;
+  padding: var(--space-2) 0 0;
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  opacity: 0;
-  transform: translateY(-4px);
-}
-.line__set.is-open .line__set-list {
-  padding-top: var(--space-2);
-  opacity: 1;
-  transform: none;
-  transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .line__set.is-open .line__set-list {
-    transition: none;
-  }
 }
 
 .line__set-item {

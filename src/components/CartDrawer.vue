@@ -9,7 +9,7 @@ import { useCart } from '@/composables/useCart'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 import viewedImage from '@/assets/images/product-viewed.png'
 
-const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, drawerExit, closeDrawer, add } = useCart()
+const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer, add } = useCart()
 
 const recentlyViewed = [
   { id: 1, title: 'Exo-PDRN Prismatic+ Super Mega Pro Max Deluxe with amazing formula', price: '1 700,00 ₴', image: viewedImage },
@@ -38,6 +38,9 @@ watch(drawerOpen, (open) => {
   baseFrozen.value = true
 })
 
+// Обрізання body і #app знімає клас на <html> (див. base.css) — вони поза компонентом
+watch(baseCovered, (still) => document.documentElement.classList.toggle('cart-still', still))
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && drawerOpen.value) closeDrawer()
 }
@@ -45,6 +48,7 @@ onMounted(() => window.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   baseFrozen.value = false
+  baseCovered.value = false
 })
 
 /* ---------- Enter / leave animations ---------- */
@@ -64,11 +68,16 @@ function onEnter(el: Element, done: () => void) {
 }
 
 function onAfterEnter() {
+  baseCovered.value = true
   nextTick(() => closeButton.value?.focus({ preventScroll: true }))
 }
 
 function onLeave(el: Element, done: () => void) {
   const p = el.querySelector<HTMLElement>('.drawer')!
+  // Екран під кошиком знову видно — він відкриється, поки кошик їде
+  baseCovered.value = false
+  // Елемент, що зникає, Vue вже не оновлює — повертаємо обрізання й тінь вручну
+  el.classList.remove('is-still')
 
   // Forward (→ checkout): cart exits left while the new screen underneath slides in from the right
   if (drawerExit.value === 'forward' && !prefersReducedMotion()) {
@@ -94,6 +103,7 @@ function onLeave(el: Element, done: () => void) {
 }
 
 function onAfterLeave() {
+  baseCovered.value = false
   const forward = drawerExit.value === 'forward'
   drawerExit.value = 'close'
   // Put the screen back into normal flow and restore where the user was
@@ -128,6 +138,9 @@ function onPointerMove(e: PointerEvent) {
       return
     }
     drag.active = true
+    // Окремий шар лише на час свайпу, щоб рух ішов на GPU; екран під кошиком відкривається
+    panel.value.style.willChange = 'transform'
+    baseCovered.value = false
     try {
       panel.value.setPointerCapture(e.pointerId)
     } catch {
@@ -157,15 +170,20 @@ function onPointerUp(e: PointerEvent) {
 
   const releaseVelocity = drag.dx > 1 ? -drag.velocity / drag.dx : 0
   const sp = spring({ ...slideSpring, velocity: Math.max(-20, Math.min(20, Math.round(releaseVelocity))) })
-  panel.value.animate([{ transform: `translateX(${drag.dx}px)` }, { transform: 'translateX(0)' }], { duration: sp.duration, easing: sp.easing })
-  panel.value.style.transform = ''
+  const el = panel.value
+  el.animate([{ transform: `translateX(${drag.dx}px)` }, { transform: 'translateX(0)' }], { duration: sp.duration, easing: sp.easing })
+    .onfinish = () => {
+      el.style.willChange = ''
+      baseCovered.value = true
+    }
+  el.style.transform = ''
 }
 </script>
 
 <template>
   <Transition :css="false" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave" @after-leave="onAfterLeave">
     <!-- In normal document flow (not fixed) so iOS Safari shows it behind the bottom toolbar -->
-    <div v-if="drawerOpen" class="drawer-root">
+    <div v-if="drawerOpen" class="drawer-root" :class="{ 'is-still': baseCovered }">
       <section
         ref="panel"
         class="drawer"
@@ -225,6 +243,17 @@ function onPointerUp(e: PointerEvent) {
   overflow-x: clip;
 }
 
+/* Нерухомий кошик: обрізати нічого, а обрізання ламає липкі хедер і панель на iOS
+   (див. base.css → html.cart-still). Бічні смуги тіні потрібні лише в русі —
+   ховаємо, щоб без обрізання вони не розширили сторінку. */
+.drawer-root.is-still {
+  overflow-x: visible;
+}
+.drawer-root.is-still .drawer::before,
+.drawer-root.is-still .drawer::after {
+  display: none;
+}
+
 /* Centred phone column on wide screens */
 .drawer {
   --drawer-header-h: calc(env(safe-area-inset-top) + var(--space-4) * 2 + var(--icon-md));
@@ -234,13 +263,36 @@ function onPointerUp(e: PointerEvent) {
   min-height: 100lvh;
   display: flex;
   flex-direction: column;
+  position: relative;
   background: var(--bg-canvas);
   color: var(--fg-default);
-  box-shadow: var(--elevation-l);
-  /* No shadow under the bottom edge: iOS rubber-band overscroll would reveal it as a hairline */
-  clip-path: inset(-48px -48px 0 -48px);
   touch-action: pan-y;
-  will-change: transform;
+  /* Ні will-change, ні clip-path: кожне з них робить кошик окремим GPU-шаром на всю
+     висоту, і коли під час анімації (розкриття набору, згортання рядка) висота
+     міняється щокадру, iOS перемальовує цей шар цілком — на iPhone весь екран
+     ледь помітно дрижав. Перевірено на пристрої: зникає, лише коли прибрано обидва.
+     Виїзд і так іде WAAPI-анімацією transform, яку браузер винесе на GPU сам,
+     а на час свайпу will-change вмикає onPointerMove. */
+}
+
+/* Тінь лише з боків, смугами на всю висоту кошика: box-shadow вилазив би і під низ,
+   де його відкриває гумовий overscroll iOS, а обрізати його було нічим, крім clip-path */
+.drawer::before,
+.drawer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--space-6);
+  pointer-events: none;
+}
+.drawer::before {
+  right: 100%;
+  background: linear-gradient(to left, oklch(0% 0 0 / 0.12), transparent);
+}
+.drawer::after {
+  left: 100%;
+  background: linear-gradient(to right, oklch(0% 0 0 / 0.12), transparent);
 }
 
 /* ---------- Header (node 112:2222) ---------- */

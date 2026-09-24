@@ -6,7 +6,7 @@ import { useCart } from '@/composables/useCart'
 import { useKeyboardAvoid } from '@/composables/useKeyboardAvoid'
 import { backTo } from '@/router'
 
-const { baseFrozen, baseTop, drawerOpen } = useCart()
+const { baseFrozen, baseTop, baseCovered, drawerOpen } = useCart()
 useKeyboardAvoid()
 
 const route = useRoute()
@@ -28,7 +28,7 @@ watch(drawerOpen, (open) => {
 <template>
   <div
     class="app-frame"
-    :class="{ 'is-frozen': baseFrozen }"
+    :class="{ 'is-frozen': baseFrozen, 'is-covered': baseCovered }"
     :style="baseFrozen ? { top: `${baseTop}px` } : undefined"
     :inert="baseFrozen || undefined"
   >
@@ -56,6 +56,11 @@ watch(drawerOpen, (open) => {
   z-index: 0;
   background: transparent;
   pointer-events: none;
+}
+
+/* Повністю під нерухомим кошиком — див. useCart → baseCovered */
+.app-frame.is-covered {
+  visibility: hidden;
 }
 
 @media (min-width: 480px) {

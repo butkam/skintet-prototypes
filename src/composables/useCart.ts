@@ -24,11 +24,22 @@ const drawerOpen = ref(false)
  * the bottom edge would make Safari paint a solid bar there.
  */
 const baseFrozen = ref(false)
-persist('cart', () => lines.value, (saved) => (lines.value = saved))
+// Кошик зберігає рядки разом з описом, тож старі збережені кошики досі мали б велику «•»
+// між описом і об'ємом — приводимо до маленького мідлдоту, як у поточних даних
+persist('cart', () => lines.value, (saved) => {
+  lines.value = saved.map((l) => (l.description ? { ...l, description: l.description.replaceAll(' • ', ' · ') } : l))
+})
 /** Window scroll offset of the screen when the cart opened — restored on close */
 const baseScrollY = ref(0)
 /** Document-relative `top` of the frozen screen */
 const baseTop = ref(0)
+/**
+ * Кошик відкритий і нерухомий, тож повністю закриває заморожений екран (та сама колонка).
+ * Тоді екран ховаємо: його липка навігація — окремий шар, який iOS рухає під час скролу,
+ * і кошик над ним доводилось перекомпоновувати щокадру — на iPhone скрол дрижав.
+ * Під час виїзду й свайпу екран видно.
+ */
+const baseCovered = ref(false)
 /** How the cart leaves: 'close' slides right (dismiss), 'forward' slides left as the next screen pushes in */
 const drawerExit = ref<'close' | 'forward'>('close')
 
@@ -215,6 +226,7 @@ export function useCart() {
     baseFrozen,
     baseScrollY,
     baseTop,
+    baseCovered,
     drawerExit,
     add,
     increment,

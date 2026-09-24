@@ -10,6 +10,7 @@ import CartPromo from './CartPromo.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, samples } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
+import { snap, tween } from '@/motion/tween'
 
 const cart = useCart()
 const router = useRouter()
@@ -57,17 +58,32 @@ function toggleSet(id: string) {
 }
 
 /* Line removal: fade + collapse height */
+// Висоту, відступи й рамку веде скрипт, кроками по цілому фізичному пікселю
+// (див. motion/tween). Через WAAPI вони інтерполювались дробово, і на iPhone,
+// поки рядок згортався (наприклад, знятий семпл), кошик під ним дрижав.
 function onLeave(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (prefersReducedMotion()) return done()
+
+  const cs = getComputedStyle(node)
+  const height = node.getBoundingClientRect().height
+  const padding = parseFloat(cs.paddingBottom)
+  const border = parseFloat(cs.borderBottomWidth)
+  // Проміжок між рядками теж зникає, інакше після згортання лишилась би дірка
+  const gap = parseFloat(getComputedStyle(node.parentElement!).rowGap) || 0
+
   node.style.overflow = 'hidden'
-  node.animate(
-    [
-      { opacity: 1, height: `${node.offsetHeight}px`, marginBottom: '0px' },
-      { opacity: 0, height: '0px', marginBottom: 'calc(var(--space-5) * -1)', paddingBottom: '0px', borderBottomWidth: '0px' },
-    ],
-    { duration: 280, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
-  ).onfinish = done
+  tween(
+    280,
+    (p) => {
+      node.style.opacity = `${1 - p}`
+      node.style.height = `${snap(height * (1 - p))}px`
+      node.style.paddingBottom = `${snap(padding * (1 - p))}px`
+      node.style.borderBottomWidth = `${snap(border * (1 - p))}px`
+      node.style.marginBottom = `${-snap(gap * p)}px`
+    },
+    done,
+  )
 }
 </script>
 
