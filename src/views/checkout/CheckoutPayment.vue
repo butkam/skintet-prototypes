@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Figma «Оплата» (node 112:1567) і «Декілька платежів» (node 112:1613)
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import SkOptionCard from '@/components/SkOptionCard.vue'
 import SkButton from '@/components/SkButton.vue'
@@ -27,10 +27,29 @@ const installmentsHint = computed(() =>
   isSplit.value ? 'У вашому кошику діють різні умови' : groups.value[0]?.kind === 'device' ? 'До 6 платежів без переплат' : 'До 3 платежів без переплат',
 )
 
+// Імітація сервера: графік на проді рахує бекенд (банк, ставки, промокод), тож після кожної зміни
+// умов чекаємо на відповідь. Скелетон — лише в графіку, спінер — лише в кнопці, решта екрана живе.
+// Нова зміна до відповіді перезапускає очікування: показуємо тільки останній результат
+const scheduleLoading = ref(false)
+let scheduleTimer: ReturnType<typeof setTimeout> | undefined
+watch(
+  [installments, plans, () => cart.total.value],
+  () => {
+    clearTimeout(scheduleTimer)
+    scheduleLoading.value = installments.value
+    if (installments.value) scheduleTimer = setTimeout(() => (scheduleLoading.value = false), 600 + Math.random() * 400)
+  },
+  { deep: true, immediate: true },
+)
+onUnmounted(() => clearTimeout(scheduleTimer))
+
+// «Після доставки» — без суми, щоб не здавалося, що гроші спишуть просто зараз
 const cta = computed(() =>
   installments.value
-    ? { action: 'Оформити', amount: `сьогодні ${formatPrice(schedule.value.today)}` }
-    : { action: 'Оплатити', amount: formatPrice(cart.total.value) },
+    ? { action: 'Оформити', amount: `Зараз ${formatPrice(schedule.value.today)}` }
+    : payment.method === 'cod'
+      ? { action: 'Оформити замовлення', amount: '' }
+      : { action: 'Оплатити', amount: formatPrice(cart.total.value) },
 )
 
 // «Онлайн карткою» → справжня кнопка Apple Pay / Google Pay замість «Оплатити».
@@ -114,16 +133,22 @@ onUnmounted(() => placed && settleOrder())
                   </article>
 
                   <!-- Figma 112:1615, 112:1680–1690 -->
-                  <section class="schedule" aria-labelledby="schedule-title">
+                  <section
+                    class="schedule"
+                    aria-labelledby="schedule-title"
+                    :aria-busy="scheduleLoading || undefined"
+                  >
                     <h3 id="schedule-title" class="schedule__title heading-s">Графік платежів</h3>
-                    <dl class="schedule__rows">
+                    <!-- Поки чекаємо, текст стає прозорим і сам є смужкою скелетона: той самий шрифт,
+                         та сама ширина — висота й ширина рядків не змінюються ні на піксель -->
+                    <dl class="schedule__rows" :class="{ 'is-loading': scheduleLoading }">
                       <div v-for="row in schedule.rows" :key="row.label" class="schedule__row">
-                        <dt class="body-s">{{ row.label }}</dt>
-                        <dd class="body-m">{{ row.value }}</dd>
+                        <dt class="body-s"><span class="bone">{{ row.label }}</span></dt>
+                        <dd class="body-m"><span class="bone">{{ row.value }}</span></dd>
                       </div>
                       <div class="schedule__row schedule__row--total">
                         <dt class="body-s">Разом</dt>
-                        <dd class="heading-s">{{ formatPrice(cart.total.value) }}</dd>
+                        <dd class="heading-s"><span class="bone">{{ formatPrice(cart.total.value) }}</span></dd>
                       </div>
                     </dl>
                   </section>
@@ -154,9 +179,9 @@ onUnmounted(() => placed && settleOrder())
             <template #amount>{{ cta.amount }}</template>
           </SkButton>
         </template>
-        <SkButton v-else block @click="submit">
+        <SkButton v-else block :loading="scheduleLoading" @click="submit">
           {{ cta.action }}
-          <template #amount>{{ cta.amount }}</template>
+          <template v-if="cta.amount" #amount>{{ cta.amount }}</template>
         </SkButton>
       </div>
 
@@ -322,6 +347,41 @@ onUnmounted(() => placed && settleOrder())
   margin-top: var(--space-2);
   padding-top: var(--space-2);
   border-top: var(--border-width-hairline) solid var(--border-default);
+}
+
+/* Скелетон графіка: текст прозорий, а його рамка стає смужкою зі світлою хвилею, як у SampleCardSkeleton.
+   inline-block з line-height: 1 — смужка заввишки з шрифт, а висоту рядка далі тримає line-height батька */
+.bone {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.is-loading .bone {
+  color: transparent;
+  background-color: var(--neutral-100);
+}
+.is-loading .bone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, var(--neutral-0) 50%, transparent 80%);
+  opacity: 0.75;
+  transform: translateX(-100%);
+  animation: bone-sweep 1.3s ease-in-out infinite;
+}
+@keyframes bone-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-loading .bone::after {
+    display: none;
+  }
 }
 
 .reveal-enter-active {
