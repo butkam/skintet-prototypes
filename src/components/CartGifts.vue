@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
 
 .gifts__counter {
   flex-shrink: 0;
-  color: var(--action-primary-fg-disabled);
+  color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
 }
 

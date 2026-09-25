@@ -48,7 +48,7 @@ defineProps<{ icon: IconName; title: string; caption?: string }>()
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--action-primary-fg-disabled);
+  color: var(--fg-muted);
 }
 
 .summary-row__aside {

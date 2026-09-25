@@ -107,8 +107,13 @@ onBeforeUnmount(() => cancel?.())
         </button>
       </div>
       <div class="line__prices">
-        <s v-if="line.oldPrice" class="line__old-price">{{ formatPrice(line.oldPrice * line.qty) }}</s>
-        <span class="heading-s">{{ formatPrice(line.price * line.qty) }}</span>
+        <!-- Закреслення скрінрідер не озвучує — без підписів звучать дві ціни підряд -->
+        <s v-if="line.oldPrice" class="line__old-price">
+          <span class="visually-hidden">Стара ціна: </span>{{ formatPrice(line.oldPrice * line.qty) }}
+        </s>
+        <span class="heading-s">
+          <span v-if="line.oldPrice" class="visually-hidden">Нова ціна: </span>{{ formatPrice(line.price * line.qty) }}
+        </span>
       </div>
     </div>
   </article>

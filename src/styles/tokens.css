@@ -65,7 +65,8 @@
   --bg-scrim: var(--alpha-black-40);
 
   --fg-default: var(--neutral-900);
-  --fg-muted: var(--neutral-500);
+  /* neutral-600, not 500: 5.33:1 on canvas, 4.89:1 on surface — WCAG 1.4.3 for 12px secondary text */
+  --fg-muted: var(--neutral-600);
   --fg-subtle: var(--neutral-400);
   --fg-disabled: var(--neutral-400);
   --fg-inverse: var(--neutral-0);

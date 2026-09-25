@@ -504,7 +504,7 @@ function onPointerUp(e: PointerEvent) {
 
 .empty__text {
   margin: var(--space-4) 0;
-  color: var(--action-primary-fg-disabled);
+  color: var(--fg-muted);
 }
 
 /* «Ви переглядали» (nodes 112:2192–2221) */

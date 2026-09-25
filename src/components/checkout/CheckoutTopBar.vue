@@ -208,7 +208,7 @@ function go(i: number) {
 
 .topbar__step,
 .topbar__sep {
-  color: var(--action-primary-fg-disabled);
+  color: var(--fg-muted);
   transition: color 0.3s ease;
 }
 
