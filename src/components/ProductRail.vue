@@ -27,7 +27,9 @@ const fillers = computed(() =>
   demoProducts.filter((p) => p.category !== 'device' && !props.ids.includes(p.id)).map((p) => p.id),
 )
 
-// Товарів, що вже лежать у кошику, у стрічці не показуємо; щойно додані ще стоять з галочкою
+// Товарів, що вже лежать у кошику, у стрічці не показуємо; щойно додані ще стоять з галочкою.
+// Така картка ще займає своє місце в `min`: заміна дописується в кінець, лише коли вона йде.
+// Інакше стрічка подовжувалась просто під пальцем, і Safari перескакував прив'язкою прокрутки
 const items = computed(() => {
   const inCart = new Set(lines.value.map((l) => l.id))
   const shown: string[] = []
@@ -35,9 +37,9 @@ const items = computed(() => {
   for (const id of [...props.ids, ...fillers.value]) {
     const pending = added.value.includes(id)
     if (inCart.has(id) && !pending) continue
-    if (!pending && fresh >= props.min && !props.ids.includes(id)) continue
+    if (fresh >= props.min && !props.ids.includes(id)) continue
     shown.push(id)
-    if (!pending) fresh++
+    fresh++
   }
   // Каталог вичерпано — добираємо тим, що вже в кошику: «+» тоді просто додає ще одну штуку
   for (const id of [...props.ids, ...fillers.value]) {
@@ -83,13 +85,22 @@ async function onAdd(id: string) {
 }
 
 /* Card leaves: fades while its width and the gap after it close, so the rest slide in */
-function onLeave(el: Element, done: () => void) {
+// Поки картка згортається, прив'язку прокрутки вимкнено: стрічка на мить довша (заміна вже в кінці),
+// і Safari перескакував до іншої картки замість того, щоб дати сусідам плавно під'їхати
+let leaving = 0
+function onLeave(el: Element, finish: () => void) {
   const node = el as HTMLElement
-  if (prefersReducedMotion()) return done()
+  if (prefersReducedMotion()) return finish()
+  const track = node.parentElement!
+  if (leaving++ === 0) track.style.scrollSnapType = 'none'
+  const done = () => {
+    if (--leaving === 0) track.style.scrollSnapType = ''
+    finish()
+  }
   const width = node.getBoundingClientRect().width
   // border-box: without the padding going too the card would stop at 16px and then jump
   const padding = parseFloat(getComputedStyle(node).paddingLeft)
-  const gap = parseFloat(getComputedStyle(node.parentElement!).columnGap) || 0
+  const gap = parseFloat(getComputedStyle(track).columnGap) || 0
   node.style.overflow = 'hidden'
   tween(
     320,
