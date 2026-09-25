@@ -1,11 +1,17 @@
 <script setup lang="ts">
 // Figma 112:1544 / 112:1593 / 125:5494 — sticky steps bar with progress line
 // Steps bar: solid, hard edge. The slot bar below it fades out at the bottom so content disappears under it
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
+import SkIcon from '@/components/SkIcon.vue'
 import { spring } from '@/motion/spring'
+import { useWideCart } from '@/composables/useWideCart'
 import { backTo } from '@/router'
 
-const props = defineProps<{ step: 1 | 2 | 3 }>()
+// `persistent` — the one bar CheckoutLayout keeps on desktop across all steps; the steps' own bars render
+// only on the phone, where each screen slides in with its bar
+const props = defineProps<{ step: 1 | 2 | 3; persistent?: boolean }>()
+// Desktop: «Увійти» moves from the header to the right end of the steps, sized like a step
+const wide = useWideCart()
 
 const steps = [
   { label: 'Дані й доставка', to: 'checkout-delivery' },
@@ -17,7 +23,6 @@ const list = ref<HTMLElement | null>(null)
 const nav = ref<HTMLElement | null>(null)
 // The slot bar sticks right under the steps
 const navHeight = ref(0)
-let resizeObserver: ResizeObserver | undefined
 const fill = ref(0)
 const animate = ref(false)
 const s = spring({ stiffness: 170, damping: 26, mass: 1 })
@@ -30,8 +35,11 @@ function measure() {
   fill.value = current.offsetLeft + current.offsetWidth - list.value.offsetLeft
 }
 
-onMounted(() => {
+// Set up whenever the bar appears — on mount, or later when the window crosses the desktop breakpoint
+watch(nav, (el, _, onCleanup) => {
+  if (!el) return
   // Start from the previous step's edge, then spring to the current one
+  animate.value = false
   const items = list.value?.querySelectorAll<HTMLElement>('[data-step]')
   const prev = props.step > 1 ? items?.[props.step - 2] : null
   fill.value = prev && list.value ? prev.offsetLeft + prev.offsetWidth - list.value.offsetLeft : 0
@@ -40,10 +48,16 @@ onMounted(() => {
     measure()
   })
   document.fonts?.ready.then(measure)
-  resizeObserver = new ResizeObserver(() => (navHeight.value = nav.value?.offsetHeight ?? 0))
-  if (nav.value) resizeObserver.observe(nav.value)
-})
-onBeforeUnmount(() => resizeObserver?.disconnect())
+  const resizeObserver = new ResizeObserver(() => {
+    navHeight.value = nav.value?.offsetHeight ?? 0
+    // Also on the page (the layout, for the persistent bar): the desktop order column sticks right under the steps
+    nav.value
+      ?.closest<HTMLElement>('.checkout__page, .checkout')
+      ?.style.setProperty('--checkout-steps-h', `${navHeight.value}px`)
+  })
+  resizeObserver.observe(el)
+  onCleanup(() => resizeObserver.disconnect())
+}, { flush: 'post' })
 watch(() => props.step, () => nextTick(measure))
 
 function go(i: number) {
@@ -55,22 +69,29 @@ function go(i: number) {
 <template>
   <!-- Steps and the slot bar are separate sticky layers: content marked [data-topbar-scroll]
        (e.g. the expanded order) unsticks and scrolls away under the steps -->
-  <div class="topbar" :style="{ '--topbar-steps-h': `${navHeight}px` }">
+  <div v-if="!!persistent === wide" class="topbar" :style="{ '--topbar-steps-h': `${navHeight}px` }">
     <nav ref="nav" class="topbar__steps" aria-label="Кроки оформлення" data-sticky-top>
-      <ol ref="list" class="topbar__list">
-        <template v-for="(item, i) in steps" :key="item.label">
-          <li
-            :data-step="i + 1"
-            class="topbar__step body-s"
-            :class="{ 'is-done': i + 1 <= step }"
-            :aria-current="i + 1 === step ? 'step' : undefined"
-          >
-            <button v-if="i + 1 < step && item.to" type="button" @click="go(i)">{{ item.label }}</button>
-            <span v-else>{{ item.label }}</span>
-          </li>
-          <li v-if="i < steps.length - 1" class="topbar__sep body-s" aria-hidden="true">›</li>
-        </template>
-      </ol>
+      <div class="topbar__row">
+        <ol ref="list" class="topbar__list">
+          <template v-for="(item, i) in steps" :key="item.label">
+            <li
+              :data-step="i + 1"
+              class="topbar__step body-s"
+              :class="{ 'is-done': i + 1 <= step }"
+              :aria-current="i + 1 === step ? 'step' : undefined"
+            >
+              <button v-if="i + 1 < step && item.to" type="button" @click="go(i)">{{ item.label }}</button>
+              <span v-else>{{ item.label }}</span>
+            </li>
+            <li v-if="i < steps.length - 1" class="topbar__sep body-s" aria-hidden="true">›</li>
+          </template>
+        </ol>
+        <button v-if="wide" class="topbar__login body-s" type="button">
+          <!-- currentColor: the icon fades together with the text on hover -->
+          <SkIcon name="PeopleCircle" :size="16" color="currentColor" />
+          Увійти
+        </button>
+      </div>
       <div class="topbar__track">
         <span
           class="topbar__fill"
@@ -102,8 +123,10 @@ function go(i: number) {
   /* Ends right at the progress line, so scrolling content disappears exactly under it */
   padding-top: var(--space-4);
 }
+/* Nothing below the steps: the gap under the line is margin, so it stays transparent and content
+   scrolls away exactly at the line */
 .topbar__steps:last-child {
-  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 /* The 16px gap under the line belongs to the slot bar */
@@ -143,6 +166,35 @@ function go(i: number) {
   );
 }
 
+
+.topbar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* The padding keeps the tap area without shifting the text */
+.topbar__login {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: -6px -8px;
+  padding: 6px 8px;
+  color: var(--fg-default);
+  transition: color 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .topbar__login:hover {
+    color: var(--fg-muted);
+  }
+}
+
+/* In step with the text (the icon's own tint transition is slower) */
+.topbar__login .sk-icon {
+  transition-duration: 0.15s;
+}
 
 .topbar__list {
   display: flex;

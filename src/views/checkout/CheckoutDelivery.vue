@@ -9,16 +9,20 @@ import SkSegmented from '@/components/SkSegmented.vue'
 import SkButton from '@/components/SkButton.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutOrder from '@/components/checkout/CheckoutOrder.vue'
+import CheckoutAside from '@/components/checkout/CheckoutAside.vue'
 import CityField from '@/components/checkout/CityField.vue'
 import { findCity } from '@/data/cities'
 import { formatPrice } from '@/data/catalog'
 import { useCart } from '@/composables/useCart'
+import { useWideCart } from '@/composables/useWideCart'
 import { LAST_DELIVERY, formatPhoneInput, phoneDigits, useCheckout, type DeliveryMethod } from '@/composables/useCheckout'
 import novaPoshta from '@/assets/images/nova-poshta.png'
 
 const router = useRouter()
 const cart = useCart()
 const { contact, delivery, deliveryConfirmed } = useCheckout()
+// Desktop: the form on the left, the order with «Перейти до оплати» in a column on the right
+const wide = useWideCart()
 
 const METHODS: DeliveryMethod[] = ['branch', 'courier', 'locker']
 // `eta` — скільки йде посилка цим способом; `lastUsed` — hint under the field while it still
@@ -169,10 +173,20 @@ function focusNext(field: Field) {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--split': wide }">
     <CheckoutTopBar :step="1">
-      <CheckoutOrder />
+      <template v-if="!wide" #default>
+        <CheckoutOrder />
+      </template>
     </CheckoutTopBar>
+
+    <CheckoutAside v-if="wide" class="page__aside">
+      <SkButton block @click="next">Перейти до оплати</SkButton>
+      <p class="legal body-s">
+        Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
+        приймаєте їх.
+      </p>
+    </CheckoutAside>
 
     <main class="page__content">
       <!-- Контактні дані -->
@@ -234,7 +248,7 @@ function focusNext(field: Field) {
         <label class="subscribe body-m">
           <input v-model="contact.subscribe" class="visually-hidden" type="checkbox" />
           <SkCheckbox :checked="contact.subscribe" />
-          Хочу знижки й новини Skin(tet)
+          Отримувати знижки й новини від Skin(tet)
         </label>
       </section>
 
@@ -299,14 +313,16 @@ function focusNext(field: Field) {
         </div>
       </section>
 
-      <div class="page__cta">
-        <SkButton block @click="next">Перейти до оплати</SkButton>
-      </div>
+      <template v-if="!wide">
+        <div class="page__cta">
+          <SkButton block @click="next">Перейти до оплати</SkButton>
+        </div>
 
-      <p class="legal body-s">
-        Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
-        приймаєте їх.
-      </p>
+        <p class="legal body-s">
+          Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
+          приймаєте їх.
+        </p>
+      </template>
     </main>
   </div>
 </template>
@@ -316,6 +332,35 @@ function focusNext(field: Field) {
   display: flex;
   flex-direction: column;
   padding: var(--space-4) var(--space-4) calc(env(safe-area-inset-bottom) + var(--space-5));
+}
+
+/* ---------- Desktop: form | order ---------- */
+
+/* Under the steps bar (CheckoutLayout keeps one for all steps): the form on the left,
+   the order column on the right, level with the form */
+.page--split {
+  --checkout-column: 1080px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  column-gap: var(--space-16);
+  align-items: start;
+}
+
+.page--split .page__content {
+  padding-bottom: var(--space-16);
+}
+
+.page__aside {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  /* Level with the form's first line (the steps' margin + the form's top padding), and stays there */
+  top: calc(var(--checkout-header-h) + var(--checkout-steps-h, 0px) + var(--space-8));
+  margin: var(--space-4) var(--space-5) var(--space-4) 0;
+}
+
+.page__aside .legal {
+  margin-top: var(--space-4);
 }
 
 .section__title {

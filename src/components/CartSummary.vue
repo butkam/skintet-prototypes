@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Figma 112:2369 — підсумок кошика
 import { useCart } from '@/composables/useCart'
-import { formatAmount, formatPrice, samples } from '@/data/catalog'
+import { formatAmount, formatPrice } from '@/data/catalog'
 
 const cart = useCart()
 </script>
@@ -12,13 +12,13 @@ const cart = useCart()
       <dt class="body-m">Товари, {{ cart.goodsCount.value }}</dt>
       <dd class="body-m">{{ formatPrice(cart.subtotal.value) }}</dd>
     </div>
-    <div v-if="cart.giftCount.value" class="summary__row">
-      <dt class="body-m">Подарунки, {{ cart.giftCount.value }}</dt>
-      <dd class="body-m">{{ formatPrice(cart.giftsTotal.value) }}</dd>
-    </div>
-    <div v-if="cart.sampleLines.value.length" class="summary__row">
-      <dt class="body-m">Семпли у подарунок, {{ cart.sampleLines.value.length }} × {{ formatAmount(samples[0].price) }}</dt>
-      <dd class="body-m">{{ formatPrice(cart.samplesTotal.value) }}</dd>
+    <!-- Подарунки до товарів і семпли — один рядок -->
+    <div v-if="cart.presentCount.value" class="summary__row">
+      <dt class="body-m">
+        Подарунки, {{ cart.presentCount.value
+        }}<template v-if="cart.presentUnitPrice.value !== null"> × {{ formatAmount(cart.presentUnitPrice.value) }}</template>
+      </dt>
+      <dd class="body-m">{{ formatPrice(cart.presentsTotal.value) }}</dd>
     </div>
     <div v-if="cart.promo.value" class="summary__row">
       <dt class="body-m">Промокод {{ cart.promo.value.code }}</dt>

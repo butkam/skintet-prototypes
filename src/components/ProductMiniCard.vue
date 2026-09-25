@@ -21,7 +21,11 @@ defineEmits<{ add: [] }>()
         <span v-if="added" key="added" class="mini-card__added">
           <SkIcon name="Check" :size="18" color="var(--action-primary-fg)" />
         </span>
-        <SkIcon v-else key="add" name="PlusCircle" :size="30" />
+        <!-- Ховер показує, чим стане кнопка: те саме темне коло, що й у «додано», з білим плюсом -->
+        <span v-else key="add" class="mini-card__plus">
+          <SkIcon name="PlusCircle" :size="30" class="mini-card__plus-idle" />
+          <SkIcon name="PlusMedium" :size="24" color="var(--action-primary-fg)" class="mini-card__plus-hover" />
+        </span>
       </Transition>
     </button>
     <p class="mini-card__title body-s">{{ title }}</p>
@@ -60,6 +64,34 @@ defineEmits<{ add: [] }>()
   height: var(--control-tap-target-min);
   border-radius: var(--radius-full);
   transition: transform 0.2s ease;
+}
+
+.mini-card__plus {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  transition: background-color 0.15s ease;
+}
+.mini-card__plus > * {
+  grid-area: 1 / 1;
+  transition: opacity 0.15s ease;
+}
+.mini-card__plus-hover {
+  opacity: 0;
+}
+/* Лише там, де справді наводять мишею: на iOS тап лишає :hover «залиплим» (див. SkButton) */
+@media (hover: hover) and (pointer: fine) {
+  .mini-card__add:hover:not(:disabled) .mini-card__plus {
+    background: var(--action-primary-bg);
+  }
+  .mini-card__add:hover:not(:disabled) .mini-card__plus-idle {
+    opacity: 0;
+  }
+  .mini-card__add:hover:not(:disabled) .mini-card__plus-hover {
+    opacity: 1;
+  }
 }
 .mini-card__add:active:not(:disabled) {
   transform: scale(0.88);

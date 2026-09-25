@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Figma "iPhone 17 - 9" (node 112:1857) — кошик з товарами
 // Прилипання: шкала під хедером, «Замовити» внизу (node 112:2021)
-// Широкий екран: дві колонки — ліворуч подарунки, рекомендовані й промокод, праворуч товари й оформлення
+// Широкий екран: дві колонки (хедер кошика лише над правою) — ліворуч подарунки, рекомендовані (стрічкою зі стрілками) й промокод, праворуч товари й оформлення
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
@@ -82,7 +82,7 @@ function order() {
     <div class="cart__side">
       <div ref="side" class="cart__scroll">
         <CartGifts inline />
-        <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" wrap :ids="RECOMMENDED_IDS" />
+        <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
       </div>
       <div class="cart__foot cart__foot--promo">
         <CartPromo />
@@ -164,13 +164,17 @@ function order() {
 
 /* ---------- Широкий екран: дві колонки однакової ширини ---------- */
 
-/* Кожна колонка гортається сама; низ колонок (промокод і оформлення) стоїть на місці */
+/* Кожна колонка гортається сама; низ колонок (промокод і оформлення) стоїть на місці.
+   Сітку дає дровер (CartDrawer → .drawer__body--filled): хедер у ній лише над правою колонкою,
+   а ліва займає обидва рядки й починається з самого верху */
 .cart--wide {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding-bottom: 0;
+  display: contents;
+}
+.cart--wide .cart__side {
+  grid-area: 1 / 1 / 3 / 2;
+}
+.cart--wide .cart__main {
+  grid-area: 2 / 2;
 }
 
 .cart__side,

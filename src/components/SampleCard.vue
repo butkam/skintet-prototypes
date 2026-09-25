@@ -59,7 +59,7 @@ onMounted(() => {
   color: var(--fg-default);
   text-align: left;
   scroll-snap-align: start;
-  transition: opacity 0.2s ease, transform 0.15s ease;
+  transition: opacity 0.2s ease, transform 0.15s ease, background-color 0.15s ease;
 }
 
 /* 2px selected border — drawn as an overlay so nothing shifts */
@@ -82,6 +82,14 @@ onMounted(() => {
 
 .sample:active:not(.is-disabled) {
   transform: scale(0.97);
+}
+
+/* Лише там, де справді наводять мишею: на iOS тап лишає :hover «залиплим» (див. SkButton) */
+@media (hover: hover) and (pointer: fine) {
+  /* Півкроку від surface до subtle — легкий відгук під курсором */
+  .sample:hover:not(.is-disabled) {
+    background: color-mix(in oklch, var(--bg-surface), var(--bg-subtle));
+  }
 }
 
 .sample.is-disabled {

@@ -9,9 +9,11 @@ import BankSelect from '@/components/BankSelect.vue'
 import CartPromo from '@/components/CartPromo.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutSummaryRow from '@/components/checkout/CheckoutSummaryRow.vue'
+import CheckoutAside from '@/components/checkout/CheckoutAside.vue'
 import { useCart } from '@/composables/useCart'
-import { PAYMENT_OPTIONS, useCheckout } from '@/composables/useCheckout'
-import { formatAmount, formatMonthly, formatPrice, pluralPayments } from '@/data/catalog'
+import { useWideCart } from '@/composables/useWideCart'
+import { PAYMENT_OPTIONS, formatPhoneDisplay, useCheckout } from '@/composables/useCheckout'
+import { formatAmount, formatMonthly, formatPrice, pluralMonths, pluralPayments } from '@/data/catalog'
 import PaymentLogos from '@/components/checkout/PaymentLogos.vue'
 import WalletButton from '@/components/checkout/WalletButton.vue'
 import { detectWallet, loadGooglePay, type Wallet } from '@/composables/wallet'
@@ -19,7 +21,17 @@ import { backTo } from '@/router'
 
 const router = useRouter()
 const cart = useCart()
-const { payment, plans, deliveryTitle, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } = useCheckout()
+const { contact, payment, plans, deliveryTitle, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } = useCheckout()
+// Desktop: the payment form on the left; delivery, the order and the pay button in a column on the right
+const wide = useWideCart()
+
+// Desktop: the select has room for «4 місяці»; the phone keeps the bare number
+const monthsLabel = (n: number) => `${n} ${pluralMonths(n)}`
+
+// The column's totals already show the delivery price — here only who receives it
+const recipient = computed(() =>
+  [`${contact.firstName} ${contact.lastName}`.trim(), formatPhoneDisplay(contact.phone)].filter(Boolean).join(', '),
+)
 
 const installments = computed(() => payment.method === 'installments')
 
@@ -71,20 +83,45 @@ onUnmounted(() => placed && settleOrder())
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--split': wide }">
     <CheckoutTopBar :step="2">
-      <CheckoutSummaryRow icon="Shipping" :title="deliveryTitle" :caption="recipientLine">
-        <template #aside>
-          <RouterLink
-            :to="{ name: 'checkout-delivery' }"
-            class="body-m"
-            @click.prevent="backTo({ name: 'checkout-delivery' })"
-          >
-            Змінити
-          </RouterLink>
-        </template>
-      </CheckoutSummaryRow>
+      <template v-if="!wide" #default>
+        <CheckoutSummaryRow icon="Shipping" :title="deliveryTitle" :caption="recipientLine">
+          <template #aside>
+            <RouterLink
+              :to="{ name: 'checkout-delivery' }"
+              class="body-m"
+              @click.prevent="backTo({ name: 'checkout-delivery' })"
+            >
+              Змінити
+            </RouterLink>
+          </template>
+        </CheckoutSummaryRow>
+      </template>
     </CheckoutTopBar>
+
+    <CheckoutAside v-if="wide" class="page__aside">
+      <template #before>
+        <section class="ship" aria-labelledby="ship-title">
+          <div class="ship__head">
+            <h2 id="ship-title" class="heading-s">Доставка</h2>
+            <RouterLink
+              :to="{ name: 'checkout-delivery' }"
+              class="ship__change body-s"
+              @click.prevent="backTo({ name: 'checkout-delivery' })"
+            >
+              Змінити
+            </RouterLink>
+          </div>
+          <p class="body-m">{{ deliveryTitle }}</p>
+          <p v-if="recipient" class="ship__recipient body-s">{{ recipient }}</p>
+        </section>
+      </template>
+      <!-- The button and the note below are teleported here (one markup for both layouts) -->
+      <template v-if="payment.method" #default>
+        <div id="payment-action" />
+      </template>
+    </CheckoutAside>
 
     <main class="page__content">
       <section aria-labelledby="payment-title">
@@ -125,7 +162,12 @@ onUnmounted(() => placed && settleOrder())
                     <p class="plan__label body-s">до {{ Math.max(...PAYMENT_OPTIONS[g.kind]) }} міс під 0,01%</p>
                     <div class="plan__controls">
                       <BankSelect v-model="plans[g.kind].bank" />
-                      <SkSelect v-model="plans[g.kind].payments" :options="PAYMENT_OPTIONS[g.kind]" label="Кількість платежів" />
+                      <SkSelect
+                        v-model="plans[g.kind].payments"
+                        :options="PAYMENT_OPTIONS[g.kind]"
+                        :format="wide ? monthsLabel : undefined"
+                        label="Кількість платежів"
+                      />
                     </div>
                     <p class="plan__label body-s">
                       {{ g.payments }} {{ pluralPayments(g.payments) }} по {{ formatAmount(Math.round(g.regular)) }} · перший сьогодні
@@ -170,25 +212,28 @@ onUnmounted(() => placed && settleOrder())
       <!-- Same promo state as in the cart: a code applied there shows up here already applied -->
       <CartPromo class="promo" />
 
-      <div v-if="payment.method" class="page__cta">
-        <template v-if="walletPay">
-          <WalletButton :wallet="walletPay" @pay="submit" />
-          <!-- Не в кожного картка в гаманці — звичайна оплата лишається поруч -->
-          <SkButton variant="secondary" block @click="submit">
-            Картою
-            <template #amount>{{ cta.amount }}</template>
+      <!-- Desktop: moves into the order column; `defer` — the target renders in this same pass -->
+      <Teleport v-if="payment.method" to="#payment-action" :disabled="!wide" defer>
+        <div class="page__cta">
+          <template v-if="walletPay">
+            <WalletButton :wallet="walletPay" @pay="submit" />
+            <!-- Не в кожного картка в гаманці — звичайна оплата лишається поруч -->
+            <SkButton variant="secondary" block @click="submit">
+              Картою
+              <template #amount>{{ cta.amount }}</template>
+            </SkButton>
+          </template>
+          <SkButton v-else block :loading="scheduleLoading" @click="submit">
+            {{ cta.action }}
+            <template v-if="cta.amount" #amount>{{ cta.amount }}</template>
           </SkButton>
-        </template>
-        <SkButton v-else block :loading="scheduleLoading" @click="submit">
-          {{ cta.action }}
-          <template v-if="cta.amount" #amount>{{ cta.amount }}</template>
-        </SkButton>
-      </div>
+        </div>
 
-      <p v-if="payment.method" class="legal body-s">
-        Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
-        приймаєте їх.
-      </p>
+        <p class="legal body-s">
+          Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
+          приймаєте їх.
+        </p>
+      </Teleport>
     </main>
   </div>
 </template>
@@ -198,6 +243,68 @@ onUnmounted(() => placed && settleOrder())
   display: flex;
   flex-direction: column;
   padding: var(--space-4) var(--space-4) calc(env(safe-area-inset-bottom) + var(--space-5));
+}
+
+/* ---------- Desktop: form | delivery & order ---------- */
+
+/* Same grid as «Дані й доставка»: the form and the column under the steps bar */
+.page--split {
+  --checkout-column: 1080px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  column-gap: var(--space-16);
+  align-items: start;
+}
+
+.page--split .page__content {
+  padding-bottom: var(--space-16);
+}
+
+.page__aside {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  /* Level with the form's first line (the steps' margin + the form's top padding), and stays there */
+  top: calc(var(--checkout-header-h) + var(--checkout-steps-h, 0px) + var(--space-8));
+  margin: var(--space-4) var(--space-5) var(--space-4) 0;
+}
+
+/* The column already spaces its action */
+.page__aside .page__cta {
+  margin-top: 0;
+}
+
+.page__aside .legal {
+  margin-top: var(--space-4);
+}
+
+.ship__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.ship__head h2 {
+  margin: 0;
+}
+
+/* The padding keeps the tap area without shifting the text */
+.ship__change {
+  margin: -6px -8px;
+  padding: 6px 8px;
+  color: var(--fg-muted);
+  transition: color 0.15s ease;
+}
+
+.ship__change:hover {
+  color: var(--fg-default);
+}
+
+.ship__recipient {
+  margin-top: var(--space-1);
+  color: var(--fg-muted);
 }
 
 .section__title {

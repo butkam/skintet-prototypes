@@ -5,10 +5,13 @@ import AppNavigation from '@/components/AppNavigation.vue'
 import SkButton from '@/components/SkButton.vue'
 import CartBanner from '@/components/CartBanner.vue'
 import { useCart } from '@/composables/useCart'
+import { useWideCart } from '@/composables/useWideCart'
 import { resetSession } from '@/composables/persist'
 import type { DemoProduct } from '@/data/demoProducts'
 
 const cart = useCart()
+// Desktop: the screen is full-width, so «додано в кошик» drops from the bag icon instead of the bottom edge
+const wide = useWideCart()
 const bannerOpen = ref(false)
 const lastAdded = ref<DemoProduct | null>(null)
 
@@ -36,6 +39,7 @@ function goToCart() {
       :title="lastAdded?.title ?? ''"
       :image="lastAdded?.image ?? ''"
       :pulse-key="cart.count.value"
+      :placement="wide ? 'top-end' : 'bottom'"
       @action="goToCart"
     />
   </div>

@@ -57,6 +57,18 @@ const delivery = computed(() => (freeDelivery.value ? 0 : DELIVERY_PRICE))
 const sampleLines = computed(() => lines.value.filter((l) => l.kind === 'sample'))
 const samplesTotal = computed(() => sampleLines.value.reduce((s, l) => s + l.price * l.qty, 0))
 
+/** Подарунки до товарів і семпли — один рядок у підсумку: «Подарунки, 7 × 1 ₴» */
+const presentPrices = computed(() => [
+  ...goods.value.flatMap((l) => (l.gift ? [l.gift.price] : [])),
+  ...sampleLines.value.flatMap((l) => Array<number>(l.qty).fill(l.price)),
+])
+const presentsTotal = computed(() => giftsTotal.value + samplesTotal.value)
+/** Спільна ціна одного подарунка; null, якщо ціни різні — тоді «× ціна» не показуємо */
+const presentUnitPrice = computed(() => {
+  const [first] = presentPrices.value
+  return presentPrices.value.every((p) => p === first) ? (first ?? null) : null
+})
+
 /* ---------- Промокод ---------- */
 
 /** Прототип: єдиний робочий код — −10% на товари без знижки */
@@ -124,7 +136,9 @@ function add(id?: string): DemoProduct {
   if (line) line.qty++
   else {
     const { brand: _brand, url: _url, ...rest } = product
-    lines.value.push({
+    // Новий товар — першим у списку: його видно одразу під шкалою, і в телефоні, і в широкому кошику.
+    // Семпли лишаються в кінці (див. toggleSample)
+    lines.value.unshift({
       ...rest,
       qty: 1,
       // Fresh copy so toggling one line's set doesn't mutate the catalog entry
@@ -208,6 +222,9 @@ export function useCart() {
     giftCount,
     giftsTotal,
     samplesTotal,
+    presentCount: computed(() => presentPrices.value.length),
+    presentsTotal,
+    presentUnitPrice,
     delivery,
     freeDelivery,
     total,

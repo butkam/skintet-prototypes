@@ -1,7 +1,10 @@
 <script setup lang="ts">
-// «Замовлення · N позицій / Розгорнути / сума» (Figma 112:1545–1550) — expands to the order contents
+// «Замовлення / N позицій ⌄ / сума» (Figma 112:1545–1550) — expands to the order contents;
+// same header as the desktop order column (CheckoutAside)
 import { nextTick, ref } from 'vue'
 import CheckoutSummaryRow from './CheckoutSummaryRow.vue'
+import CheckoutLines from './CheckoutLines.vue'
+import SkIcon from '@/components/SkIcon.vue'
 import { useCart } from '@/composables/useCart'
 import { useCheckout } from '@/composables/useCheckout'
 import { formatPrice } from '@/data/catalog'
@@ -25,10 +28,11 @@ async function toggle() {
 
 <template>
   <div ref="root" class="order" :data-topbar-scroll="open || undefined">
-    <CheckoutSummaryRow icon="ShoppingBag" :title="`Замовлення · ${positions}`">
+    <CheckoutSummaryRow icon="ShoppingBag" title="Замовлення">
       <template #caption>
         <button class="order__toggle body-s" type="button" :aria-expanded="open" @click="toggle">
-          {{ open ? 'Згорнути' : 'Розгорнути' }}
+          {{ positions }}
+          <SkIcon name="ChevronDownSmall" :size="16" class="order__chevron" :class="{ 'is-open': open }" />
         </button>
       </template>
       <template #aside>
@@ -38,16 +42,7 @@ async function toggle() {
 
     <div class="order__details" :class="{ 'is-open': open }">
       <div class="order__inner">
-        <ul class="order__lines">
-          <li v-for="line in cart.lines.value" :key="line.id" class="order__line">
-            <img class="order__thumb" :src="line.image" alt="" />
-            <div class="order__line-text">
-              <p class="order__line-title body-m">{{ line.title }}</p>
-              <p class="order__line-meta body-s">{{ line.qty }} × {{ formatPrice(line.price) }}</p>
-            </div>
-            <span class="body-m">{{ formatPrice(line.price * line.qty) }}</span>
-          </li>
-        </ul>
+        <CheckoutLines class="order__lines" />
         <dl class="order__totals">
           <div><dt class="body-m">Доставка</dt><dd class="body-m">{{ deliveryPriceLabel }}</dd></div>
           <div v-if="cart.giftCount.value"><dt class="body-m">Подарунки, {{ cart.giftCount.value }}</dt><dd class="body-m">{{ formatPrice(cart.giftsTotal.value) }}</dd></div>
@@ -62,12 +57,20 @@ async function toggle() {
 .order__toggle {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
   position: relative;
   /* Pulled 3px up towards «Замовлення»; the padding keeps the tap area */
   top: -3px;
   margin: -4px -6px;
   padding: 4px 6px;
   color: var(--action-primary-fg-disabled);
+}
+
+.order__chevron {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.order__chevron.is-open {
+  transform: scaleY(-1);
 }
 
 .order__details {
@@ -85,49 +88,7 @@ async function toggle() {
 }
 
 .order__lines {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: 0;
-  padding: var(--space-4) 0 0;
-  list-style: none;
-}
-
-/* Line sum sits on the title's baseline */
-.order__line {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-}
-
-.order__line > .body-m {
-  flex-shrink: 0;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.order__thumb {
-  align-self: center;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-}
-
-.order__line-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.order__line-title {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.order__line-meta {
-  color: var(--fg-muted);
+  padding-top: var(--space-4);
 }
 
 .order__totals {

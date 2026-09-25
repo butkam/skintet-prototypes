@@ -7,6 +7,9 @@
 /** Той самий характер, що й у cubic-bezier(0.2, 0.8, 0.2, 1): різкий старт, довгий доїзд */
 export const easeOut = (t: number) => 1 - (1 - t) ** 4
 
+/** Новий рядок кошика розгортається стільки (CartLines) — і стільки ж стрічка під ним тримається на місці (ProductRail) */
+export const LINE_ENTER_MS = 360
+
 /** Довжина, округлена до цілого фізичного пікселя */
 export function snap(px: number) {
   const dpr = window.devicePixelRatio || 1

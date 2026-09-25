@@ -3,17 +3,17 @@
 // («Ви переглядали» в порожньому кошику, «Рекомендовані засоби» в повному)
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import ProductMiniCard from './ProductMiniCard.vue'
+import ScrollArrows from './ScrollArrows.vue'
 import { useCart } from '@/composables/useCart'
 import { demoProducts } from '@/data/demoProducts'
 import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
-import { snap, tween } from '@/motion/tween'
+import { LINE_ENTER_MS, snap, tween } from '@/motion/tween'
 
 // `ids` — бажані товари, першими в стрічці. Коли з них поза кошиком лишилось менше `min`,
 // стрічка добирає інші засоби з каталогу (без апаратів) — спершу ті, яких ще немає в кошику.
-// `wrap` — широкий кошик: картки сіткою, бо горизонтальну стрічку мишею не прогорнеш
 const props = withDefaults(
-  defineProps<{ title: string; ids: string[]; align?: 'center' | 'start'; min?: number; wrap?: boolean }>(),
+  defineProps<{ title: string; ids: string[]; align?: 'center' | 'start'; min?: number }>(),
   { align: 'center', min: 4 },
 )
 
@@ -53,20 +53,31 @@ const titleId = `rail-${Math.random().toString(36).slice(2, 8)}`
 
 const root = ref<HTMLElement | null>(null)
 const timers: number[] = []
-onBeforeUnmount(() => timers.forEach(clearTimeout))
+const holds: (() => void)[] = []
+onBeforeUnmount(() => {
+  timers.forEach(clearTimeout)
+  holds.forEach((stop) => stop())
+})
 
-// Новий рядок з'являється вище, у списку товарів, і штовхнув би стрічку вниз.
-// Тож після додавання прокручуємо документ рівно на цей зсув — стрічка лишається під пальцем
+// Стрілки гортають саму стрічку (TransitionGroup віддає її як $el)
+const track = ref<{ $el: HTMLElement } | null>(null)
+
+// Новий рядок з'являється вище, у списку товарів, і розсуваючись, штовхав би стрічку вниз.
+// Тож поки він росте, щокадру прокручуємо документ рівно на цей зсув — стрічка лишається під пальцем.
+// Кадр списку зареєстровано раніше за наш, тож зсув міряємо вже після нього, у тому ж кадрі
 async function onAdd(id: string) {
   if (added.value.includes(id)) return
   const before = root.value?.getBoundingClientRect().top ?? 0
   added.value.push(id)
   add(id)
   await nextTick()
-  if (root.value?.isConnected) {
+  const hold = () => {
+    if (!root.value?.isConnected) return
     const shift = root.value.getBoundingClientRect().top - before
     if (shift) window.scrollBy({ top: shift, behavior: 'instant' })
   }
+  hold()
+  holds.push(tween(LINE_ENTER_MS, hold))
   timers.push(window.setTimeout(() => (added.value = added.value.filter((a) => a !== id)), CHECK_HOLD_MS))
 }
 
@@ -74,11 +85,6 @@ async function onAdd(id: string) {
 function onLeave(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (prefersReducedMotion()) return done()
-  // У сітці клітинка не стискається — картка просто згасає, решта стає на її місце
-  if (props.wrap) {
-    tween(240, (p) => (node.style.opacity = `${1 - p}`), done)
-    return
-  }
   const width = node.getBoundingClientRect().width
   // border-box: without the padding going too the card would stop at 16px and then jump
   const padding = parseFloat(getComputedStyle(node).paddingLeft)
@@ -118,19 +124,22 @@ function onCollapse(el: Element, done: () => void) {
 
 <template>
   <Transition :css="false" @leave="onCollapse">
-    <section v-if="items.length" ref="root" class="rail" :class="{ 'rail--wrap': wrap }" :aria-labelledby="titleId">
+    <section v-if="items.length" ref="root" class="rail" :aria-labelledby="titleId">
       <h3 :id="titleId" class="rail__title heading-s" :class="`rail__title--${align}`">{{ title }}</h3>
-      <TransitionGroup tag="div" class="rail__track" :css="false" @leave="onLeave">
-        <ProductMiniCard
-          v-for="p in items"
-          :key="p.id"
-          :title="p.title"
-          :price="formatPrice(p.price)"
-          :image="p.image"
-          :added="added.includes(p.id)"
-          @add="onAdd(p.id)"
-        />
-      </TransitionGroup>
+      <div class="rail__viewport">
+        <TransitionGroup ref="track" tag="div" class="rail__track" :css="false" @leave="onLeave">
+          <ProductMiniCard
+            v-for="p in items"
+            :key="p.id"
+            :title="p.title"
+            :price="formatPrice(p.price)"
+            :image="p.image"
+            :added="added.includes(p.id)"
+            @add="onAdd(p.id)"
+          />
+        </TransitionGroup>
+        <ScrollArrows :target="track?.$el" />
+      </div>
     </section>
   </Transition>
 </template>
@@ -162,13 +171,8 @@ function onCollapse(el: Element, done: () => void) {
   display: none;
 }
 
-/* Три картки в ряд, притиснуті до країв рядка: колонка 440px лишає між ними ~12px,
-   а якщо смуга прокрутки забере місце — трохи менше, але ряд не розвалиться на два */
-.rail--wrap .rail__track {
-  display: grid;
-  grid-template-columns: repeat(3, 123px);
-  justify-content: space-between;
-  gap: var(--space-3) 0;
-  overflow: visible;
+/* Стрілки (ScrollArrows) стоять по центру стрічки */
+.rail__viewport {
+  position: relative;
 }
 </style>

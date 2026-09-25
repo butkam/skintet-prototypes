@@ -248,7 +248,7 @@ function onPointerUp(e: PointerEvent) {
             <SkButton variant="secondary" @click="closeDrawer">Перейти до товарів</SkButton>
           </div>
 
-          <ProductRail v-if="!lines.length" class="viewed" title="Ви переглядали" :wrap="wide" :ids="VIEWED_IDS" />
+          <ProductRail v-if="!lines.length" class="viewed" title="Ви переглядали" :ids="VIEWED_IDS" />
         </div>
       </section>
     </div>
@@ -358,8 +358,17 @@ function onPointerUp(e: PointerEvent) {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* З товарами хедер стоїть лише над правою колонкою, а ліва (подарунки, рекомендовані, промокод)
+   самостійна й іде від самого верху. Колонки кошика (CartContents) стають клітинками цієї сітки */
 .drawer-root--wide .drawer__body--filled {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
+}
+.drawer-root--wide .drawer__body--filled > .drawer__header {
+  grid-area: 1 / 2;
 }
 
 /* Заголовок ліворуч, хрестик праворуч — як у бокових панелях на десктопі */
@@ -410,6 +419,13 @@ function onPointerUp(e: PointerEvent) {
   height: var(--control-tap-target-min);
   margin: -10px;
   border-radius: var(--radius-full);
+  transition: background-color 0.15s ease;
+}
+/* Лише там, де справді наводять мишею: на iOS тап лишає :hover «залиплим» (див. SkButton) */
+@media (hover: hover) and (pointer: fine) {
+  .drawer__icon-btn:hover {
+    background: var(--action-secondary-bg-hover);
+  }
 }
 .drawer__icon-btn:focus-visible {
   outline: var(--border-width-focus) solid var(--border-focus);

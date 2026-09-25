@@ -7,6 +7,7 @@ import CartProgress from './CartProgress.vue'
 import SampleCard from './SampleCard.vue'
 import SampleCardSkeleton from './SampleCardSkeleton.vue'
 import SkButton from './SkButton.vue'
+import ScrollArrows from './ScrollArrows.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, milestones, pluralFreeSamples, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
@@ -123,17 +124,11 @@ watch(open, async (value) => {
   // відкриває його через ?cart, не згортаючи) — без цього скелетон лишався б назавжди
 }, { immediate: true })
 
-// Dropping below the threshold hides the picker. У колонці широкого кошика місця досить,
-// тож щойно семпли доступні, вибір одразу розгорнутий
-const openInline = () => {
-  if (props.inline && unlocked.value && !cart.samplesDeclined.value) open.value = true
-}
-openInline()
+// Dropping below the threshold hides the picker. Широкий кошик теж відкривається зі згорнутою панеллю:
+// вибір розгортає тогл або перший тап по «Замовити» з вільним подарунком
 watch(unlocked, (value) => {
   if (!value) open.value = false
-  else openInline()
 })
-watch(() => props.inline, openInline)
 
 function toggleSample(sample: (typeof samples)[number], e: MouseEvent) {
   if (cart.toggleSample(sample) || prefersReducedMotion()) return
@@ -167,6 +162,8 @@ function resume() {
 const root = ref<HTMLElement | null>(null)
 const sheet = ref<HTMLElement | null>(null)
 const picker = ref<HTMLElement | null>(null)
+// Каруселлю мишею не погортаєш — її прогортають стрілки
+const track = ref<HTMLElement | null>(null)
 let resizeObserver: ResizeObserver | undefined
 
 function syncHeight() {
@@ -226,6 +223,7 @@ onBeforeUnmount(() => {
                 <SampleCardSkeleton v-for="(s, i) in samples" :key="s.id" :style="{ '--d': `${i * 90}ms` }" />
               </div>
               <div
+                ref="track"
                 class="gifts__track"
                 :class="{ 'is-ready': ready }"
                 role="group"
@@ -243,6 +241,7 @@ onBeforeUnmount(() => {
                   />
                 </div>
               </div>
+              <ScrollArrows :target="track" />
             </div>
 
             <!-- Дія кошика на час вибору живе тут, під каруселлю -->
@@ -356,10 +355,11 @@ onBeforeUnmount(() => {
 
 /* 20px під лінком відмови (з них 4px дає падинг треку); -4px не дає обрізати пружину рамки обраної картки */
 .gifts__stack {
+  position: relative;
   display: grid;
   margin: 16px 0 -4px;
 }
-.gifts__stack > * {
+.gifts__stack > .gifts__track {
   grid-area: 1 / 1;
 }
 
@@ -513,30 +513,24 @@ onBeforeUnmount(() => {
   transform: scaleY(-1);
 }
 
-/* ---------- Широкий кошик: панель у потоці колонки ---------- */
+/* Лише там, де справді наводять мишею: на iOS тап лишає :hover «залиплим» (див. SkButton) */
+@media (hover: hover) and (pointer: fine) {
+  .gifts__toggle:hover .gifts__chevron path {
+    stroke: var(--fg-default);
+  }
+}
+
+/* ---------- Широкий кошик: панель у потоці колонки, семпли тією ж каруселлю зі стрілками ---------- */
 
 .gifts--inline {
   position: static;
   height: auto;
 }
 
+/* Та сама шторка, що й на телефоні: заокруглений низ і тінь над рекомендованими */
 .gifts--inline .gifts__sheet {
-  position: static;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-/* Семпли сіткою 2×2 замість каруселі: мишею горизонтальну стрічку не прогорнеш */
-.gifts--inline .gifts__track {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  overflow: visible;
-}
-.gifts--inline .gifts__track > * {
-  width: auto;
-}
-.gifts--inline .gifts__slot :deep(.sample) {
-  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

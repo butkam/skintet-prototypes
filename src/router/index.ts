@@ -12,22 +12,27 @@ export const router = createRouter({
     {
       path: '/',
       name: 'base',
+      // Desktop: the screen spans the whole window instead of the phone column (see App.vue)
+      meta: { fullWidth: true },
       component: () => import('@/views/BaseScreen.vue'),
     },
     {
       // Figma: «Дані й доставка» 112:1507 → «Оплата» 112:1567 / 112:1613 → «Створення профілю» 125:5422
       path: '/checkout',
+      // Desktop: full window; each step centres its own column (CheckoutLayout → --checkout-column)
+      meta: { fullWidth: true },
       component: () => import('@/views/checkout/CheckoutLayout.vue'),
       children: [
-        // meta.step drives the push/pop slide direction in CheckoutLayout
-        { path: '', name: 'checkout-delivery', meta: { step: 1 }, component: () => import('@/views/checkout/CheckoutDelivery.vue') },
-        { path: 'payment', name: 'checkout-payment', meta: { step: 2 }, component: () => import('@/views/checkout/CheckoutPayment.vue') },
-        { path: 'done', name: 'checkout-done', meta: { step: 3 }, component: () => import('@/views/checkout/CheckoutDone.vue') },
+        // meta.step drives the push/pop slide direction in CheckoutLayout;
+        // meta.progress — the step lit in the steps bar (desktop: one bar in CheckoutLayout for all screens)
+        { path: '', name: 'checkout-delivery', meta: { step: 1, progress: 1 }, component: () => import('@/views/checkout/CheckoutDelivery.vue') },
+        { path: 'payment', name: 'checkout-payment', meta: { step: 2, progress: 2 }, component: () => import('@/views/checkout/CheckoutPayment.vue') },
+        { path: 'done', name: 'checkout-done', meta: { step: 3, progress: 2 }, component: () => import('@/views/checkout/CheckoutDone.vue') },
         // Figma «Підтвердіть номер телефону» 125:5862 — after every payment went through
         // meta.step only orders screens for the slide direction — sub-steps of «Створення профілю» go in between
-        { path: 'profile', name: 'checkout-profile', meta: { step: 3.1 }, component: () => import('@/views/checkout/CheckoutProfile.vue') },
+        { path: 'profile', name: 'checkout-profile', meta: { step: 3.1, progress: 3 }, component: () => import('@/views/checkout/CheckoutProfile.vue') },
         // Figma «Введіть код з SMS» 125:5940
-        { path: 'profile/code', name: 'checkout-profile-code', meta: { step: 3.2 }, component: () => import('@/views/checkout/CheckoutProfileCode.vue') },
+        { path: 'profile/code', name: 'checkout-profile-code', meta: { step: 3.2, progress: 3 }, component: () => import('@/views/checkout/CheckoutProfileCode.vue') },
       ],
     },
   ],

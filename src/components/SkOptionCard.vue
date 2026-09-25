@@ -45,6 +45,13 @@ defineEmits<{ select: [] }>()
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
+/* Hover only where there's a real pointer — on iOS a tap leaves :hover stuck */
+@media (hover: hover) and (pointer: fine) {
+  .sk-option:hover:not(.is-selected) {
+    border-color: var(--border-strong);
+  }
+}
+
 .sk-option.is-selected {
   border-color: var(--border-focus);
   box-shadow: inset 0 0 0 1px var(--border-focus);

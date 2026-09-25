@@ -149,7 +149,7 @@ export function useCheckout() {
       case 'locker':
         return `Поштомат НП №${lockerNumber.value}, ${city}`
       default:
-        return `Адресна доставка, ${city}`
+        return [delivery.address.trim(), city].filter(Boolean).join(', ')
     }
   })
 
@@ -161,7 +161,7 @@ export function useCheckout() {
       case 'locker':
         return `поштомат НП №${lockerNumber.value}, ${city}`
       default:
-        return `кур’єром, ${city}`
+        return `кур’єром, ${[delivery.address.trim(), city].filter(Boolean).join(', ')}`
     }
   })
 

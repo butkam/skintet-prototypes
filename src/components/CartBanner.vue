@@ -13,8 +13,10 @@ const props = withDefaults(
     duration?: number
     /** Change this value to re-trigger the "added again" pulse while visible */
     pulseKey?: number
+    /** bottom — centred above the bottom edge (mobile); top-end — dropped from the cart icon in the nav (desktop) */
+    placement?: 'bottom' | 'top-end'
   }>(),
-  { subtitle: '1 товар додано', actionLabel: 'До кошика', duration: 3500, pulseKey: 0 },
+  { subtitle: '1 товар додано', actionLabel: 'До кошика', duration: 3500, pulseKey: 0, placement: 'bottom' },
 )
 
 const open = defineModel<boolean>('open', { default: false })
@@ -22,13 +24,32 @@ const emit = defineEmits<{ action: [] }>()
 
 const card = ref<HTMLElement | null>(null)
 let hideTimer: ReturnType<typeof setTimeout> | undefined
+// Hovering with a mouse holds the banner — leaving restarts the countdown
+const hovered = ref(false)
 
 function scheduleHide() {
   clearTimeout(hideTimer)
+  if (hovered.value) return
   hideTimer = setTimeout(() => (open.value = false), props.duration)
 }
 
-watch(open, (value) => (value ? scheduleHide() : clearTimeout(hideTimer)))
+watch(open, (value) => {
+  // Unmounted under the cursor → no pointerleave, so forget the hover here
+  if (value) return scheduleHide()
+  hovered.value = false
+  clearTimeout(hideTimer)
+})
+
+function onHover(value: boolean) {
+  hovered.value = value
+  if (!open.value || drag.active) return
+  if (value) clearTimeout(hideTimer)
+  else scheduleHide()
+}
+
+/** Where the banner hides: down past the bottom edge, or back up into the cart icon */
+const fromBottom = () => props.placement === 'bottom'
+
 onBeforeUnmount(() => clearTimeout(hideTimer))
 
 // Repeat add while visible → spring pulse + reset timer
@@ -56,7 +77,7 @@ function onEnter(el: Element, done: () => void) {
   const s = spring(springs.bouncy)
   const a = el.animate(
     [
-      { transform: 'translateY(calc(100% + 40px)) scale(0.9)' },
+      { transform: fromBottom() ? 'translateY(calc(100% + 40px)) scale(0.9)' : 'translateY(-16px) scale(0.6)' },
       { transform: 'translateY(0) scale(1)' },
     ],
     { duration: s.duration, easing: s.easing },
@@ -70,14 +91,14 @@ function onLeave(el: Element, done: () => void) {
   const a = el.animate(
     [
       { transform: from, opacity: 1 },
-      { transform: 'translateY(calc(100% + 40px)) scale(0.96)', opacity: 0 },
+      { transform: fromBottom() ? 'translateY(calc(100% + 40px)) scale(0.96)' : 'translateY(-12px) scale(0.9)', opacity: 0 },
     ],
     { duration: prefersReducedMotion() ? 120 : 220, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' },
   )
   a.onfinish = done
 }
 
-/* ---------- Swipe down to dismiss ---------- */
+/* ---------- Swipe away to dismiss (down at the bottom, up under the nav) ---------- */
 
 const drag = { active: false, startY: 0, dy: 0, lastY: 0, lastT: 0, velocity: 0, pointerId: -1 }
 
@@ -95,8 +116,9 @@ function onPointerDown(e: PointerEvent) {
 function onPointerMove(e: PointerEvent) {
   if (!drag.active || e.pointerId !== drag.pointerId || !card.value) return
   const raw = e.clientY - drag.startY
-  // Rubber-band when pulling upward
-  drag.dy = raw > 0 ? raw : raw * 0.2
+  // Rubber-band when pulling away from the dismiss direction
+  const away = fromBottom() ? raw : -raw
+  drag.dy = away > 0 ? raw : raw * 0.2
   const dt = Math.max(1, e.timeStamp - drag.lastT)
   drag.velocity = ((e.clientY - drag.lastY) / dt) * 1000
   drag.lastY = e.clientY
@@ -110,7 +132,8 @@ function onPointerUp(e: PointerEvent) {
   const el = card.value
   const height = el.offsetHeight
 
-  if (drag.dy > height * 0.5 || drag.velocity > 500) {
+  const sign = fromBottom() ? 1 : -1
+  if (sign * drag.dy > height * 0.5 || sign * drag.velocity > 500) {
     open.value = false
     return
   }
@@ -128,7 +151,7 @@ function onPointerUp(e: PointerEvent) {
 </script>
 
 <template>
-  <div class="cart-banner-region" aria-live="polite">
+  <div class="cart-banner-region" :class="`cart-banner-region--${placement}`" aria-live="polite">
     <Transition :css="false" @enter="onEnter" @leave="onLeave">
       <div
         v-if="open"
@@ -139,6 +162,8 @@ function onPointerUp(e: PointerEvent) {
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
         @pointercancel="onPointerUp"
+        @pointerenter="$event.pointerType === 'mouse' && onHover(true)"
+        @pointerleave="$event.pointerType === 'mouse' && onHover(false)"
       >
         <img class="cart-banner__thumb" :src="image" alt="" />
         <div class="cart-banner__text">
@@ -165,6 +190,19 @@ function onPointerUp(e: PointerEvent) {
   justify-content: center;
   padding: 0 var(--space-5);
   pointer-events: none;
+}
+
+/* Right under the bag icon: nav is 12px padding + 24px glyph + 12px padding.
+   The card's right edge lines up with the icon's, and it grows out of that corner */
+.cart-banner-region--top-end {
+  top: calc(env(safe-area-inset-top) + 48px + var(--space-2));
+  bottom: auto;
+  justify-content: flex-end;
+}
+
+.cart-banner-region--top-end .cart-banner {
+  max-width: 360px;
+  transform-origin: calc(100% - 12px) top;
 }
 
 .cart-banner {

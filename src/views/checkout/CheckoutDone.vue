@@ -9,10 +9,13 @@ import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import { useCheckout, type PaymentStatus } from '@/composables/useCheckout'
 import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
+import { useWideCart } from '@/composables/useWideCart'
 
 const router = useRouter()
 const { placedOrder, payNext, resetAfterOrder } = useCheckout()
 const order = placedOrder.value!
+// Desktop: the result sits in the middle of the page, under the steps bar
+const wide = useWideCart()
 
 const STATUS_ICON: Record<PaymentStatus, { name: IconName; size: number; color: string }> = {
   paid: { name: 'Check', size: 18, color: 'var(--status-success-fg)' },
@@ -69,7 +72,7 @@ function toCatalog() {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--wide': wide }">
     <CheckoutTopBar :step="2" />
 
     <main class="done">
@@ -109,6 +112,34 @@ function toCatalog() {
 </template>
 
 <style scoped>
+/* ---------- Desktop: result centred under the steps bar ---------- */
+
+/* Fills the screen under the steps bar (CheckoutLayout: its height + the 16px under its line) */
+.page--wide {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - var(--checkout-header-h) - var(--checkout-steps-h, 0px) - var(--space-4));
+}
+
+/* In the middle of that space; a bit higher than the exact middle — the eye takes that for centred */
+.page--wide .done {
+  flex: 1;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  padding: var(--space-10) 0 calc(var(--space-10) + 8vh);
+}
+
+.done {
+  grid-column: 1 / -1;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  padding: var(--space-10) 0 calc(var(--space-10) + 8vh);
+}
+
 .done {
   display: flex;
   flex-direction: column;

@@ -28,7 +28,7 @@ watch(drawerOpen, (open) => {
 <template>
   <div
     class="app-frame"
-    :class="{ 'is-frozen': baseFrozen, 'is-covered': baseCovered }"
+    :class="{ 'is-frozen': baseFrozen, 'is-covered': baseCovered, 'app-frame--full': route.meta.fullWidth }"
     :style="baseFrozen ? { top: `${baseTop}px` } : undefined"
     :inert="baseFrozen || undefined"
   >
@@ -71,6 +71,16 @@ watch(drawerOpen, (open) => {
     box-shadow: var(--elevation-s);
     /* No shadow under the bottom edge — overscroll would reveal it as a hairline */
     clip-path: inset(-24px -24px 0 -24px);
+  }
+}
+
+/* Desktop (same breakpoint as the two-column cart, useWideCart): screens marked
+   meta.fullWidth drop the phone column and fill the window */
+@media (min-width: 960px) {
+  .app-frame--full {
+    max-width: none;
+    box-shadow: none;
+    clip-path: none;
   }
 }
 </style>

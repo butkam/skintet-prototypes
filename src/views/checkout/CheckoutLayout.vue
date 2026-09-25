@@ -1,13 +1,19 @@
 <script setup lang="ts">
 // Figma checkout header (node 112:1560): logo left, «Увійти» + PeopleCircle right
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import SkIcon from '@/components/SkIcon.vue'
+import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import logo from '@/assets/images/logo.png'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 import { takeInAppBack } from '@/router'
+import { useWideCart } from '@/composables/useWideCart'
 
 const route = useRoute()
+// Desktop: «Увійти» sits at the end of the steps bar instead (CheckoutTopBar)
+const wide = useWideCart()
+// Desktop: one steps bar for all screens — it stays put, only its line moves; the screens below cross-fade
+const progress = computed(() => (route.meta.progress ?? 1) as 1 | 2 | 3)
 
 /* ---------- Push / pop transition between steps ---------- */
 
@@ -45,10 +51,23 @@ const track = (done: () => void) => {
 const slide = spring({ stiffness: 380, damping: 39, mass: 1 }) // critically damped — no overshoot
 const PARALLAX = '-30%'
 
+// Desktop: the old screen fades out, then the new one fades in under the same steps bar
+const FADE_OUT = 140
+const FADE_IN = 220
+
 function onEnter(el: Element, finish: () => void) {
   if (instant.value) return finish()
   const done = track(finish)
   const page = el as HTMLElement
+  if (wide.value && !prefersReducedMotion()) {
+    page.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: FADE_IN,
+      delay: FADE_OUT * 0.6,
+      easing: 'ease-out',
+      fill: 'backwards',
+    }).onfinish = done
+    return
+  }
   if (prefersReducedMotion()) {
     page.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 }).onfinish = done
     return
@@ -75,6 +94,11 @@ function onLeave(el: Element, finish: () => void) {
   // Reach the bottom of the screen, so a shorter page underneath never peeks out below it
   page.style.minHeight = `calc(${window.scrollY}px + 100lvh - var(--checkout-header-h))`
   page.classList.add('is-leaving')
+  if (wide.value && !prefersReducedMotion()) {
+    page.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_OUT, easing: 'ease-in', fill: 'forwards' }).onfinish =
+      done
+    return
+  }
   if (prefersReducedMotion()) {
     page.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }).onfinish = done
     return
@@ -95,11 +119,13 @@ function onLeave(el: Element, finish: () => void) {
       <RouterLink to="/" class="checkout-header__logo" aria-label="Skin(tet) — на головну">
         <img :src="logo" alt="Skin(tet)" />
       </RouterLink>
-      <button class="checkout-header__login body-l" type="button">
+      <button v-if="!wide" class="checkout-header__login body-l" type="button">
         <SkIcon name="PeopleCircle" />
         Увійти
       </button>
     </header>
+
+    <CheckoutTopBar persistent :step="progress" />
 
     <div class="checkout__pages" :class="{ 'is-sliding': sliding }">
       <RouterView v-slot="{ Component, route: r }">
@@ -131,6 +157,13 @@ function onLeave(el: Element, finish: () => void) {
   padding: env(safe-area-inset-top) var(--space-5) 0;
 }
 
+/* Desktop: aligned with the widest step column (CheckoutDelivery) */
+@media (min-width: 960px) {
+  .checkout-header {
+    padding-inline: max(var(--space-5), (100% - 1080px) / 2 + var(--space-5));
+  }
+}
+
 .checkout-header::before {
   content: '';
   position: absolute;
@@ -159,6 +192,13 @@ function onLeave(el: Element, finish: () => void) {
   color: var(--neutral-1000);
 }
 
+/* Desktop steps bar: in the same 1080px column as the steps below it */
+@media (min-width: 960px) {
+  .checkout :deep(.topbar__steps) {
+    margin-inline: max(0px, (100% - 1080px) / 2);
+  }
+}
+
 /* ---------- Page transitions ---------- */
 
 .checkout__pages {
@@ -173,6 +213,14 @@ function onLeave(el: Element, finish: () => void) {
 .checkout__page {
   position: relative;
   background: var(--bg-canvas);
+}
+
+/* Desktop: the page stays window-wide (so it slides edge to edge) and centres a column —
+   the phone width by default, wider where a step sets --checkout-column */
+@media (min-width: 960px) {
+  .checkout__page {
+    padding-inline: max(0px, (100% - var(--checkout-column, 440px)) / 2);
+  }
 }
 
 .checkout__page.is-leaving {

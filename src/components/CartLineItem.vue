@@ -180,6 +180,7 @@ onBeforeUnmount(() => cancel?.())
   margin: -6px -8px;
   padding: 6px 8px;
   color: var(--fg-muted);
+  transition: color 0.15s ease;
 }
 
 .line__chevron {
@@ -306,7 +307,7 @@ onBeforeUnmount(() => cancel?.())
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 /* Extend tap target to 44px without shifting layout */
 .qty__btn::after {
@@ -319,6 +320,15 @@ onBeforeUnmount(() => cancel?.())
 }
 .qty__btn:disabled {
   cursor: default;
+}
+/* Лише там, де справді наводять мишею: на iOS тап лишає :hover «залиплим» (див. SkButton) */
+@media (hover: hover) and (pointer: fine) {
+  .qty__btn:hover:not(:disabled) {
+    background: var(--action-secondary-bg-hover);
+  }
+  .line__set-toggle:hover {
+    color: var(--fg-default);
+  }
 }
 .qty__btn:focus-visible {
   outline: var(--border-width-focus) solid var(--border-focus);

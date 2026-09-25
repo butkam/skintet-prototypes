@@ -108,6 +108,12 @@ const style = computed(() => ({
   color: var(--fg-default);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .sk-segmented__item:hover:not(.is-active) {
+    color: var(--fg-default);
+  }
+}
+
 .sk-segmented__item:focus-visible {
   outline: var(--border-width-focus) solid var(--border-focus);
   outline-offset: -2px;
@@ -115,7 +121,6 @@ const style = computed(() => ({
 
 .sk-segmented--block {
   display: flex;
-  background: var(--bg-subtle);
   width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
