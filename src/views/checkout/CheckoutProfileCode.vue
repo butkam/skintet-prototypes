@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkIcon from '@/components/SkIcon.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
+import { popIn } from '@/motion/popIn'
 import { takeKeyboard } from '@/composables/keyboardHandoff'
 import { useWideCart } from '@/composables/useWideCart'
 import { RESEND_SECONDS, formatPhoneDisplay, useCheckout } from '@/composables/useCheckout'
@@ -53,6 +54,9 @@ function toEnd() {
 // The keyboard is already up from the «Отримати код» tap — keep it for this field
 onMounted(() => takeKeyboard(input.value))
 
+const icon = ref<InstanceType<typeof SkIcon> | null>(null)
+onMounted(() => popIn(icon.value?.$el))
+
 // Focused without a keyboard (e.g. after a reload): a tap on the cells must still bring it up —
 // iOS ignores taps on an already focused field, so re-focus inside the gesture
 function onCellsTap() {
@@ -92,7 +96,7 @@ function changeNumber() {
     <CheckoutTopBar :step="3" />
 
     <main class="code">
-      <SkIcon name="PeopleCircleLarge" :size="48" />
+      <SkIcon ref="icon" name="PeopleCircleLarge" :size="48" />
       <h1 class="code__title heading-s">Введіть код з SMS</h1>
       <p class="code__text body-s">Надіслали на {{ formatPhoneDisplay(profile.phone) }}</p>
       <button type="button" class="code__change body-s" @click="changeNumber">Змінити номер</button>

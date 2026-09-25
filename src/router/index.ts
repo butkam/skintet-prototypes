@@ -27,12 +27,13 @@ export const router = createRouter({
         // meta.progress — the step lit in the steps bar (desktop: one bar in CheckoutLayout for all screens)
         { path: '', name: 'checkout-delivery', meta: { step: 1, progress: 1 }, component: () => import('@/views/checkout/CheckoutDelivery.vue') },
         { path: 'payment', name: 'checkout-payment', meta: { step: 2, progress: 2 }, component: () => import('@/views/checkout/CheckoutPayment.vue') },
-        { path: 'done', name: 'checkout-done', meta: { step: 3, progress: 2 }, component: () => import('@/views/checkout/CheckoutDone.vue') },
+        // meta.group — screens of one group don't slide: the steps bar stays, only the content under it changes
+        { path: 'done', name: 'checkout-done', meta: { step: 3, progress: 2, group: 'profile' }, component: () => import('@/views/checkout/CheckoutDone.vue') },
         // Figma «Підтвердіть номер телефону» 125:5862 — after every payment went through
         // meta.step only orders screens for the slide direction — sub-steps of «Створення профілю» go in between
-        { path: 'profile', name: 'checkout-profile', meta: { step: 3.1, progress: 3 }, component: () => import('@/views/checkout/CheckoutProfile.vue') },
+        { path: 'profile', name: 'checkout-profile', meta: { step: 3.1, progress: 3, group: 'profile' }, component: () => import('@/views/checkout/CheckoutProfile.vue') },
         // Figma «Введіть код з SMS» 125:5940
-        { path: 'profile/code', name: 'checkout-profile-code', meta: { step: 3.2, progress: 3 }, component: () => import('@/views/checkout/CheckoutProfileCode.vue') },
+        { path: 'profile/code', name: 'checkout-profile-code', meta: { step: 3.2, progress: 3, group: 'profile' }, component: () => import('@/views/checkout/CheckoutProfileCode.vue') },
       ],
     },
   ],

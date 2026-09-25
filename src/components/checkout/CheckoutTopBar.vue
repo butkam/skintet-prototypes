@@ -1,3 +1,8 @@
+<script lang="ts">
+// The step the last mounted bar showed — each screen has its own bar on the phone, the next one picks up from here
+let shownStep: number | null = null
+</script>
+
 <script setup lang="ts">
 // Figma 112:1544 / 112:1593 / 125:5494 — sticky steps bar with progress line
 // Steps bar: solid, hard edge. The slot bar below it fades out at the bottom so content disappears under it
@@ -27,22 +32,24 @@ const fill = ref(0)
 const animate = ref(false)
 const s = spring({ stiffness: 170, damping: 26, mass: 1 })
 
-// Progress line fills up to the right edge of the current step label
+// Progress line fills up to the right edge of the current step label (0 — before the first one)
+function edge(step: number) {
+  const current = list.value?.querySelectorAll<HTMLElement>('[data-step]')[step - 1]
+  return current && list.value ? current.offsetLeft + current.offsetWidth - list.value.offsetLeft : 0
+}
+
 function measure() {
-  const items = list.value?.querySelectorAll<HTMLElement>('[data-step]')
-  const current = items?.[props.step - 1]
-  if (!current || !list.value) return
-  fill.value = current.offsetLeft + current.offsetWidth - list.value.offsetLeft
+  if (list.value) fill.value = edge(props.step)
 }
 
 // Set up whenever the bar appears — on mount, or later when the window crosses the desktop breakpoint
 watch(nav, (el, _, onCleanup) => {
   if (!el) return
-  // Start from the previous step's edge, then spring to the current one
+  // Start where the previous screen's bar left off (on a fresh load — the previous step), then spring to
+  // the current one: between screens of one step (phone → SMS code) the line doesn't run again
   animate.value = false
-  const items = list.value?.querySelectorAll<HTMLElement>('[data-step]')
-  const prev = props.step > 1 ? items?.[props.step - 2] : null
-  fill.value = prev && list.value ? prev.offsetLeft + prev.offsetWidth - list.value.offsetLeft : 0
+  fill.value = edge(shownStep ?? props.step - 1)
+  shownStep = props.step
   requestAnimationFrame(() => {
     animate.value = true
     measure()
@@ -58,7 +65,13 @@ watch(nav, (el, _, onCleanup) => {
   resizeObserver.observe(el)
   onCleanup(() => resizeObserver.disconnect())
 }, { flush: 'post' })
-watch(() => props.step, () => nextTick(measure))
+watch(
+  () => props.step,
+  (step) => {
+    shownStep = step
+    nextTick(measure)
+  },
+)
 
 function go(i: number) {
   const target = steps[i].to

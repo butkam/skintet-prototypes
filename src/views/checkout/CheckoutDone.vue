@@ -8,7 +8,7 @@ import SkButton from '@/components/SkButton.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import { useCheckout, type PaymentStatus } from '@/composables/useCheckout'
 import { formatPrice } from '@/data/catalog'
-import { prefersReducedMotion, spring } from '@/motion/spring'
+import { popIn } from '@/motion/popIn'
 import { useWideCart } from '@/composables/useWideCart'
 
 const router = useRouter()
@@ -56,14 +56,7 @@ const payLabel = computed(() =>
 const payAmount = computed(() => (paying.value ? '' : formatPrice(unpaid.value?.amount ?? 0)))
 
 const icon = ref<HTMLElement | null>(null)
-onMounted(() => {
-  if (prefersReducedMotion() || !icon.value) return
-  const s = spring({ stiffness: 260, damping: 14, mass: 1 })
-  icon.value.animate([{ transform: 'scale(0.4) rotate(-12deg)', opacity: 0 }, { transform: 'scale(1) rotate(0)', opacity: 1 }], {
-    duration: s.duration,
-    easing: s.easing,
-  })
-})
+onMounted(() => popIn(icon.value))
 
 function toCatalog() {
   resetAfterOrder()
@@ -104,7 +97,7 @@ function toCatalog() {
         </template>
         <template v-else>
           <SkButton block @click="router.push({ name: 'checkout-profile' })">Створити профіль</SkButton>
-          <SkButton variant="secondary" block @click="toCatalog">Перейти до каталогу</SkButton>
+          <SkButton variant="secondary" block @click="toCatalog">Назад до каталогу</SkButton>
         </template>
       </div>
     </main>

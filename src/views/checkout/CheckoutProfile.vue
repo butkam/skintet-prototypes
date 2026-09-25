@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // Figma «Підтвердіть номер телефону» (node 125:5862) — profile creation starts from the order's phone
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkIcon from '@/components/SkIcon.vue'
 import SkInput from '@/components/SkInput.vue'
 import SkButton from '@/components/SkButton.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
+import { popIn } from '@/motion/popIn'
 import { holdKeyboard } from '@/composables/keyboardHandoff'
 import { useWideCart } from '@/composables/useWideCart'
 import { RESEND_SECONDS, formatPhoneInput, phoneDigits, useCheckout } from '@/composables/useCheckout'
@@ -19,6 +20,8 @@ const { contact, profile } = useCheckout()
 const phone = ref(profile.phone || formatPhoneInput(contact.phone))
 const error = ref('')
 const input = ref<InstanceType<typeof SkInput> | null>(null)
+const icon = ref<InstanceType<typeof SkIcon> | null>(null)
+onMounted(() => popIn(icon.value?.$el))
 
 function onPhone(value: string) {
   phone.value = formatPhoneInput(value)
@@ -47,7 +50,7 @@ function requestCode() {
     <CheckoutTopBar :step="3" />
 
     <main class="profile">
-      <SkIcon name="PeopleCircleLarge" :size="48" />
+      <SkIcon ref="icon" name="PeopleCircleLarge" :size="48" />
       <h1 class="profile__title heading-s">Підтвердіть номер телефону</h1>
       <p class="profile__text body-s">
         Надішлемо код у SMS. Номер потрібен, щоб зберегти замовлення і повідомити про доставку.

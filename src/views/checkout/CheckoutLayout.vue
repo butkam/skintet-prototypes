@@ -28,10 +28,15 @@ const markHistoryNav = () => (fromHistory = !takeInAppBack())
 onMounted(() => window.addEventListener('popstate', markHistoryNav))
 onBeforeUnmount(() => window.removeEventListener('popstate', markHistoryNav))
 
+// Within a group (order result → phone → SMS code) the screens don't slide: the steps bar is the same,
+// so it stays put and only the content under it cross-fades
+const shared = ref(false)
+
 watch(
-  () => Number(route.meta.step ?? 0),
-  (next, prev) => {
-    direction.value = next >= (prev ?? 0) ? 'forward' : 'back'
+  () => [Number(route.meta.step ?? 0), route.meta.group] as const,
+  ([next, group], [prev, prevGroup]) => {
+    direction.value = next >= prev ? 'forward' : 'back'
+    shared.value = !!group && group === prevGroup
     instant.value = fromHistory
     fromHistory = false
   },
@@ -55,10 +60,35 @@ const PARALLAX = '-30%'
 const FADE_OUT = 140
 const FADE_IN = 220
 
+// Within a group: the content under the steps bar fades out, then the new one fades in (as the desktop steps),
+// the screen's icon pops in on its own (popIn)
+const content = (page: HTMLElement) => page.querySelector<HTMLElement>(':scope > main')
+
+function enterShared(page: HTMLElement, done: () => void) {
+  const main = content(page)
+  if (!main) return done()
+  main.animate([{ opacity: 0 }, { opacity: 1 }], {
+    duration: FADE_IN,
+    delay: FADE_OUT * 0.6,
+    easing: 'ease-out',
+    fill: 'backwards',
+  }).onfinish = done
+}
+
+function leaveShared(page: HTMLElement, done: () => void) {
+  // Transparent, over the new screen: the new steps bar shows through in the same place
+  page.classList.add('is-fading')
+  const main = content(page)
+  if (!main) return done()
+  main.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_OUT, easing: 'ease-in', fill: 'forwards' }).onfinish =
+    done
+}
+
 function onEnter(el: Element, finish: () => void) {
   if (instant.value) return finish()
   const done = track(finish)
   const page = el as HTMLElement
+  if (shared.value && !prefersReducedMotion()) return enterShared(page, done)
   if (wide.value && !prefersReducedMotion()) {
     page.animate([{ opacity: 0 }, { opacity: 1 }], {
       duration: FADE_IN,
@@ -94,6 +124,7 @@ function onLeave(el: Element, finish: () => void) {
   // Reach the bottom of the screen, so a shorter page underneath never peeks out below it
   page.style.minHeight = `calc(${window.scrollY}px + 100lvh - var(--checkout-header-h))`
   page.classList.add('is-leaving')
+  if (shared.value && !prefersReducedMotion()) return leaveShared(page, done)
   if (wide.value && !prefersReducedMotion()) {
     page.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_OUT, easing: 'ease-in', fill: 'forwards' }).onfinish =
       done
@@ -243,5 +274,17 @@ function onLeave(el: Element, finish: () => void) {
 
 .checkout__page.is-below {
   z-index: 1;
+}
+
+/* Within a group: the old screen lies over the new one without its own background and steps bar —
+   the new bar (the same steps) stays visible in its place, the old content fades above it */
+.checkout__page.is-fading {
+  z-index: 2;
+  background: none;
+}
+
+.checkout__page.is-fading :deep(.topbar__steps),
+.checkout__page.is-fading :deep(.topbar__content) {
+  visibility: hidden;
 }
 </style>
