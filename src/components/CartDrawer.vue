@@ -73,6 +73,29 @@ onBeforeUnmount(() => {
 
 /* ---------- Enter / leave animations ---------- */
 
+// Широкий кошик з товарами: ліва колонка (подарунки, рекомендовані, промокод) виїжджає з-під панелі —
+// другим етапом після самої панелі або щойно в порожній кошик додали товар
+function revealSide(root: Element | null, delay = 0) {
+  const side = root?.querySelector<HTMLElement>('.cart__side')
+  if (!side || !wide.value || prefersReducedMotion()) return
+  const sp = spring(slideSpring)
+  side.animate([{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }], {
+    duration: sp.duration,
+    easing: sp.easing,
+    delay,
+    fill: 'backwards',
+  })
+}
+
+// Порожній кошик → товари: права частина міняє вміст на місці, ліва виїжджає
+watch(
+  () => lines.value.length > 0,
+  (filled, was) => {
+    if (filled && !was && drawerOpen.value) revealSide(panel.value)
+  },
+  { flush: 'post' },
+)
+
 function onEnter(el: Element, done: () => void) {
   const p = el.querySelector<HTMLElement>('.drawer')!
   window.scrollTo({ top: 0, behavior: 'instant' })
@@ -86,6 +109,8 @@ function onEnter(el: Element, done: () => void) {
     duration: sp.duration,
     easing: sp.easing,
   }).onfinish = done
+  // Other stage: the left column follows once the panel has visibly arrived (the spring's tail is barely noticeable)
+  revealSide(el, sp.duration * 0.45)
 }
 
 function onAfterEnter() {
@@ -120,9 +145,11 @@ function onLeave(el: Element, done: () => void) {
   // The cart may be scrolled: re-align the screen underneath with the current viewport
   baseTop.value = window.scrollY - baseScrollY.value
   const from = p.style.transform || 'translateX(0)'
+  // The left column rides along, attached to the panel — go far enough for both to leave the screen
+  const away = `translateX(${p.offsetWidth + (p.querySelector<HTMLElement>('.cart__side')?.offsetWidth ?? 0)}px)`
   const opts = { duration: prefersReducedMotion() ? 120 : 260, easing: 'cubic-bezier(0.4, 0, 0.9, 0.6)', fill: 'forwards' as const }
   p.animate(
-    prefersReducedMotion() ? [{ opacity: 1 }, { opacity: 0 }] : [{ transform: from }, { transform: 'translateX(100%)' }],
+    prefersReducedMotion() ? [{ opacity: 1 }, { opacity: 0 }] : [{ transform: from }, { transform: away }],
     opts,
   ).onfinish = done
 }
@@ -215,7 +242,6 @@ function onPointerUp(e: PointerEvent) {
       <section
         ref="panel"
         class="drawer"
-        :class="{ 'drawer--split': wide && lines.length }"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
@@ -331,8 +357,8 @@ function onPointerUp(e: PointerEvent) {
   background: var(--bg-scrim);
 }
 
-/* Порожній кошик — одна колонка як на телефоні; з товарами — дві по 440px.
-   Ширину не анімуємо: вміст однаково змінюється цілком, а колонки посередині переходу стискались */
+/* Панель — завжди одна колонка 440px, як на телефоні: порожній кошик або товари з оформленням.
+   З товарами до неї ліворуч прикріплена ще одна колонка (CartContents → .cart__side), що виїжджає з-під неї */
 .drawer-root--wide .drawer {
   position: absolute;
   top: 0;
@@ -343,9 +369,6 @@ function onPointerUp(e: PointerEvent) {
   min-height: 0;
   margin: 0;
   box-shadow: var(--elevation-l);
-}
-.drawer-root--wide .drawer--split {
-  width: 880px;
 }
 .drawer-root--wide .drawer::before,
 .drawer-root--wide .drawer::after {
@@ -359,16 +382,13 @@ function onPointerUp(e: PointerEvent) {
   overscroll-behavior: contain;
 }
 
-/* З товарами хедер стоїть лише над правою колонкою, а ліва (подарунки, рекомендовані, промокод)
-   самостійна й іде від самого верху. Колонки кошика (CartContents) стають клітинками цієї сітки */
+/* З товарами: хедер, під ним товари й оформлення (CartContents → .cart__main), кожне гортається само.
+   Ліва колонка (подарунки, рекомендовані, промокод) стоїть поза панеллю й іде від самого верху —
+   тож тут нічого не обрізаємо */
 .drawer-root--wide .drawer__body--filled {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
-}
-.drawer-root--wide .drawer__body--filled > .drawer__header {
-  grid-area: 1 / 2;
+  overflow: visible;
 }
 
 /* Заголовок ліворуч, хрестик праворуч — як у бокових панелях на десктопі */

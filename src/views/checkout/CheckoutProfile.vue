@@ -7,9 +7,12 @@ import SkInput from '@/components/SkInput.vue'
 import SkButton from '@/components/SkButton.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import { holdKeyboard } from '@/composables/keyboardHandoff'
+import { useWideCart } from '@/composables/useWideCart'
 import { RESEND_SECONDS, formatPhoneInput, phoneDigits, useCheckout } from '@/composables/useCheckout'
 
 const router = useRouter()
+// Desktop: the screen sits in the middle of the page, as «Замовлення прийнято» before it
+const wide = useWideCart()
 const { contact, profile } = useCheckout()
 
 // Prefilled with the number given at checkout (or the one already sent a code); editing here doesn't touch the order
@@ -40,7 +43,7 @@ function requestCode() {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--wide': wide }">
     <CheckoutTopBar :step="3" />
 
     <main class="profile">
@@ -97,5 +100,21 @@ function requestCode() {
   width: 100%;
   margin-top: var(--space-5);
   text-align: left;
+}
+
+/* ---------- Desktop: centred under the steps bar, like «Замовлення прийнято» ---------- */
+
+/* Fills the screen under the steps bar (CheckoutLayout: its height + the 16px under its line) */
+.page--wide {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - var(--checkout-header-h) - var(--checkout-steps-h, 0px) - var(--space-4));
+}
+
+/* No keyboard to make room for — in the middle, a bit higher than the exact middle */
+.page--wide .profile {
+  flex: 1;
+  justify-content: center;
+  padding-block: var(--space-10) calc(var(--space-10) + 8vh);
 }
 </style>

@@ -5,12 +5,15 @@ import { useRouter } from 'vue-router'
 import SkIcon from '@/components/SkIcon.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import { takeKeyboard } from '@/composables/keyboardHandoff'
+import { useWideCart } from '@/composables/useWideCart'
 import { RESEND_SECONDS, formatPhoneDisplay, useCheckout } from '@/composables/useCheckout'
 import { backTo } from '@/router'
 
 const LENGTH = 4
 
 const router = useRouter()
+// Desktop: the screen sits in the middle of the page, as «Замовлення прийнято» before it
+const wide = useWideCart()
 const { profile, resetAfterOrder } = useCheckout()
 
 /* ---------- Code ---------- */
@@ -85,7 +88,7 @@ function changeNumber() {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--wide': wide }">
     <CheckoutTopBar :step="3" />
 
     <main class="code">
@@ -221,5 +224,21 @@ function changeNumber() {
   margin-top: calc(36px - 6px);
   padding: 6px 8px;
   color: var(--fg-default);
+}
+
+/* ---------- Desktop: centred under the steps bar, like «Замовлення прийнято» ---------- */
+
+/* Fills the screen under the steps bar (CheckoutLayout: its height + the 16px under its line) */
+.page--wide {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - var(--checkout-header-h) - var(--checkout-steps-h, 0px) - var(--space-4));
+}
+
+/* No keyboard to make room for — in the middle, a bit higher than the exact middle */
+.page--wide .code {
+  flex: 1;
+  justify-content: center;
+  padding-block: var(--space-10) calc(var(--space-10) + 8vh);
 }
 </style>

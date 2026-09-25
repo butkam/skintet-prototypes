@@ -21,6 +21,11 @@ const entering = new WeakMap<Element, () => void>()
 function onEnter(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (prefersReducedMotion()) return done()
+  // Поза екраном (товар додали зі стрічки внизу кошика) розгортання ніхто не побачить, а стрічка
+  // тримала б палець щокадровим прокручуванням документа — на iPhone від цього стрибав увесь кошик.
+  // Тож рядок стає одразу, а стрічка зсувається один раз (ProductRail → onAdd)
+  const rect = node.getBoundingClientRect()
+  if (rect.bottom <= 0 || rect.top >= window.innerHeight) return done()
 
   const cs = getComputedStyle(node)
   const height = node.getBoundingClientRect().height
