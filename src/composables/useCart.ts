@@ -7,7 +7,8 @@ import {
   type CartLine,
   type Sample,
 } from '@/data/catalog'
-import { demoProducts, type DemoProduct } from '@/data/demoProducts'
+import { demoProducts, orderGifts, type DemoProduct } from '@/data/demoProducts'
+import { giftCardModel } from '@/variant'
 import { persist } from './persist'
 
 // Прототип: true — при першому додаванні в порожній кошик підставляється вміст з макету
@@ -57,12 +58,22 @@ const delivery = computed(() => (freeDelivery.value ? 0 : DELIVERY_PRICE))
 const sampleLines = computed(() => lines.value.filter((l) => l.kind === 'sample'))
 const samplesTotal = computed(() => sampleLines.value.reduce((s, l) => s + l.price * l.qty, 0))
 
-/** Подарунки до товарів і семпли — один рядок у підсумку: «Подарунки, 7 × 1 ₴» */
+/**
+ * Прототип /gift-card: подарунок до замовлення йде від суми товарів, а не з рядків кошика —
+ * тож з'являється, замінюється другим від 5 000 ₴ і зникає сам, щойно сума перетне поріг
+ */
+const orderGift = computed(() =>
+  giftCardModel ? (orderGifts.filter((g) => subtotal.value >= g.amount).pop() ?? null) : null,
+)
+const orderGiftTotal = computed(() => orderGift.value?.price ?? 0)
+
+/** Подарунки до товарів, до замовлення і семпли — один рядок у підсумку: «Подарунки, 7 × 1 ₴» */
 const presentPrices = computed(() => [
+  ...(orderGift.value ? [orderGift.value.price] : []),
   ...goods.value.flatMap((l) => (l.gift ? [l.gift.price] : [])),
   ...sampleLines.value.flatMap((l) => Array<number>(l.qty).fill(l.price)),
 ])
-const presentsTotal = computed(() => giftsTotal.value + samplesTotal.value)
+const presentsTotal = computed(() => orderGiftTotal.value + giftsTotal.value + samplesTotal.value)
 /** Спільна ціна одного подарунка; null, якщо ціни різні — тоді «× ціна» не показуємо */
 const presentUnitPrice = computed(() => {
   const [first] = presentPrices.value
@@ -93,7 +104,7 @@ function applyPromo(raw: string): string | null {
 }
 
 const total = computed(
-  () => subtotal.value + giftsTotal.value + samplesTotal.value + delivery.value - promoDiscount.value,
+  () => subtotal.value + presentsTotal.value + delivery.value - promoDiscount.value,
 )
 const samplesAllowed = computed(() =>
   milestones.reduce((n, m) => (subtotal.value >= m.amount ? m.samples : n), 0 as number),
@@ -222,6 +233,8 @@ export function useCart() {
     giftCount,
     giftsTotal,
     samplesTotal,
+    orderGift,
+    orderGiftTotal,
     presentCount: computed(() => presentPrices.value.length),
     presentsTotal,
     presentUnitPrice,

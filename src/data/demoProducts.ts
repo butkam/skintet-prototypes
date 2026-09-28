@@ -2,7 +2,7 @@
 // Фото — прямі посилання на CDN сайту.
 // Подарунки до товарів (gift) — демо-заглушки для прототипу, не реальні акції.
 // Фото подарунка — теж із каталогу: у прототипі беремо найближчий за змістом кадр.
-import type { CartLine } from './catalog'
+import type { CartLine, OrderGift } from './catalog'
 
 export type DemoProduct = Omit<CartLine, 'qty' | 'kind'> & { kind: 'product' | 'set'; brand: string; url: string }
 
@@ -225,4 +225,24 @@ export const demoProducts: DemoProduct[] = [
     category: 'device',
     shortName: 'LED-маска',
   }),
+]
+
+/** Прототип /gift-card: подарунок до замовлення — від 3 000 ₴, а від 5 000 ₴ його змінює другий (Figma 234:3047) */
+export const orderGifts: OrderGift[] = [
+  {
+    id: 'order-gift-liquid-peptides-mini',
+    amount: 3000,
+    title: 'Liquid Peptides Advanced MP',
+    description: 'Medik8 · Мініатюра ліфтинг-сироватки з пептидами · 8 мл',
+    image: img('fb/c3/5d61478de110cc42b40a4a557efd'),
+    price: 1,
+  },
+  {
+    id: 'order-gift-pro-collagen-mini',
+    amount: 5000,
+    title: 'Advanced Pro-Collagen+ Peptide Cream',
+    description: 'Medik8 · Мініатюра антивікового крему з пептидами · 15 мл',
+    image: img('87/b2/9b419d92030ef19c0c28b6ea99ab'),
+    price: 1,
+  },
 ]

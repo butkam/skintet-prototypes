@@ -3,6 +3,7 @@ import exoImage from '@/assets/images/product-viewed.png'
 import spwImage from '@/assets/images/cart-skin-spw.png'
 import setItem2 from '@/assets/images/cart-set-item-2.png'
 import setItem3 from '@/assets/images/cart-set-item-3.png'
+import { giftCardModel } from '@/variant'
 
 export type SetItem = { title: string; image: string }
 
@@ -80,12 +81,43 @@ export const demoLines = (): CartLine[] => [
 
 export const DELIVERY_PRICE = 79
 
-export const milestones = [
-  { amount: 3000, label: 'Доставка', icon: 'FastShipping', samples: 0 },
-  { amount: 5000, label: '1 семпл', icon: 'GiftSmall', samples: 1 },
-  { amount: 8000, label: '2 семпли', icon: 'GiftSmall', samples: 2 },
-  { amount: 10000, label: '3 семпли', icon: 'GiftSmall', samples: 3 },
-] as const
+export type Milestone = {
+  amount: number
+  label: string
+  icon: 'FastShipping' | 'GiftSmall'
+  /** Скільки семплів можна обрати від цього порогу */
+  samples: number
+  /** Підпис на шкалі під «від N ₴» */
+  caption: string
+  /** Підпис, коли пройдено й наступний поріг — його подарунок замінив цей */
+  captionPassed?: string
+}
+
+const sampleMilestones: Milestone[] = [
+  { amount: 3000, label: 'Доставка', icon: 'FastShipping', samples: 0, caption: 'Безкоштовна доставка' },
+  { amount: 5000, label: '1 семпл', icon: 'GiftSmall', samples: 1, caption: '1 подарунок' },
+  { amount: 8000, label: '2 семпли', icon: 'GiftSmall', samples: 2, caption: '2 подарунки' },
+  { amount: 10000, label: '3 семпли', icon: 'GiftSmall', samples: 3, caption: '3 подарунки' },
+]
+
+// Figma 234:3047: подарунок приходить разом з безкоштовною доставкою, від 5 000 ₴ його змінює інший
+// (самі подарунки — demoProducts → orderGifts)
+const giftCardMilestones: Milestone[] = [
+  {
+    amount: 3000,
+    label: 'Доставка',
+    icon: 'FastShipping',
+    samples: 0,
+    caption: 'Безкоштовна доставка + подарунок',
+    captionPassed: 'Безкоштовна доставка',
+  },
+  { amount: 5000, label: 'Подарунок', icon: 'GiftSmall', samples: 0, caption: 'Подарунок' },
+]
+
+export const milestones: readonly Milestone[] = giftCardModel ? giftCardMilestones : sampleMilestones
+
+/** Подарунок до замовлення (прототип /gift-card): один на замовлення, від amount ₴ */
+export type OrderGift = { id: string; amount: number; title: string; description: string; image: string; price: number }
 
 /* ---------- Форматування ---------- */
 

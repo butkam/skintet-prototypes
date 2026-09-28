@@ -180,8 +180,8 @@ export function useCheckout() {
     const devices = goods.filter((l) => l.category === 'device')
     const cosmetics = goods.filter((l) => l.category !== 'device')
     const sum = (ls: CartLine[]) => ls.reduce((s, l) => s + l.price * l.qty + (l.gift?.price ?? 0), 0)
-    // Samples and delivery ride along with cosmetics (or devices if there are none)
-    const extras = cart.samplesTotal.value + cart.delivery.value
+    // Samples, the order gift and delivery ride along with cosmetics (or devices if there are none)
+    const extras = cart.samplesTotal.value + cart.orderGiftTotal.value + cart.delivery.value
 
     const list: { kind: GroupKind; title: string; amount: number }[] = []
     if (devices.length) {

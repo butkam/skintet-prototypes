@@ -11,6 +11,15 @@ const cart = useCart()
 
 <template>
   <ul class="lines" :class="{ 'lines--l': size === 'l' }">
+    <!-- Прототип /gift-card: подарунок до замовлення — першим, як і в кошику -->
+    <li v-if="cart.orderGift.value" class="lines__line">
+      <img class="lines__thumb" :src="cart.orderGift.value.image" alt="" />
+      <div class="lines__text">
+        <p class="lines__title body-m">{{ cart.orderGift.value.title }}</p>
+        <p class="lines__meta body-s">Подарунок · 1 × {{ formatPrice(cart.orderGift.value.price) }}</p>
+      </div>
+      <span class="body-m">{{ formatPrice(cart.orderGift.value.price) }}</span>
+    </li>
     <li v-for="line in cart.lines.value" :key="line.id" class="lines__line">
       <img class="lines__thumb" :src="line.image" alt="" />
       <div class="lines__text">

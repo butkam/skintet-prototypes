@@ -8,6 +8,7 @@ import CartContents from './CartContents.vue'
 import { useCart } from '@/composables/useCart'
 import { useWideCart } from '@/composables/useWideCart'
 import { prefersReducedMotion, spring } from '@/motion/spring'
+import { giftCardModel } from '@/variant'
 
 const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer } = useCart()
 // Широкий екран: дровер справа поверх затемненого екрана, а не на місці мобільної колонки
@@ -267,7 +268,11 @@ function onPointerUp(e: PointerEvent) {
           <div v-else class="empty">
             <SkIcon name="ShoppingBagLarge" :size="48" />
             <p class="empty__title">Кошик пустий</p>
-            <p class="empty__text body-l">
+            <p v-if="giftCardModel" class="empty__text body-l">
+              Від 3 000 ₴ — безкоштовна доставка й подарунок,<br />
+              від 5 000 ₴ — інший подарунок
+            </p>
+            <p v-else class="empty__text body-l">
               Від 3 000 ₴ — безкоштовна доставка,<br />
               від 5 000 ₴ — семпли у подарунок
             </p>

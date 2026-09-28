@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory, type RouteLocationRaw } from 'vue-router'
 import { useCart } from '@/composables/useCart'
 import { useCheckout } from '@/composables/useCheckout'
+import { prototypeBase } from '@/variant'
 
 // Кожен прототип — окремий маршрут. Додавай нові екрани сюди.
 export const router = createRouter({
-  // BASE_URL: «/» locally, «/<repo>/» on GitHub Pages
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // BASE_URL: «/» locally, «/<repo>/» on GitHub Pages; прототип «подарунок карткою» — під «gift-card/» (див. variant)
+  history: createWebHistory(prototypeBase),
   // Opening/closing the cart only toggles ?cart on the same screen — the drawer manages scroll itself
   scrollBehavior: (to, from, saved) => (to.path === from.path ? false : (saved ?? { top: 0 })),
   routes: [

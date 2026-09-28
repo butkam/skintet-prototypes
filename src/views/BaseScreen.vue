@@ -6,7 +6,6 @@ import SkButton from '@/components/SkButton.vue'
 import CartBanner from '@/components/CartBanner.vue'
 import { useCart } from '@/composables/useCart'
 import { useWideCart } from '@/composables/useWideCart'
-import { resetSession } from '@/composables/persist'
 import type { DemoProduct } from '@/data/demoProducts'
 
 const cart = useCart()
@@ -28,8 +27,8 @@ function goToCart() {
 
 <template>
   <div class="screen">
-    <!-- Прототип: «Меню» скидає кошик і всі дані оформлення з сесії -->
-    <AppNavigation :cart-count="cart.count.value" @menu="resetSession" @cart="cart.openDrawer" />
+    <!-- Прототип: у «Меню» — перемикання між прототипами й скидання покупок -->
+    <AppNavigation :cart-count="cart.count.value" @cart="cart.openDrawer" />
     <main class="screen__content">
       <SkButton @click="buy">Купити</SkButton>
     </main>

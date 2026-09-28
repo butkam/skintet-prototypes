@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Figma 161:7810 (семпли ще недоступні) · 160:7315 (згорнуто) · 161:7952 (вибір наборів)
 // Липка панель під хедером: шкала + семпли. Розгорнутий вибір лягає поверх товарів, не зсуваючи їх.
+// Прототип /gift-card (Figma 234:3047): лише шкала — шторка не розкривається, подарунок стає карткою над товарами (CartOrderGift)
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
 import CartProgress from './CartProgress.vue'
@@ -11,6 +12,7 @@ import ScrollArrows from './ScrollArrows.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, milestones, pluralFreeSamples, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
+import { giftCardModel } from '@/variant'
 
 const props = defineProps<{
   /** Кошик попросив обрати подарунок: дія переїжджає в панель, виходів з неї більше нема */
@@ -26,7 +28,8 @@ const emit = defineEmits<{ order: [] }>()
 const cart = useCart()
 
 const deliveryThreshold = milestones.find((m) => m.samples === 0)!.amount
-const samplesThreshold = milestones.find((m) => m.samples === 1)!.amount
+// У прототипі /gift-card семплів нема — порогу теж
+const samplesThreshold = milestones.find((m) => m.samples === 1)?.amount ?? Infinity
 const unlocked = computed(() => cart.samplesAllowed.value > 0)
 const picked = computed(() => cart.sampleLines.value.length)
 const limitReached = computed(() => picked.value >= cart.samplesAllowed.value)
@@ -194,9 +197,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="gifts" :class="{ 'gifts--inline': inline }" :data-sticky-top="inline ? undefined : ''">
-    <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open }">
+    <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open, 'gifts__sheet--scale': giftCardModel }">
       <CartProgress :subtotal="cart.subtotal.value" :picked="picked" :declined="cart.samplesDeclined.value" />
 
+      <!-- Прототип /gift-card: під шкалою нічого — ні підказки, ні вибору -->
+      <template v-if="!giftCardModel">
       <!-- Locked: how much is left to the next goal -->
       <p v-if="!unlocked" class="gifts__hint body-s" aria-live="polite">
         <span class="gifts__hint-row">
@@ -267,6 +272,7 @@ onBeforeUnmount(() => {
           </svg>
         </button>
       </template>
+      </template>
     </div>
   </div>
 </template>
@@ -293,6 +299,11 @@ onBeforeUnmount(() => {
   background: var(--bg-canvas);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   box-shadow: var(--elevation-m);
+}
+
+/* Прототип /gift-card (234:3048): під підписами шкали лише 20px до краю шторки */
+.gifts__sheet--scale {
+  padding-bottom: var(--space-5);
 }
 
 /* ---------- Locked hint (161:7951) ---------- */

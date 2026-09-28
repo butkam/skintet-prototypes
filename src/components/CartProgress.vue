@@ -6,6 +6,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import SkIcon from './SkIcon.vue'
 import { formatAmount, milestones } from '@/data/catalog'
 import { spring } from '@/motion/spring'
+import { giftCardModel } from '@/variant'
 
 const props = defineProps<{
   subtotal: number
@@ -49,6 +50,8 @@ let resizeObserver: ResizeObserver | undefined
 const reached = computed(() => milestones.filter((m) => props.subtotal >= m.amount).length)
 
 const visibleIdx = computed<number[]>(() => {
+  // Два пороги (прототип /gift-card) видно завжди
+  if (milestones.length <= 2) return milestones.map((_, i) => i)
   switch (reached.value) {
     case 0:
     case 1:
@@ -139,8 +142,11 @@ function labelStyle(i: number) {
   }
 }
 
-const caption = (m: (typeof milestones)[number]) =>
-  m.samples === 0 ? 'Безкоштовна доставка' : `${m.samples} ${m.samples === 1 ? 'подарунок' : 'подарунки'}`
+// «+ подарунок» знімається, щойно наступний поріг замінив цей подарунок іншим
+const caption = (m: (typeof milestones)[number], i: number) => {
+  const next = milestones[i + 1]
+  return m.captionPassed && next && props.subtotal >= next.amount ? m.captionPassed : m.caption
+}
 
 // Screen readers only — the visible hint above the scale was removed
 const message = computed(() => {
@@ -148,6 +154,9 @@ const message = computed(() => {
   const next = milestones.find((m) => s < m.amount)
   if (!next) return 'Максимум подарунків у цьому замовленні'
   const left = formatAmount(next.amount - s)
+  if (giftCardModel) {
+    return next === milestones[0] ? `Ще ${left} до безкоштовної доставки й подарунка` : `Ще ${left} — і подарунок зміниться на інший`
+  }
   if (next.samples === 0) return `Ще ${left} до безкоштовної доставки`
   return `Ще ${left} — і зможете обрати ${next.samples === 1 ? 'семпл' : `${next.samples} семпли`}`
 })
@@ -217,7 +226,7 @@ onBeforeUnmount(() => {
         >
           <SkIcon v-if="isDeclined(m)" name="CrossSmall" :size="16" color="var(--status-danger-fg)" class="progress__cross" />
           <SkIcon v-else-if="isClaimed(m)" name="Check" :size="18" color="var(--status-success-fg)" class="progress__check" />
-          {{ caption(m) }}
+          {{ caption(m, i) }}
         </span>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
 import CartLines from './CartLines.vue'
+import CartOrderGift from './CartOrderGift.vue'
 import CartPromo from './CartPromo.vue'
 import CartSummary from './CartSummary.vue'
 import ProductRail from './ProductRail.vue'
@@ -92,6 +93,7 @@ function order() {
 
     <div class="cart__main">
       <div class="cart__scroll">
+        <CartOrderGift />
         <CartLines class="cart__lines" />
       </div>
       <div class="cart__foot">
@@ -109,6 +111,8 @@ function order() {
   <div v-else class="cart">
     <CartGifts :offering="offering" :action-label="orderLabel" @order="checkout" />
 
+    <!-- Прототип /gift-card: подарунок до замовлення — першим у списку (в іншому прототипі його нема) -->
+    <CartOrderGift />
     <CartLines class="cart__lines" />
 
     <div class="cart__promo">

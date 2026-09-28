@@ -1,6 +1,8 @@
 import { watch } from 'vue'
+import { giftCardModel, prototypeBase } from '@/variant'
 
-const PREFIX = 'skintet:'
+// Кожен прототип тримає свій кошик і оформлення: відкриті поруч, вони не змішуються
+const PREFIX = giftCardModel ? 'skintet-gift-card:' : 'skintet:'
 
 /** Prototype reset: wipe saved cart/checkout and reload, so in-memory state starts clean too */
 export function resetSession() {
@@ -11,7 +13,7 @@ export function resetSession() {
   } catch {
     // Storage blocked — the reload still clears memory
   }
-  window.location.replace(import.meta.env.BASE_URL)
+  window.location.replace(prototypeBase)
 }
 
 /**
