@@ -111,8 +111,9 @@ function order() {
   <div v-else class="cart">
     <CartGifts :offering="offering" :action-label="orderLabel" @order="checkout" />
 
-    <!-- Прототип /gift-card: подарунок до замовлення — першим у списку (в іншому прототипі його нема) -->
-    <CartOrderGift sticky />
+    <!-- Прототип /gift-card: подарунок до замовлення — першим у списку (в іншому прототипі його нема).
+         Липне й ховається під шкалу (на широкому екрані — під верх колонки), CartOrderGift -->
+    <CartOrderGift />
     <CartLines class="cart__lines" />
 
     <div class="cart__promo">

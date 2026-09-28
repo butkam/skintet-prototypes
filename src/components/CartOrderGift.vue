@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Figma 234:3265 + 235:3285 — прототип /gift-card: подарунок до замовлення карткою над товарами.
 // Картка з'являється від 3 000 ₴, від 5 000 ₴ її вміст змінюється на другий подарунок, нижче 3 000 ₴ — згортається.
-// На телефоні (sticky) при прокрутці картка ховається під шкалу, з-під неї лишається видно стрічку з умовою:
-// тап по стрічці або новий подарунок висувають картку, прокрутка ховає назад
+// При прокрутці картка ховається під шкалу (телефон) чи під верх колонки (широкий кошик), лишається видно
+// стрічку з умовою: тап по стрічці або новий подарунок висувають картку, прокрутка ховає назад
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
 import glow from '@/assets/images/order-gift-glow.svg'
@@ -12,14 +12,13 @@ import { popIn } from '@/motion/popIn'
 import { prefersReducedMotion, spring } from '@/motion/spring'
 import { LINE_ENTER_MS, snap, tween } from '@/motion/tween'
 
-const props = defineProps<{
-  /** Мобільний кошик: блок липне під шкалою (CartGifts), картка ховається під неї */
-  sticky?: boolean
-}>()
-
 const cart = useCart()
 
 /* ---------- Липка картка: ховається під шкалу, висувається з-під неї ---------- */
+
+// Телефон: гортається документ, картка ховається під липку шкалу (CartGifts).
+// Широкий кошик: шкала в лівій колонці, а права гортається сама (CartContents → .cart__scroll) —
+// картка ховається під її верхній край, тобто під хедер кошика
 
 /** Скільки картки видно з-під шкали, коли вона схована: край з тінню над стрічкою (як на макеті) */
 const PEEK = 12
@@ -43,11 +42,15 @@ let frame = 0
 let lastInput = -Infinity
 
 const scale = () => root.value?.parentElement?.querySelector<HTMLElement>(':scope > .gifts') ?? null
+/** Колонка, що гортається сама (широкий кошик); на телефоні — нема, гортається документ */
+const column = () => root.value?.closest<HTMLElement>('.cart__scroll') ?? null
+/** Від чого рахується sticky top: верх колонки або вікна */
+const origin = () => column()?.getBoundingClientRect().top ?? 0
 
-/** Низ липкої шкали на екрані */
+/** Край, під яким ховається картка: низ липкої шкали або верх колонки */
 function scaleBottom() {
   const el = scale()
-  return el ? parseFloat(getComputedStyle(el).top) + el.getBoundingClientRect().height : 0
+  return el ? parseFloat(getComputedStyle(el).top) + el.getBoundingClientRect().height : origin()
 }
 
 /** Верх картки без висування — за поточним зсувом, бо картка може бути ще на пів дороги назад */
@@ -59,9 +62,9 @@ function cardTop() {
 /** Липне так, щоб від картки під шкалою лишався видно край PEEK */
 function place() {
   const node = root.value
-  if (!props.sticky || !node || !card.value) return
+  if (!node || !card.value) return
   const pad = parseFloat(getComputedStyle(node).paddingTop)
-  node.style.top = `${scaleBottom() + PEEK - pad - card.value.getBoundingClientRect().height}px`
+  node.style.top = `${scaleBottom() - origin() + PEEK - pad - card.value.getBoundingClientRect().height}px`
   sync()
 }
 
@@ -111,17 +114,22 @@ function showLater() {
 const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '])
 const onKey = (e: KeyboardEvent) => SCROLL_KEYS.has(e.key) && markInput()
 
-// Блок з'являється й зникає разом з подарунком — спостерігаємо за картою й шкалою, поки він є
+// Блок з'являється й зникає разом з подарунком — спостерігаємо за карткою й шкалою
+// і слухаємо прокрутку того, що гортається, поки він є
+let scroller: HTMLElement | Window | null = null
 watch(
   root,
   (node) => {
     observer?.disconnect()
-    observed = null
-    if (!node || !props.sticky) return
+    scroller?.removeEventListener('scroll', onScroll)
+    scroller = null
+    if (!node) return
     observer = new ResizeObserver(place)
     if (card.value) observer.observe(card.value)
-    observed = scale()
-    if (observed) observer.observe(observed)
+    const el = scale() ?? column()
+    if (el) observer.observe(el)
+    scroller = column() ?? window
+    scroller.addEventListener('scroll', onScroll, { passive: true })
     place()
   },
   { flush: 'post' },
@@ -132,7 +140,7 @@ let listTopBefore: number | null = null
 watch(
   () => !!cart.orderGift.value,
   (has) => {
-    const list = has && props.sticky ? document.querySelector('.cart .cart__lines') : null
+    const list = has ? document.querySelector('.cart .cart__lines') : null
     listTopBefore = list ? list.getBoundingClientRect().top : null
   },
   { flush: 'pre' },
@@ -147,8 +155,6 @@ watch(
 )
 
 onMounted(() => {
-  if (!props.sticky) return
-  window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', place, { passive: true })
   window.addEventListener('touchstart', onTouchStart, { passive: true })
   window.addEventListener('touchmove', onTouchMove, { passive: true })
@@ -159,7 +165,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   observer?.disconnect()
   cancelAnimationFrame(frame)
-  window.removeEventListener('scroll', onScroll)
+  scroller?.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', place)
   clearTimeout(showTimer)
   window.removeEventListener('touchstart', onTouchStart)
@@ -178,7 +184,7 @@ let cancel: (() => void) | undefined
 /** Список за блоком повертається туди, де був до появи чи зникнення блока */
 function holdList(list: Element | null, before: number) {
   const drift = (list?.getBoundingClientRect().top ?? before) - before
-  if (drift) window.scrollBy({ top: drift, behavior: 'instant' })
+  if (drift) (column() ?? window).scrollBy({ top: drift, behavior: 'instant' })
 }
 
 function onEnter(el: Element, done: () => void) {
@@ -198,10 +204,13 @@ function onEnter(el: Element, done: () => void) {
   // унизу (стрічка «Рекомендовані», «+» кількості) — тож розгортання штовхало б усе під пальцем, і стрічка
   // тримала б його щокадровим прокручуванням документа. На iPhone від цього, та ще й з липким блоком,
   // трусився кошик. Тож блок стає одразу, прокрутка один раз повертає товари на місце,
-  // а картка потім виїжджає з-під шкали (finish → showLater)
+  // а картка потім виїжджає з-під шкали (finish → showLater).
+  // Широкий кошик: стрічка в іншій колонці й нічого не тримає — тож на самому верху колонки,
+  // де блок видно, він розгортається в потоці, а в прогорнутій колонці так само стає одразу
   const before = listTopBefore
   listTopBefore = null
-  if (props.sticky && before !== null) {
+  const col = column()
+  if (before !== null && !(col && col.scrollTop < 1)) {
     holdList(node.nextElementSibling, before)
     return finish()
   }
@@ -227,7 +236,7 @@ function onLeave(el: Element, done: () => void) {
   hide()
   const node = el as HTMLElement
   // Місце блока вже прогорнуто: згортання тягло б товари вгору під пальцем — прибираємо одразу, прокрутка тримає їх
-  if (props.sticky && tucked.value) {
+  if (tucked.value) {
     const list = node.nextElementSibling
     const before = list?.getBoundingClientRect().top
     done()
@@ -254,7 +263,7 @@ function onLeave(el: Element, done: () => void) {
       v-if="cart.orderGift.value"
       ref="root"
       class="order-gift"
-      :class="{ 'order-gift--sticky': sticky, 'is-revealed': revealed }"
+      :class="{ 'is-revealed': revealed }"
       :style="{
         '--reveal': `${shift}px`,
         '--reveal-duration': `${reveal.duration}ms`,
@@ -434,45 +443,29 @@ function onLeave(el: Element, done: () => void) {
   grid-area: 1 / 1;
 }
 
-/* ---------- Мобільний кошик: блок липне так, що картка ховається під шкалою (place) ---------- */
+/* ---------- Блок липне так, що картка ховається під шкалою чи верхом колонки (place) ---------- */
 
 /* Під шкалою (z-index 11) і хедером (10), над товарами. Прозорі відступи блока не перехоплюють тапів по товарах */
-.order-gift--sticky {
+.order-gift {
   position: sticky;
   z-index: 9;
   pointer-events: none;
   transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.order-gift--sticky .order-gift__card,
-.order-gift--sticky .order-gift__note {
+.order-gift__card,
+.order-gift__note {
   pointer-events: auto;
 }
 
 /* Висувається з-під шкали пружиною, ховається назад коротко й без перельоту */
-.order-gift--sticky.is-revealed {
+.order-gift.is-revealed {
   transform: translateY(var(--reveal));
   transition: transform var(--reveal-duration) var(--reveal-easing);
 }
 
-/* ---------- Заміна подарунка: старий вміст тане, новий проявляється на тому ж місці ---------- */
-
-.order-gift-swap-enter-active {
-  transition: opacity 0.26s ease, transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.order-gift-swap-leave-active {
-  transition: opacity 0.16s ease;
-}
-.order-gift-swap-enter-from {
-  opacity: 0;
-  transform: translateY(6px);
-}
-.order-gift-swap-leave-to {
-  opacity: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .order-gift--sticky,
-  .order-gift--sticky.is-revealed,
+  .order-gift,
+  .order-gift.is-revealed,
   .order-gift-swap-enter-active,
   .order-gift-swap-leave-active {
     transition: none;
