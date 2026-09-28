@@ -112,7 +112,7 @@ function order() {
     <CartGifts :offering="offering" :action-label="orderLabel" @order="checkout" />
 
     <!-- Прототип /gift-card: подарунок до замовлення — першим у списку (в іншому прототипі його нема) -->
-    <CartOrderGift />
+    <CartOrderGift sticky />
     <CartLines class="cart__lines" />
 
     <div class="cart__promo">

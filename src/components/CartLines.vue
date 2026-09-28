@@ -2,10 +2,12 @@
 // Figma node 132:6136 — список товарів кошика
 import CartLineItem from './CartLineItem.vue'
 import { useCart } from '@/composables/useCart'
+import { useWideCart } from '@/composables/useWideCart'
 import { prefersReducedMotion } from '@/motion/spring'
 import { LINE_ENTER_MS, snap, tween } from '@/motion/tween'
 
 const cart = useCart()
+const wide = useWideCart()
 
 function toggleSet(id: string) {
   const line = cart.lines.value.find((l) => l.id === id)
@@ -26,6 +28,24 @@ function onEnter(el: Element, done: () => void) {
   // Тож рядок стає одразу, а стрічка зсувається один раз (ProductRail → onAdd)
   const rect = node.getBoundingClientRect()
   if (rect.bottom <= 0 || rect.top >= window.innerHeight) return done()
+
+  // Телефон: рядок додають зі стрічки «Рекомендовані» під списком, а новий стає першим — тобто на видноті.
+  // Розгортання штовхало б стрічку, і та 360 мс щокадрово підкручувала б документ, щоб лишитися під пальцем:
+  // на iPhone Safari підкручування відстає на кадр, і кошик трусився. Тож рядок стає одразу на всю висоту
+  // (стрічка зсувається один раз) і лише проявляється — прозорістю й зсувом, що не чіпають компоновку.
+  // У широкому кошику стрічка в іншій колонці й нічого не тримає — там рядок розгортається, як раніше
+  if (!wide.value) {
+    const fade = node.animate(
+      [
+        { opacity: 0, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: LINE_ENTER_MS, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+    )
+    entering.set(node, () => fade.cancel())
+    fade.onfinish = () => entering.delete(node)
+    return done()
+  }
 
   const cs = getComputedStyle(node)
   const height = node.getBoundingClientRect().height
