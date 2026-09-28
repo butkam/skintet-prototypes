@@ -1,32 +1,40 @@
 <script setup lang="ts">
-// Логотипи способів онлайн-оплати (Figma 112:1573). Офіційні знаки з Wikimedia Commons.
-import applePay from '@/assets/payment/apple-pay.svg'
-import googlePay from '@/assets/payment/google-pay.svg'
-import mastercard from '@/assets/payment/mastercard.svg'
-import privat24 from '@/assets/payment/privat24.png'
-import visa from '@/assets/payment/visa.svg'
+// Способи онлайн-оплати (Figma 112:1573) — офіційні знаки оплати однакової висоти.
+// Apple Pay Mark (developer.apple.com/apple-pay/marketing), Google Pay Acceptance Mark
+// (developers.google.com/pay/api/web/guides/brand-guidelines), 24 Pay (брендбук PrivatPay на liqpay.ua).
+// Visa й Mastercard дають знак без картки — їхні офіційні знаки вставлено без змін у ту саму рамку,
+// що в Apple Pay і 24 Pay (visa-mark.svg, mastercard-mark.svg)
+import applePay from '@/assets/payment/apple-pay-mark.svg'
+import googlePay from '@/assets/payment/google-pay-mark.svg'
+import mastercard from '@/assets/payment/mastercard-mark.svg'
+import pay24 from '@/assets/payment/24-pay-mark.svg'
+import visa from '@/assets/payment/visa-mark.svg'
+
+const marks = [
+  { src: applePay, name: 'Apple Pay' },
+  { src: googlePay, name: 'Google Pay' },
+  { src: mastercard, name: 'Mastercard' },
+  { src: pay24, name: '24 Pay' },
+  { src: visa, name: 'Visa' },
+]
 </script>
 
 <template>
-  <ul class="pay-logos" aria-label="Apple Pay, Google Pay, Mastercard, Privat24 Pay, Visa">
-    <li><img class="pay-logos__apple" :src="applePay" alt="" /></li>
-    <li><img class="pay-logos__google" :src="googlePay" alt="" /></li>
-    <li><img class="pay-logos__mastercard" :src="mastercard" alt="" /></li>
-    <li class="pay-logos__privat">
-      <img :src="privat24" alt="" />
-      <span>Pay</span>
+  <ul class="pay-logos">
+    <li v-for="mark in marks" :key="mark.name">
+      <img :src="mark.src" :alt="mark.name" />
     </li>
-    <li><img class="pay-logos__visa" :src="visa" alt="" /></li>
   </ul>
 </template>
 
 <style scoped>
-/* Sizes match the proportions in the design strip (≈183 × 17) */
+/* Apple і Google: усі знаки однакової висоти, жоден не менший за інші.
+   Вільне поле — не менше ¼ висоти (Apple) і половини висоти «G» (Google): 8px між знаками 24px */
 .pay-logos {
+  --mark-h: 24px;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 17px;
   margin: 3px 0 0;
   padding: 0;
   list-style: none;
@@ -34,43 +42,11 @@ import visa from '@/assets/payment/visa.svg'
 
 .pay-logos li {
   display: flex;
-  align-items: center;
 }
 
 .pay-logos img {
   display: block;
   width: auto;
-}
-
-.pay-logos__apple {
-  height: 13px;
-}
-
-.pay-logos__google {
-  height: 14px;
-}
-
-.pay-logos__mastercard {
-  height: 14px;
-}
-
-.pay-logos__privat {
-  gap: 3px;
-}
-
-.pay-logos__privat img {
-  height: 15px;
-}
-
-.pay-logos__privat span {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: var(--neutral-1000);
-}
-
-.pay-logos__visa {
-  height: 10px;
+  height: var(--mark-h);
 }
 </style>
