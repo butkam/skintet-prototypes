@@ -9,6 +9,7 @@ import SampleCard from './SampleCard.vue'
 import SampleCardSkeleton from './SampleCardSkeleton.vue'
 import SkButton from './SkButton.vue'
 import ScrollArrows from './ScrollArrows.vue'
+import TapHint from './TapHint.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, milestones, pluralFreeSamples, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
@@ -21,6 +22,8 @@ const props = defineProps<{
   actionLabel?: string
   /** Широкий кошик: панель у потоці своєї колонки, не липне й не лягає поверх товарів */
   inline?: boolean
+  /** «Замовити» без подарунка: палець показує на картки, доки людина щось не зробить з ними */
+  hint?: boolean
 }>()
 
 const emit = defineEmits<{ order: [] }>()
@@ -193,6 +196,35 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   clearTimeout(collapseTimer)
 })
+
+/* ---------- Підказка пальцем (Figma 319:4830) ---------- */
+
+// Палець з'являється, коли картки вже розклались, і зникає, щойно людина щось обрала,
+// погортала карусель чи згорнула вибір — вона вже там, куди ми показували
+const hintSeen = ref(false)
+const showHint = computed(() => props.hint && open.value && ready.value && !hintSeen.value)
+// Раз побачив — досить: зняв вибір чи розгорнув панель знову, палець не повертається
+watch([picked, open], ([n, isOpen]) => {
+  if (props.hint && (n || !isOpen)) hintSeen.value = true
+})
+
+function onTrackScroll() {
+  if (showHint.value) hintSeen.value = true
+}
+
+// Палець «натискає» на третю картку: кінчик трохи лівіше її середини, на дві третини висоти.
+// Від шторки, а не від каруселі: та обрізає все, що виходить за її межі, а долоня нижча за картки
+const hintAt = ref({ left: 0, top: 0 })
+watch(showHint, (value) => {
+  const slots = track.value?.children
+  if (!value || !sheet.value || !slots?.length) return
+  const base = sheet.value.getBoundingClientRect()
+  const card = slots[Math.min(2, slots.length - 1)].getBoundingClientRect()
+  hintAt.value = {
+    left: card.left + card.width * 0.4 - base.left,
+    top: card.top + card.height * 0.65 - base.top,
+  }
+}, { flush: 'post' })
 </script>
 
 <template>
@@ -234,6 +266,7 @@ onBeforeUnmount(() => {
                 role="group"
                 aria-labelledby="gifts-title"
                 :inert="!ready || undefined"
+                @scroll.passive="onTrackScroll"
               >
                 <div v-for="(s, i) in orderedSamples" :key="s.id" class="gifts__slot" :style="{ '--d': `${i * 45}ms` }">
                   <SampleCard
@@ -273,6 +306,10 @@ onBeforeUnmount(() => {
         </button>
       </template>
       </template>
+
+      <Transition name="gifts-hint">
+        <TapHint v-if="showHint" class="gifts__hint-pointer" :delay="350" :style="{ left: `${hintAt.left}px`, top: `${hintAt.top}px` }" />
+      </Transition>
     </div>
   </div>
 </template>
@@ -542,6 +579,21 @@ onBeforeUnmount(() => {
 .gifts--inline .gifts__sheet {
   position: relative;
   z-index: 1;
+}
+
+/* ---------- Підказка пальцем: над картками, кліки проходять крізь неї ---------- */
+
+.gifts__hint-pointer {
+  z-index: 2;
+}
+
+/* Поява — всередині TapHint (з першим тиком, коли картки вже розклались);
+   тут лише швидкий відхід, щоб не заважати вибору */
+.gifts-hint-leave-active {
+  transition: opacity 0.16s ease;
+}
+.gifts-hint-leave-to {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

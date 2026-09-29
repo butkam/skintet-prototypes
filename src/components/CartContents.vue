@@ -83,7 +83,8 @@ function order() {
   <div v-if="wide" class="cart cart--wide">
     <div class="cart__side">
       <div ref="side" class="cart__scroll">
-        <CartGifts inline />
+        <!-- «Замовити» без подарунка: палець показує на картки -->
+        <CartGifts inline :hint="giftsOffered" />
         <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
       </div>
       <div class="cart__foot cart__foot--promo">
