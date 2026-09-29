@@ -82,6 +82,7 @@ onBeforeUnmount(() => cancel?.())
     <div v-if="line.gift" class="line__gift">
       <!-- Фото подарунка, як у прев'ю складу набору; іконка лишається запасним варіантом -->
       <img v-if="line.gift.image" class="line__gift-thumb" :src="line.gift.image" alt="" />
+      <span v-if="line.gift.image" class="line__gift-badge"><SkIcon name="GiftSmallDark" :size="12" /></span>
       <span v-else class="line__gift-icon"><SkIcon name="GiftSmallDark" :size="16" /></span>
       <span class="line__gift-title body-s">{{ line.gift.title }}</span>
       <span class="line__gift-price heading-s">{{ formatPrice(line.gift.price) }}</span>
@@ -243,6 +244,7 @@ onBeforeUnmount(() => cancel?.())
 /* ---------- Gift pill ---------- */
 
 .line__gift {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-1);
@@ -262,6 +264,21 @@ onBeforeUnmount(() => cancel?.())
   height: var(--icon-md);
   border-radius: var(--radius-full);
   background: var(--neutral-0);
+}
+
+/* Значок подарунка на лівому верхньому куті пілюлі, трохи виглядає за її край.
+   Кружок і тінь — як у картки подарунка до замовлення (CartOrderGift), лише менші */
+.line__gift-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-canvas);
+  filter: drop-shadow(0 4px 6px oklch(0% 0 0 / 0.08)) drop-shadow(0 0 0.5px oklch(0% 0 0 / 0.24));
 }
 
 /* Same 24px square as the set previews */
