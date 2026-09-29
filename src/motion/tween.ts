@@ -8,7 +8,7 @@
 export const easeOut = (t: number) => 1 - (1 - t) ** 4
 
 /** Новий рядок кошика розгортається стільки (CartLines) — і стільки ж стрічка під ним тримається на місці (ProductRail) */
-export const LINE_ENTER_MS = 360
+export const LINE_ENTER_MS = 280
 
 /** Довжина, округлена до цілого фізичного пікселя */
 export function snap(px: number) {

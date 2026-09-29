@@ -21,7 +21,7 @@ const { lines, add } = useCart()
 
 /** Щойно додані: картка ще трохи стоїть з галочкою, а потім іде зі стрічки */
 const added = ref<string[]>([])
-const CHECK_HOLD_MS = 900
+const CHECK_HOLD_MS = 550
 
 const fillers = computed(() =>
   demoProducts.filter((p) => p.category !== 'device' && !props.ids.includes(p.id)).map((p) => p.id),
@@ -104,7 +104,7 @@ function onLeave(el: Element, finish: () => void) {
   const gap = parseFloat(getComputedStyle(track).columnGap) || 0
   node.style.overflow = 'hidden'
   tween(
-    320,
+    240,
     (p) => {
       node.style.opacity = `${1 - Math.min(1, p * 1.6)}`
       node.style.width = `${snap(width * (1 - p))}px`
