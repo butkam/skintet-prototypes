@@ -269,12 +269,10 @@ function onPointerUp(e: PointerEvent) {
             <SkIcon name="ShoppingBagLarge" :size="48" />
             <p class="empty__title">Кошик пустий</p>
             <p v-if="giftCardModel" class="empty__text body-l">
-              Від 3 000 ₴ — безкоштовна доставка й подарунок,<br />
-              від 5 000 ₴ — інший подарунок
+              Від 3&nbsp;000&nbsp;₴ — безкоштовна доставка й подарунок, від 5&nbsp;000&nbsp;₴ — інший подарунок
             </p>
             <p v-else class="empty__text body-l">
-              Від 3 000 ₴ — безкоштовна доставка,<br />
-              від 5 000 ₴ — семпли у подарунок
+              Від 3&nbsp;000&nbsp;₴ — безкоштовна доставка, від 5&nbsp;000&nbsp;₴ — семпли у подарунок
             </p>
             <SkButton variant="secondary" @click="closeDrawer">Перейти до товарів</SkButton>
           </div>
