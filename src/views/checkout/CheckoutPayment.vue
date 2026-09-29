@@ -334,7 +334,9 @@ onUnmounted(() => placed && settleOrder())
   margin-top: var(--space-4);
 }
 
+/* Край тексту — по лінії графіка платежів над нею (.schedule) */
 .installments__note {
+  padding-inline: var(--space-2);
   color: var(--fg-muted);
 }
 
