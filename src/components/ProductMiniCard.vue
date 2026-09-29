@@ -17,7 +17,7 @@ defineEmits<{ add: [] }>()
       :disabled="added"
       @click="$emit('add')"
     >
-      <Transition name="mini-card-icon" mode="out-in">
+      <Transition name="mini-card-icon">
         <span v-if="added" key="added" class="mini-card__added">
           <SkIcon name="Check" :size="18" color="var(--action-primary-fg)" />
         </span>
@@ -99,6 +99,11 @@ defineEmits<{ add: [] }>()
 .mini-card__add:focus-visible {
   outline: var(--border-width-focus) solid var(--border-focus);
   outline-offset: -5px;
+}
+
+/* Плюс і галочка в одній клітинці: галочка з'являється одразу, поки плюс ще зникає */
+.mini-card__add > * {
+  grid-area: 1 / 1;
 }
 
 /* Same 30px circle as the plus, filled */

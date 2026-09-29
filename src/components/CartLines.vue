@@ -17,6 +17,14 @@ function toggleSet(id: string) {
 // Рядок, що ще розгортається, міг уже піти на видалення — тоді його вхід зупиняємо
 const entering = new WeakMap<Element, () => void>()
 
+/** Верх рядка на екрані й не схований під чимось липким (шкала, картка подарунка в /gift-card) */
+function inSight(node: HTMLElement) {
+  const rect = node.getBoundingClientRect()
+  if (rect.top < 0 || rect.top >= window.innerHeight) return false
+  const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + 1)
+  return !!hit && node.parentElement!.contains(hit)
+}
+
 /* Новий рядок: розсуває список від нуля, вміст проявляється вже в розкритому місці */
 // Той самий хід, що й у видалення, лише навпаки: висота, відступ, рамка й проміжок
 // після рядка ростуть з нуля по цілих пікселях, тож товари під ним з'їжджають плавно
@@ -25,30 +33,12 @@ function onEnter(el: Element, done: () => void) {
   if (prefersReducedMotion()) return done()
   // Поза екраном (товар додали зі стрічки внизу кошика) розгортання ніхто не побачить, а стрічка
   // тримала б палець щокадровим прокручуванням документа — на iPhone від цього стрибав увесь кошик.
-  // Тож рядок стає одразу, а стрічка зсувається один раз (ProductRail → onAdd)
+  // Тож рядок стає одразу, а документ зсувається один раз (ProductRail → commit)
   const rect = node.getBoundingClientRect()
   if (rect.bottom <= 0 || rect.top >= window.innerHeight) return done()
 
-  // Телефон: рядок додають зі стрічки «Рекомендовані» під списком, а новий стає першим — тобто на видноті.
-  // Розгортання штовхало б стрічку, і та 360 мс щокадрово підкручувала б документ, щоб лишитися під пальцем:
-  // на iPhone Safari підкручування відстає на кадр, і кошик трусився. Тож рядок стає одразу на всю висоту
-  // (стрічка зсувається один раз) і лише проявляється — прозорістю й зсувом, що не чіпають компоновку.
-  // У широкому кошику стрічка в іншій колонці й нічого не тримає — там рядок розгортається, як раніше
-  if (!wide.value) {
-    const fade = node.animate(
-      [
-        { opacity: 0, transform: 'translateY(8px)' },
-        { opacity: 1, transform: 'none' },
-      ],
-      { duration: LINE_ENTER_MS, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
-    )
-    entering.set(node, () => fade.cancel())
-    fade.onfinish = () => entering.delete(node)
-    return done()
-  }
-
   const cs = getComputedStyle(node)
-  const height = node.getBoundingClientRect().height
+  const height = rect.height
   const padding = parseFloat(cs.paddingBottom)
   const border = parseFloat(cs.borderBottomWidth)
   const gap = parseFloat(getComputedStyle(node.parentElement!).rowGap) || 0
@@ -74,7 +64,23 @@ function onEnter(el: Element, done: () => void) {
     }
     done()
   }
-  entering.set(node, tween(LINE_ENTER_MS, frame, finish))
+
+  // Телефон: чи видно рядок, ясно лише на першому кадрі — коли документ уже зсунуто під нові блоки
+  // (ProductRail → commit). Поруч з товаром може з'явитись картка подарунка (/gift-card): вона липне
+  // й накриває місце рядка. Розгортання під нею ніхто б не побачив, лише стрічка без видимої причини
+  // поїхала б униз. Тож такий рядок стає одразу, а документ зсуваємо рівно на його висоту
+  let stop = () => cancelAnimationFrame(first)
+  const first = requestAnimationFrame(() => {
+    if (wide.value || inSight(node)) {
+      stop = tween(LINE_ENTER_MS, frame, finish)
+      return
+    }
+    const list = node.parentElement!
+    const before = list.getBoundingClientRect().bottom
+    finish()
+    window.scrollBy({ top: list.getBoundingClientRect().bottom - before, behavior: 'instant' })
+  })
+  entering.set(node, () => stop())
 }
 
 /* Line removal: fade + collapse height */

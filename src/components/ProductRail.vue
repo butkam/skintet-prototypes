@@ -5,6 +5,7 @@ import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import ProductMiniCard from './ProductMiniCard.vue'
 import ScrollArrows from './ScrollArrows.vue'
 import { useCart } from '@/composables/useCart'
+import { useWideCart } from '@/composables/useWideCart'
 import { demoProducts } from '@/data/demoProducts'
 import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
@@ -18,8 +19,9 @@ const props = withDefaults(
 )
 
 const { lines, add } = useCart()
+const wide = useWideCart()
 
-/** Щойно додані: картка ще трохи стоїть з галочкою, а потім іде зі стрічки */
+/** Щойно натиснуті: картка ще трохи стоїть з галочкою, а потім іде зі стрічки в кошик */
 const added = ref<string[]>([])
 const CHECK_HOLD_MS = 550
 
@@ -64,15 +66,23 @@ onBeforeUnmount(() => {
 // Стрілки гортають саму стрічку (TransitionGroup віддає її як $el)
 const track = ref<{ $el: HTMLElement } | null>(null)
 
-// Новий рядок з'являється вище, у списку товарів, і штовхав би стрічку вниз. Тож прокручуємо документ
-// рівно на цей зсув — стрічка лишається під пальцем. На телефоні рядок стає одразу на всю висоту
-// (CartLines → onEnter), як і блок подарунка (CartOrderGift), — тож зсув один: щокадрове підкручування
-// документа на iPhone трусило кошик. Щокадрово зсув міряється лише на випадок розгортання в широкому кошику.
-// Кадр списку зареєстровано раніше за наш, тож зсув міряємо вже після нього, у тому ж кадрі
-async function onAdd(id: string) {
+// Спершу відгук на картці: плюс стає галочкою, товар ще не в кошику. Лише коли картка йде зі стрічки,
+// товар лягає в кошик — рядок розгортається в списку одночасно з тим, як картка згортається.
+// Інакше на телефоні рядок ставав першим ще до галочки, і все виглядало навпаки
+function onAdd(id: string) {
   if (added.value.includes(id)) return
-  const before = root.value?.getBoundingClientRect().top ?? 0
   added.value.push(id)
+  timers.push(window.setTimeout(() => commit(id), CHECK_HOLD_MS))
+}
+
+// Новий рядок стає першим у списку, вище за стрічку. Видно його — він розгортається (CartLines → onEnter)
+// і просто відсуває стрічку вниз, як будь-яка вставка. Поза екраном рядок стає одразу, і документ
+// зсуваємо один раз — щоб вміст під пальцем не стрибнув. Щокадрово зсув міряється лише в широкому кошику:
+// там стрічка в іншій колонці, а на iPhone щокадрове підкручування документа трусило кошик.
+// Кадр списку зареєстровано раніше за наш, тож зсув міряємо вже після нього, у тому ж кадрі
+async function commit(id: string) {
+  const before = root.value?.getBoundingClientRect().top ?? 0
+  added.value = added.value.filter((a) => a !== id)
   add(id)
   await nextTick()
   const hold = () => {
@@ -81,8 +91,7 @@ async function onAdd(id: string) {
     if (shift) window.scrollBy({ top: shift, behavior: 'instant' })
   }
   hold()
-  holds.push(tween(LINE_ENTER_MS, hold))
-  timers.push(window.setTimeout(() => (added.value = added.value.filter((a) => a !== id)), CHECK_HOLD_MS))
+  if (wide.value) holds.push(tween(LINE_ENTER_MS, hold))
 }
 
 /* Card leaves: fades while its width and the gap after it close, so the rest slide in */
