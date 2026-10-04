@@ -17,7 +17,7 @@ function toggleSet(id: string) {
 // Рядок, що ще розгортається, міг уже піти на видалення — тоді його вхід зупиняємо
 const entering = new WeakMap<Element, () => void>()
 
-/** Верх рядка на екрані й не схований під чимось липким (шкала, картка подарунка в /gift-card) */
+/** Верх рядка на екрані й не схований під чимось липким (шкала) */
 function inSight(node: HTMLElement) {
   const rect = node.getBoundingClientRect()
   if (rect.top < 0 || rect.top >= window.innerHeight) return false
@@ -66,9 +66,8 @@ function onEnter(el: Element, done: () => void) {
   }
 
   // Телефон: чи видно рядок, ясно лише на першому кадрі — коли документ уже зсунуто під нові блоки
-  // (ProductRail → commit). Поруч з товаром може з'явитись картка подарунка (/gift-card): вона липне
-  // й накриває місце рядка. Розгортання під нею ніхто б не побачив, лише стрічка без видимої причини
-  // поїхала б униз. Тож такий рядок стає одразу, а документ зсуваємо рівно на його висоту
+  // (ProductRail → commit). Липка шкала може накривати місце рядка. Розгортання під нею ніхто б не побачив,
+  // лише стрічка без видимої причини поїхала б униз. Тож такий рядок стає одразу, а документ зсуваємо рівно на його висоту
   let stop = () => cancelAnimationFrame(first)
   const first = requestAnimationFrame(() => {
     if (wide.value || inSight(node)) {

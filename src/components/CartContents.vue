@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Figma "iPhone 17 - 9" (node 112:1857) — кошик з товарами
 // Прилипання: шкала під хедером, «Замовити» внизу (node 112:2021)
-// Широкий екран: дві колонки (хедер кошика лише над правою) — ліворуч подарунки, рекомендовані (стрічкою зі стрілками) й промокод, праворуч товари й оформлення.
+// Широкий екран: дві колонки (хедер кошика лише над правою) — ліворуч подарунки, промокод і рекомендовані (стрічкою зі стрілками), праворуч товари й оформлення.
 // Права — сама панель дровера, ліва виїжджає з-під неї другим етапом
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -85,17 +85,17 @@ function order() {
       <div ref="side" class="cart__scroll">
         <!-- «Замовити» без подарунка: палець показує на картки -->
         <CartGifts inline :hint="giftsOffered" />
+        <div class="cart__promo">
+          <CartPromo />
+        </div>
         <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
-      </div>
-      <div class="cart__foot cart__foot--promo">
-        <CartPromo />
       </div>
     </div>
 
     <div class="cart__main">
       <div class="cart__scroll">
-        <CartOrderGift />
         <CartLines class="cart__lines" />
+        <CartOrderGift />
       </div>
       <div class="cart__foot">
         <CartSummary />
@@ -112,10 +112,10 @@ function order() {
   <div v-else class="cart">
     <CartGifts :offering="offering" :action-label="orderLabel" @order="checkout" />
 
-    <!-- Прототип /gift-card: подарунок до замовлення — першим у списку (в іншому прототипі його нема).
-         Липне й ховається під шкалу (на широкому екрані — під верх колонки), CartOrderGift -->
-    <CartOrderGift />
     <CartLines class="cart__lines" />
+    <!-- Прототип /gift-card: подарунок до замовлення — між товарами й промокодом (в іншому прототипі його нема).
+         На широкому екрані — під товарами в правій колонці -->
+    <CartOrderGift />
 
     <div class="cart__promo">
       <CartPromo />
@@ -171,7 +171,7 @@ function order() {
 
 /* ---------- Широкий екран: дві колонки однакової ширини ---------- */
 
-/* Кожна колонка гортається сама; низ колонок (промокод і оформлення) стоїть на місці.
+/* Кожна колонка гортається сама; низ правої (оформлення) стоїть на місці.
    Права колонка — це сама панель дровера (CartDrawer → .drawer__body--filled: хедер, під ним .cart__main).
    Ліва прикріплена до неї зліва, на всю висоту, і лежить під нею — звідти й виїжджає (CartDrawer → revealSide) */
 .cart--wide {
@@ -225,13 +225,5 @@ function order() {
 
 .cart__foot .cart__checkout {
   margin-top: var(--space-5);
-}
-
-/* Смуга промокоду (Figma 223:2931) сама дає лінії, тож без межі футера.
-   Її рядок стоїть на одній висоті з «Замовити» сусідньої колонки: 6px — власний відступ смуги */
-.cart__foot--promo {
-  --promo-inset: var(--space-5);
-  padding: 0 0 calc(env(safe-area-inset-bottom) + var(--space-5) - 6px);
-  border-top: 0;
 }
 </style>

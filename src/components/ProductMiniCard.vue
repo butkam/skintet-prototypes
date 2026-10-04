@@ -1,8 +1,8 @@
 <script setup lang="ts">
-// Figma node 112:2194 — картка «Ви переглядали», 123×180
+// Figma node 112:2194 — картка «Ви переглядали» / «Рекомендовані засоби», 123px завширшки, з кнопкою «Купити»
 import SkIcon from './SkIcon.vue'
 
-// `added` — товар щойно поклали в кошик: плюс перетворюється на галочку
+// `added` — товар щойно поклали в кошик: «Купити» стає «Додано» з галочкою
 defineProps<{ title: string; price: string; image: string; added?: boolean }>()
 defineEmits<{ add: [] }>()
 </script>
@@ -10,35 +10,33 @@ defineEmits<{ add: [] }>()
 <template>
   <article class="mini-card">
     <img class="mini-card__image" :src="image" alt="" />
+    <p class="mini-card__title body-s">{{ title }}</p>
+    <p class="mini-card__price body-s">{{ price }}</p>
     <button
-      class="mini-card__add"
+      class="mini-card__buy body-m"
+      :class="{ 'is-added': added }"
       type="button"
-      :aria-label="added ? `Додано в кошик: ${title}` : `Додати в кошик: ${title}`"
+      :aria-label="added ? `Додано в кошик: ${title}` : `Купити: ${title}`"
       :disabled="added"
       @click="$emit('add')"
     >
-      <Transition name="mini-card-icon">
-        <span v-if="added" key="added" class="mini-card__added">
-          <SkIcon name="Check" :size="18" color="var(--action-primary-fg)" />
+      <Transition name="mini-card-label">
+        <span v-if="added" key="added" class="mini-card__label">
+          <SkIcon name="Check" :size="18" color="currentColor" />Додано
         </span>
-        <!-- Ховер показує, чим стане кнопка: те саме темне коло, що й у «додано», з білим плюсом -->
-        <span v-else key="add" class="mini-card__plus">
-          <SkIcon name="PlusCircle" :size="30" class="mini-card__plus-idle" />
-          <SkIcon name="PlusMedium" :size="24" color="var(--action-primary-fg)" class="mini-card__plus-hover" />
-        </span>
+        <span v-else key="buy" class="mini-card__label">Купити</span>
       </Transition>
     </button>
-    <p class="mini-card__title body-s">{{ title }}</p>
-    <p class="mini-card__price body-s">{{ price }}</p>
   </article>
 </template>
 
 <style scoped>
 .mini-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   flex-shrink: 0;
   width: 123px;
-  height: 180px;
   padding: var(--space-2);
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
@@ -53,85 +51,78 @@ defineEmits<{ add: [] }>()
   object-fit: cover;
 }
 
-/* 30px glyph centred in a 44px tap target, glyph pinned to top-right of image */
-.mini-card__add {
+/* Кнопка на всю ширину картки під ціною: світла, щоб ряд карток не важчав.
+   Ховер і «додано» — темна, як головна дія (SkButton primary) */
+.mini-card__buy {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: var(--control-height-sm);
+  margin-top: var(--space-2);
+  border: var(--border-width-hairline) solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: var(--action-secondary-bg);
+  color: var(--action-secondary-fg);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.2s ease;
+}
+/* Зона тапу — 44px, хоч кнопка й нижча */
+.mini-card__buy::before {
+  content: '';
   position: absolute;
-  top: 1px;
-  right: 1px;
-  display: grid;
-  place-items: center;
-  width: var(--control-tap-target-min);
-  height: var(--control-tap-target-min);
-  border-radius: var(--radius-full);
-  transition: transform 0.2s ease;
-}
-
-.mini-card__plus {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-full);
-  transition: background-color 0.15s ease;
-}
-.mini-card__plus > * {
-  grid-area: 1 / 1;
-  transition: opacity 0.15s ease;
-}
-.mini-card__plus-hover {
-  opacity: 0;
+  inset: calc((var(--control-height-sm) - var(--control-tap-target-min)) / 2) 0;
 }
 /* Лише там, де справді наводять мишею: на iOS тап лишає :hover «залиплим» (див. SkButton) */
 @media (hover: hover) and (pointer: fine) {
-  .mini-card__add:hover:not(:disabled) .mini-card__plus {
+  .mini-card__buy:hover:not(:disabled) {
+    border-color: var(--action-primary-bg);
     background: var(--action-primary-bg);
-  }
-  .mini-card__add:hover:not(:disabled) .mini-card__plus-idle {
-    opacity: 0;
-  }
-  .mini-card__add:hover:not(:disabled) .mini-card__plus-hover {
-    opacity: 1;
+    color: var(--action-primary-fg);
   }
 }
-.mini-card__add:active:not(:disabled) {
-  transform: scale(0.88);
+.mini-card__buy:active:not(:disabled) {
+  transform: scale(0.96);
 }
-.mini-card__add:focus-visible {
+.mini-card__buy:focus-visible {
   outline: var(--border-width-focus) solid var(--border-focus);
-  outline-offset: -5px;
+  outline-offset: 2px;
+}
+.mini-card__buy.is-added {
+  border-color: var(--action-primary-bg);
+  background: var(--action-primary-bg);
+  color: var(--action-primary-fg);
 }
 
-/* Плюс і галочка в одній клітинці: галочка з'являється одразу, поки плюс ще зникає */
-.mini-card__add > * {
+/* «Купити» і «Додано» в одній клітинці: нове з'являється одразу, поки старе ще зникає */
+.mini-card__buy > * {
   grid-area: 1 / 1;
 }
-
-/* Same 30px circle as the plus, filled */
-.mini-card__added {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-full);
-  background: var(--action-primary-bg);
+.mini-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
 }
 
-/* Plus shrinks away, the check pops in with a small overshoot */
-.mini-card-icon-leave-active {
+/* «Купити» стискається, «Додано» з галочкою з'являється з легким перельотом */
+.mini-card-label-leave-active {
   transition: opacity 0.1s ease, transform 0.1s ease;
 }
-.mini-card-icon-enter-active {
+.mini-card-label-enter-active {
   transition: opacity 0.15s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.mini-card-icon-enter-from,
-.mini-card-icon-leave-to {
+.mini-card-label-enter-from,
+.mini-card-label-leave-to {
   opacity: 0;
-  transform: scale(0.5);
+  transform: scale(0.7);
 }
 
 .mini-card__title {
   width: 99px;
-  margin: 0 var(--space-1);
+  margin: var(--space-2) var(--space-1) 0;
   height: 32px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
