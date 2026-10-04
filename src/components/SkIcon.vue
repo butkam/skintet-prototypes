@@ -30,6 +30,8 @@ import sparkle from '@/assets/icons/sparkle.svg'
 import shop from '@/assets/icons/shop.svg'
 import home from '@/assets/icons/home.svg'
 import packageBox from '@/assets/icons/package.svg'
+import copy from '@/assets/icons/copy.svg'
+import openExternal from '@/assets/icons/open-external.svg'
 
 // Glyphs exported from Figma (Icon component 62:1641 and screen-level icons)
 const glyphs = {
@@ -80,6 +82,10 @@ const glyphs = {
   Home: home,
   /** 16px outline — delivery method «Поштомат» */
   Package: packageBox,
+  /** 18px — copy a bank detail */
+  Copy: copy,
+  /** 18px arrow out of a box — opens another app (bank app from the payment QR link) */
+  OpenExternal: openExternal,
 } as const
 
 export type IconName = keyof typeof glyphs

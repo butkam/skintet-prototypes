@@ -10,6 +10,7 @@ import CartPromo from '@/components/CartPromo.vue'
 import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutSummaryRow from '@/components/checkout/CheckoutSummaryRow.vue'
 import CheckoutAside from '@/components/checkout/CheckoutAside.vue'
+import BankDetails from '@/components/checkout/BankDetails.vue'
 import { useCart } from '@/composables/useCart'
 import { useWideCart } from '@/composables/useWideCart'
 import { PAYMENT_OPTIONS, formatPhoneDisplay, useCheckout } from '@/composables/useCheckout'
@@ -34,6 +35,7 @@ const recipient = computed(() =>
 )
 
 const installments = computed(() => payment.method === 'installments')
+const transfer = computed(() => payment.method === 'transfer')
 
 const installmentsHint = computed(() =>
   isSplit.value ? 'У вашому кошику діють різні умови' : groups.value[0]?.kind === 'device' ? 'До 6 платежів без переплат' : 'До 3 платежів без переплат',
@@ -55,11 +57,11 @@ watch(
 )
 onUnmounted(() => clearTimeout(scheduleTimer))
 
-// «Після доставки» — без суми, щоб не здавалося, що гроші спишуть просто зараз
+// «Після доставки» й «За реквізитами» — без суми, щоб не здавалося, що гроші спишуть просто зараз
 const cta = computed(() =>
   installments.value
     ? { action: 'Оформити', amount: `Зараз ${formatPrice(schedule.value.today)}` }
-    : payment.method === 'cod'
+    : payment.method === 'cod' || transfer.value
       ? { action: 'Оформити замовлення', amount: '' }
       : { action: 'Оплатити', amount: formatPrice(cart.total.value) },
 )
@@ -205,6 +207,23 @@ onUnmounted(() => placed && settleOrder())
             </Transition>
           </div>
 
+          <!-- Реквізити розгортаються під карткою на тій самій сірій смузі, що й розстрочка -->
+          <div class="transfer" :class="{ 'is-open': transfer }">
+            <SkOptionCard
+              label="Оплата за реквізитами"
+              hint="Наші реквізити для оплати"
+              :selected="transfer"
+              @select="payment.method = 'transfer'"
+            />
+            <Transition name="reveal">
+              <div v-if="transfer" class="transfer__body">
+                <div class="band">
+                  <BankDetails />
+                </div>
+              </div>
+            </Transition>
+          </div>
+
           <SkOptionCard label="Після доставки" :selected="payment.method === 'cod'" @select="payment.method = 'cod'" />
         </div>
       </section>
@@ -322,12 +341,14 @@ onUnmounted(() => placed && settleOrder())
 /* ---------- Installments ---------- */
 
 /* The option card stays above the band that slides under it */
-.installments > :first-child {
+.installments > :first-child,
+.transfer > :first-child {
   position: relative;
   z-index: 1;
 }
 
-.installments__body {
+.installments__body,
+.transfer__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);

@@ -6,7 +6,7 @@ import { formatPrice, pluralPositions, type CartLine } from '@/data/catalog'
 /* ---------- Types ---------- */
 
 export type DeliveryMethod = 'branch' | 'courier' | 'locker'
-export type PaymentMethod = 'card' | 'installments' | 'cod'
+export type PaymentMethod = 'card' | 'installments' | 'transfer' | 'cod'
 export type Bank = 'monobank' | 'privatbank'
 export type GroupKind = 'device' | 'cosmetics'
 
@@ -58,10 +58,21 @@ const profile = reactive({ phone: '', codeSentAt: 0 })
 const deliveryConfirmed = ref(false)
 const placedOrder = ref<PlacedOrder | null>(null)
 
+/** Номер рахунку й замовлення: потрібен ще до оформлення — його підставляємо в призначення платежу за реквізитами */
+const newOrderNumber = () => String(Math.floor(10000 + Math.random() * 90000))
+const orderNumber = ref(newOrderNumber())
+
+/** Прототип: вигадані реквізити магазину для оплати переказом. IBAN з правильними контрольними цифрами — інакше застосунок банку не прийме QR-код */
+export const BANK_DETAILS = {
+  iban: 'UA573220010000026007233566001',
+  recipient: 'ТОВ «СКІНТЕТ УКРАЇНА»',
+  code: '43912876',
+} as const
+
 // Survives reloads, so Back always lands on a filled-in step
 persist(
   'checkout',
-  () => ({ v: 2, contact, delivery, payment, plans, profile, deliveryConfirmed: deliveryConfirmed.value, placedOrder: placedOrder.value }),
+  () => ({ v: 2, contact, delivery, payment, plans, profile, deliveryConfirmed: deliveryConfirmed.value, placedOrder: placedOrder.value, orderNumber: orderNumber.value }),
   (saved) => {
     Object.assign(contact, saved.contact)
     Object.assign(delivery, saved.delivery)
@@ -71,6 +82,7 @@ persist(
       if (old.address === 'вул. Донецьке шосе, 7') Object.assign(delivery, { address: LAST_DELIVERY.address, house: LAST_DELIVERY.house })
       else delivery.house = ''
     }
+    if (saved.orderNumber) orderNumber.value = saved.orderNumber
     // v1 sessions carry the old preselected «Після доставки» — don't bring it back
     if (saved.v === 2) Object.assign(payment, saved.payment)
     Object.assign(plans, saved.plans)
@@ -270,14 +282,19 @@ export function useCheckout() {
           }))
         : [
             {
-              label: payment.method === 'card' ? 'Оплачено' : 'Оплата при отриманні',
+              label:
+                payment.method === 'card'
+                  ? 'Оплачено'
+                  : payment.method === 'transfer'
+                    ? 'Оплата за реквізитами'
+                    : 'Оплата при отриманні',
               amount: cart.total.value,
               status: 'paid' as PaymentStatus,
             },
           ]
 
     placedOrder.value = {
-      number: String(Math.floor(10000 + Math.random() * 90000)),
+      number: orderNumber.value,
       phone: formatPhoneDisplay(contact.phone),
       deliveryShort: deliveryShort.value,
       rows,
@@ -290,6 +307,7 @@ export function useCheckout() {
     cart.clear()
     deliveryConfirmed.value = false
     payment.method = null
+    orderNumber.value = newOrderNumber()
   }
 
   /** Pays the first unpaid part of a split order (simulated bank) */
@@ -322,6 +340,7 @@ export function useCheckout() {
     profile,
     deliveryPriceLabel,
     deliveryTitle,
+    orderNumber,
     recipientName,
     recipientLine,
     positions,
