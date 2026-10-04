@@ -45,7 +45,8 @@ const rows = computed(() => [
     id: 'purpose',
     label: 'Призначення платежу',
     value: purpose.value,
-    shown: purpose.value,
+    // На екрані після «№» — вузький нерозривний пробіл; у буфер і QR іде звичайний, його приймає будь-який банк
+    shown: purpose.value.replace('№ ', '№\u202F'),
   },
 ])
 
@@ -119,7 +120,7 @@ const announce = computed(() => {
       <div v-for="row in rows" :key="row.id" class="details__row">
         <div class="details__text">
           <dt class="details__label body-s">{{ row.label }}</dt>
-          <dd class="details__value body-m">{{ row.shown }}</dd>
+          <dd class="details__value body-m" :class="{ 'details__value--iban': row.id === 'iban' }">{{ row.shown }}</dd>
         </div>
         <button
           class="details__copy"
@@ -233,6 +234,11 @@ const announce = computed(() => {
   color: var(--fg-default);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+/* Групи IBAN розділені звичайними пробілами (так їх прибирає будь-який банк, якщо IBAN виділили
+   й скопіювали вручну, і рядок переноситься між групами), а на вигляд пробіли вужчі */
+.details__value--iban {
+  word-spacing: -0.08em;
 }
 
 /* 18px іконка в зоні тапу 44px */
