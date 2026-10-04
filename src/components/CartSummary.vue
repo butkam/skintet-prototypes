@@ -24,6 +24,10 @@ const cart = useCart()
       <dt class="body-m">Промокод {{ cart.promo.value.code }}</dt>
       <dd class="body-m summary__discount">−{{ formatPrice(cart.promoDiscount.value) }}</dd>
     </div>
+    <div v-for="c in cart.certificates.value" :key="c.code" class="summary__row">
+      <dt class="body-m">Сертифікат {{ c.code }}</dt>
+      <dd class="body-m summary__discount">−{{ formatPrice(c.used) }}</dd>
+    </div>
     <div class="summary__row">
       <dt class="body-m">Доставка</dt>
       <dd class="body-m">{{ cart.freeDelivery.value ? 'Безкоштовна' : formatPrice(cart.delivery.value) }}</dd>

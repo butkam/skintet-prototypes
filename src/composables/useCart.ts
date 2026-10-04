@@ -80,7 +80,7 @@ const presentUnitPrice = computed(() => {
   return presentPrices.value.every((p) => p === first) ? (first ?? null) : null
 })
 
-/* ---------- Промокод ---------- */
+/* ---------- Промокод і сертифікати ---------- */
 
 /** Прототип: єдиний робочий код — −10% на товари без знижки */
 const PROMO_CODES: Record<string, { percent: number; label: string }> = {
@@ -94,18 +94,48 @@ const promo = computed(() => (promoCode.value ? { code: promoCode.value, ...PROM
 const promoBase = computed(() => goods.value.filter((l) => !l.oldPrice).reduce((s, l) => s + l.price * l.qty, 0))
 const promoDiscount = computed(() => (promo.value ? Math.round(promoBase.value * promo.value.percent) / 100 : 0))
 
-/** Застосовує код; повертає текст помилки або null */
-function applyPromo(raw: string): string | null {
-  const code = raw.trim().toUpperCase()
-  if (!PROMO_CODES[code]) return 'Такого промокоду не існує. Перевірте, чи правильно його введено.'
-  if (!promoBase.value) return 'Промокод не діє на товари зі знижкою.'
-  promoCode.value = code
-  return null
-}
+/** Прототип: сертифікат — GIFT і номінал (GIFT500, GIFT1000…), тож їх можна додати скільки завгодно */
+const CERTIFICATE = /^GIFT(\d{3,5})$/
+const certificateCodes = ref<string[]>([])
+persist('certificates', () => certificateCodes.value, (saved) => (certificateCodes.value = saved))
 
-const total = computed(
+/** Сума до сертифікатів: ними платять за все, що лишилось після промокоду */
+const beforeCertificates = computed(
   () => subtotal.value + presentsTotal.value + delivery.value - promoDiscount.value,
 )
+/** Сертифікати списуються по черзі, і не більше, ніж лишилось сплатити */
+const certificates = computed(() => {
+  let left = beforeCertificates.value
+  return certificateCodes.value.map((code) => {
+    const amount = Number(CERTIFICATE.exec(code)?.[1] ?? 0)
+    const used = Math.min(amount, left)
+    left -= used
+    return { code, amount, used }
+  })
+})
+const certificatesTotal = computed(() => certificates.value.reduce((s, c) => s + c.used, 0))
+
+/** Одне поле на обидва: промокод (лише один) чи сертифікат (скільки завгодно). Повертає текст помилки або null */
+function applyCode(raw: string): string | null {
+  const code = raw.trim().toUpperCase().replace(/\s+/g, '')
+  if (PROMO_CODES[code]) {
+    if (promoCode.value === code) return 'Цей промокод уже застосовано.'
+    if (promoCode.value) return 'До замовлення діє лише один промокод. Сертифікатів можна додати скільки завгодно.'
+    if (!promoBase.value) return 'Промокод не діє на товари зі знижкою.'
+    promoCode.value = code
+    return null
+  }
+  if (CERTIFICATE.test(code)) {
+    if (certificateCodes.value.includes(code)) return 'Цей сертифікат уже додано.'
+    certificateCodes.value = [...certificateCodes.value, code]
+    return null
+  }
+  return promoCode.value
+    ? 'Такого сертифіката не існує. Перевірте, чи правильно його введено.'
+    : 'Такого промокоду чи сертифіката не існує. Перевірте, чи правильно його введено.'
+}
+
+const total = computed(() => beforeCertificates.value - certificatesTotal.value)
 const samplesAllowed = computed(() =>
   milestones.reduce((n, m) => (subtotal.value >= m.amount ? m.samples : n), 0 as number),
 )
@@ -177,6 +207,7 @@ function decrement(id: string) {
 function clear() {
   lines.value = []
   promoCode.value = null
+  certificateCodes.value = []
   samplesDeclined.value = false
 }
 
@@ -244,8 +275,11 @@ export function useCart() {
     promo,
     promoBase,
     promoDiscount,
-    applyPromo,
+    certificates,
+    certificatesTotal,
+    applyCode,
     removePromo: () => (promoCode.value = null),
+    removeCertificate: (code: string) => (certificateCodes.value = certificateCodes.value.filter((c) => c !== code)),
     sampleLines,
     samplesAllowed,
     samplesDeclined,
