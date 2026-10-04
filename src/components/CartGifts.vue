@@ -178,6 +178,10 @@ function syncHeight() {
     root.value.style.height = ''
     return
   }
+  // Пропозиція подарунка (перше «Замовити»): тогл під шкалою ховається, і місце в кошику зменшилось би.
+  // Тримаємо його незмінним — інакше кошик коротшав, Safari на iPhone підкручував сторінку
+  // й дотик до картки міг влучити не туди
+  if (props.offering && root.value.style.height) return
   // Дробові розміри, не offsetHeight: округлення до цілого лишало ±0.5px дихання
   const full = sheet.value.getBoundingClientRect().height
   const grown = picker.value?.getBoundingClientRect().height ?? 0
@@ -191,7 +195,7 @@ onMounted(() => {
   if (sheet.value) resizeObserver.observe(sheet.value)
 })
 // The picker only exists once samples unlock
-watch([picker, () => props.inline], () => syncHeight(), { flush: 'post' })
+watch([picker, () => props.inline, () => props.offering], () => syncHeight(), { flush: 'post' })
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   clearTimeout(collapseTimer)
@@ -283,7 +287,9 @@ watch(showHint, (value) => {
             </div>
 
             <!-- Дія кошика на час вибору живе тут, під каруселлю -->
-            <SkButton v-if="offering" class="gifts__action" block @click="emit('order')">
+            <!-- Оживає разом з картками: поки панель розгортається й стоїть скелетон, випадковий дотик
+                 (на iPhone — і в місце, де щойно була інша кнопка) не веде одразу на оформлення -->
+            <SkButton v-if="offering" class="gifts__action" block :inert="!ready || undefined" @click="emit('order')">
               {{ actionLabel }}
               <template #amount>{{ formatPrice(cart.total.value) }}</template>
             </SkButton>

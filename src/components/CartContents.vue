@@ -125,7 +125,10 @@ function order() {
 
     <CartSummary class="cart__summary" />
 
-    <div v-if="!offering" class="cart__checkout">
+    <!-- Поки дія живе в панелі подарунків, кнопка лишається на місці, лише невидима: якби вона зникала,
+         кошик ставав коротшим і Safari на iPhone підкручував сторінку — і дотик до картки подарунка
+         міг влучити в «Без подарунка» в шторці, тобто одразу на оформлення -->
+    <div class="cart__checkout" :class="{ 'is-hidden': offering }" :inert="offering || undefined">
       <SkButton block @click="order">
         {{ orderLabel }}
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
@@ -167,6 +170,9 @@ function order() {
 .cart__checkout {
   margin-top: var(--space-8);
   padding: 0 var(--space-5);
+}
+.cart__checkout.is-hidden {
+  visibility: hidden;
 }
 
 /* ---------- Широкий екран: дві колонки однакової ширини ---------- */
