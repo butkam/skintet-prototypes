@@ -32,6 +32,12 @@ const QR_PX = 152
 /** Тиха зона в пікселях: від неї вирівнюємо текст і край коду з видимими модулями, а не з білим полем */
 const quietPx = computed(() => (QR_PX * QUIET) / (qr.value.size + QUIET * 2))
 
+const formatSum = computed(() => formatPrice(cart.total.value))
+const amountToCopy = computed(() => {
+  const kopecks = Math.round(cart.total.value * 100)
+  return kopecks % 100 ? (kopecks / 100).toFixed(2).replace('.', ',') : String(kopecks / 100)
+})
+
 const rows = computed(() => [
   {
     id: 'iban',
@@ -48,6 +54,9 @@ const rows = computed(() => [
     // На екрані після «№» — вузький нерозривний пробіл; у буфер і QR іде звичайний, його приймає будь-який банк
     shown: purpose.value.replace('№ ', '№\u202F'),
   },
+  // Сума — останньою й крупно; у буфер без пробілів і «₴», копійки через кому й лише коли вони є,
+  // щоб вставилась у поле суми застосунку банку
+  { id: 'amount', label: 'Сума', value: amountToCopy.value, shown: formatSum.value },
 ])
 
 /** Щойно скопійований рядок: галочка замість іконки на 1,5 с */
@@ -80,7 +89,6 @@ async function copy(id: string, value: string) {
   timer = setTimeout(() => (copied.value = null), 1500)
 }
 
-const formatSum = computed(() => formatPrice(cart.total.value))
 
 const announce = computed(() => {
   const row = rows.value.find((r) => r.id === copied.value)
@@ -112,7 +120,7 @@ const announce = computed(() => {
     </div>
 
     <!-- Телефон: те саме посилання відкриває застосунок банку -->
-    <a v-else class="details__app body-m" :href="link" target="_blank" rel="noopener">
+    <a v-if="!wide" class="details__app body-m" :href="link" target="_blank" rel="noopener">
       Відкрити в застосунку банку
       <SkIcon name="OpenExternal" :size="18" color="currentColor" />
     </a>
@@ -120,7 +128,12 @@ const announce = computed(() => {
       <div v-for="row in rows" :key="row.id" class="details__row">
         <div class="details__text">
           <dt class="details__label body-s">{{ row.label }}</dt>
-          <dd class="details__value body-m" :class="{ 'details__value--iban': row.id === 'iban' }">{{ row.shown }}</dd>
+          <dd
+            class="details__value"
+            :class="row.id === 'amount' ? 'heading-s' : ['body-m', { 'details__value--iban': row.id === 'iban' }]"
+          >
+            {{ row.shown }}
+          </dd>
         </div>
         <button
           class="details__copy"
