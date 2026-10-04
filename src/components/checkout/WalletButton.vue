@@ -5,8 +5,12 @@
 import { onMounted, ref } from 'vue'
 import { loadGooglePay, type Wallet } from '@/composables/wallet'
 
-// `disabled` — ще рано платити (на кроці доставки — поки не вказано адресу): кнопка бліда й не реагує
-const props = defineProps<{ wallet: Wallet; disabled?: boolean }>()
+// `disabled` — ще рано платити (на кроці доставки — поки не вказано адресу): кнопка бліда й не реагує.
+// `tone` — системний колір кнопки: чорна — головна дія («Оплата»), біла з обводкою — другорядна
+// поруч із чорною кнопкою (крок доставки під «Перейти до оплати»)
+const props = withDefaults(defineProps<{ wallet: Wallet; disabled?: boolean; tone?: 'black' | 'white' }>(), {
+  tone: 'black',
+})
 const emit = defineEmits<{ pay: [] }>()
 
 const host = ref<HTMLElement | null>(null)
@@ -18,7 +22,7 @@ onMounted(() => {
       host.value?.replaceChildren(
         client.createButton({
           onClick: () => !props.disabled && emit('pay'),
-          buttonColor: 'black',
+          buttonColor: props.tone,
           buttonType: 'pay',
           buttonLocale: 'uk',
           buttonSizeMode: 'fill',
@@ -36,7 +40,7 @@ onMounted(() => {
     v-if="wallet === 'apple'"
     type="button"
     class="wallet wallet--apple"
-    :class="{ 'is-disabled': disabled }"
+    :class="{ 'is-disabled': disabled, 'wallet--white': tone === 'white' }"
     aria-label="Купити через Apple Pay"
     :disabled="disabled"
     @click="emit('pay')"
@@ -62,6 +66,10 @@ onMounted(() => {
   -apple-pay-button-style: black;
   height: calc(var(--wallet-height) + 2px);
   margin-block: -1px;
+}
+/* Білу Safari малює з тонкою обводкою — на білому тлі без неї кнопка б зникла */
+.wallet--apple.wallet--white {
+  -apple-pay-button-style: white-outline;
 }
 
 .wallet:focus-visible {

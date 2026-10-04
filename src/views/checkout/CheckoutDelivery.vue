@@ -231,7 +231,7 @@ function focusNext(field: Field) {
       <div class="page__actions">
         <SkButton block @click="next">Перейти до оплати</SkButton>
         <template v-if="wallet">
-          <WalletButton :wallet="wallet" :disabled="!addressReady" @pay="payWithWallet" />
+          <WalletButton :wallet="wallet" tone="white" :disabled="!addressReady" @pay="payWithWallet" />
           <p v-if="!addressReady" class="wallet-hint body-s">Вкажіть адресу доставки, щоб оплатити через {{ walletName }}</p>
         </template>
       </div>
@@ -405,7 +405,7 @@ function focusNext(field: Field) {
         <div class="page__cta page__actions">
           <SkButton block @click="next">Перейти до оплати</SkButton>
           <template v-if="wallet">
-            <WalletButton :wallet="wallet" :disabled="!addressReady" @pay="payWithWallet" />
+            <WalletButton :wallet="wallet" tone="white" :disabled="!addressReady" @pay="payWithWallet" />
             <p v-if="!addressReady" class="wallet-hint body-s">Вкажіть адресу доставки, щоб оплатити через {{ walletName }}</p>
           </template>
         </div>
