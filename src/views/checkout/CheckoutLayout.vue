@@ -43,7 +43,7 @@ watch(
 )
 
 // Clip the off-screen part only while sliding: a permanent overflow clip around the pages made iOS Safari
-// lag their sticky bars (steps, summary row) behind the scroll — they jittered
+// lag their sticky steps bar behind the scroll — it jittered
 const sliding = ref(0)
 const track = (done: () => void) => {
   sliding.value++

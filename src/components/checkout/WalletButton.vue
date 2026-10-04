@@ -5,7 +5,8 @@
 import { onMounted, ref } from 'vue'
 import { loadGooglePay, type Wallet } from '@/composables/wallet'
 
-const props = defineProps<{ wallet: Wallet }>()
+// `disabled` — ще рано платити (на кроці доставки — поки не вказано адресу): кнопка бліда й не реагує
+const props = defineProps<{ wallet: Wallet; disabled?: boolean }>()
 const emit = defineEmits<{ pay: [] }>()
 
 const host = ref<HTMLElement | null>(null)
@@ -16,7 +17,7 @@ onMounted(() => {
     .then((client) =>
       host.value?.replaceChildren(
         client.createButton({
-          onClick: () => emit('pay'),
+          onClick: () => !props.disabled && emit('pay'),
           buttonColor: 'black',
           buttonType: 'pay',
           buttonLocale: 'uk',
@@ -35,10 +36,12 @@ onMounted(() => {
     v-if="wallet === 'apple'"
     type="button"
     class="wallet wallet--apple"
+    :class="{ 'is-disabled': disabled }"
     aria-label="Купити через Apple Pay"
+    :disabled="disabled"
     @click="emit('pay')"
   />
-  <div v-else ref="host" class="wallet wallet--google" />
+  <div v-else ref="host" class="wallet wallet--google" :class="{ 'is-disabled': disabled }" :aria-disabled="disabled || undefined" />
 </template>
 
 <style scoped>
@@ -64,6 +67,15 @@ onMounted(() => {
 .wallet:focus-visible {
   outline: var(--border-width-focus) solid var(--border-focus);
   outline-offset: 4px;
+}
+
+/* Кнопки малює система, тож вимкнену лише бліднимо */
+.wallet {
+  transition: opacity 0.2s ease;
+}
+.wallet.is-disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 /* pay.js' own wrapper — stretch it to the host */

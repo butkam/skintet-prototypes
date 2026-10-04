@@ -19,6 +19,8 @@ defineProps<{
   inputmode?: 'text' | 'tel' | 'email' | 'numeric' | 'search'
   autocomplete?: string
   error?: string
+  /** Помилка без власного тексту: червона рамка, а пояснення пише батько (наприклад, під рядком з двох полів) */
+  invalid?: boolean
   /** Filled in correctly — green check at the end (an error wins) */
   valid?: boolean
   name?: string
@@ -48,7 +50,7 @@ function onChange(e: Event) {
 </script>
 
 <template>
-  <div v-bind="rootAttrs" class="sk-input" :class="{ 'has-error': error }">
+  <div v-bind="rootAttrs" class="sk-input" :class="{ 'has-error': error || invalid }">
     <label class="sk-input__field">
       <input
         ref="input"
@@ -60,12 +62,12 @@ function onChange(e: Event) {
         :placeholder="placeholder"
         :inputmode="inputmode"
         :autocomplete="autocomplete"
-        :aria-invalid="!!error || undefined"
+        :aria-invalid="!!error || invalid || undefined"
         @input="onInput"
         @change="onChange"
       />
       <Transition name="sk-input-check" mode="out-in">
-        <SkIcon v-if="valid && !error" class="sk-input__check" name="Check" :size="18" color="var(--status-success-fg)" />
+        <SkIcon v-if="valid && !error && !invalid" class="sk-input__check" name="Check" :size="18" color="var(--status-success-fg)" />
         <span v-else-if="$slots.trailing" class="sk-input__trailing"><slot name="trailing" /></span>
       </Transition>
     </label>

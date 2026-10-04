@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Figma «Дані й доставка» (node 112:1507); delivery method states — 145:6600 · 174:8568 · 176:8690
-import { computed, nextTick, reactive, ref } from 'vue'
+import { computed, nextTick, onUnmounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkIcon, { type IconName } from '@/components/SkIcon.vue'
 import SkInput from '@/components/SkInput.vue'
@@ -11,6 +11,8 @@ import CheckoutTopBar from '@/components/checkout/CheckoutTopBar.vue'
 import CheckoutOrder from '@/components/checkout/CheckoutOrder.vue'
 import CheckoutAside from '@/components/checkout/CheckoutAside.vue'
 import CityField from '@/components/checkout/CityField.vue'
+import WalletButton from '@/components/checkout/WalletButton.vue'
+import { detectWallet, loadGooglePay, type Wallet } from '@/composables/wallet'
 import { findCity } from '@/data/cities'
 import { formatPrice } from '@/data/catalog'
 import { useCart } from '@/composables/useCart'
@@ -20,7 +22,7 @@ import novaPoshta from '@/assets/images/nova-poshta.png'
 
 const router = useRouter()
 const cart = useCart()
-const { contact, delivery, deliveryConfirmed } = useCheckout()
+const { contact, delivery, payment, deliveryConfirmed, placeOrder, settleOrder } = useCheckout()
 // Desktop: the form on the left, the order with «Перейти до оплати» in a column on the right
 const wide = useWideCart()
 
@@ -35,12 +37,17 @@ const methodMeta: Record<DeliveryMethod, { label: string; icon: IconName; eta: s
 const detailField = computed<'branch' | 'address' | 'locker'>(() =>
   delivery.method === 'courier' ? 'address' : delivery.method,
 )
-const showLastUsed = computed(() => delivery[detailField.value] === LAST_DELIVERY[detailField.value])
+const showLastUsed = computed(
+  () =>
+    delivery[detailField.value] === LAST_DELIVERY[detailField.value] &&
+    (delivery.method !== 'courier' ||
+      (delivery.house === LAST_DELIVERY.house && delivery.apartment === LAST_DELIVERY.apartment)),
+)
 
 // The prefilled branch, address and locker belong to the last city — drop them once the customer changes it
 function onCity() {
   if (delivery.city !== LAST_DELIVERY.city) {
-    for (const f of ['branch', 'address', 'locker'] as const) {
+    for (const f of ['branch', 'address', 'house', 'apartment', 'locker'] as const) {
       if (delivery[f] === LAST_DELIVERY[f]) delivery[f] = ''
     }
   }
@@ -49,7 +56,7 @@ function onCity() {
 
 /* ---------- Validation ---------- */
 
-type Field = 'phone' | 'firstName' | 'lastName' | 'email' | 'city' | 'branch' | 'address' | 'locker'
+type Field = 'phone' | 'firstName' | 'lastName' | 'middleName' | 'email' | 'city' | 'branch' | 'address' | 'house' | 'locker'
 const errors = reactive<Partial<Record<Field, string>>>({})
 type Focusable = { focus: () => void; $el: HTMLElement }
 const refs = reactive<Partial<Record<Field, Focusable | null>>>({})
@@ -61,11 +68,16 @@ function validate() {
   if (phoneDigits(contact.phone).length !== 12) e.phone = 'Вкажіть номер телефону повністю'
   if (!contact.firstName.trim()) e.firstName = 'Вкажіть ім’я'
   if (!contact.lastName.trim()) e.lastName = 'Вкажіть прізвище'
+  // По батькові потрібне лише кур’єру — для відділення й поштомату його можна не вказувати
+  if (delivery.method === 'courier' && !contact.middleName.trim()) e.middleName = 'Для адресної доставки вкажіть по батькові'
   if (contact.email.trim() && !/^\S+@\S+\.\S+$/.test(contact.email.trim())) e.email = 'Перевірте імейл'
   if (!delivery.city.trim()) e.city = 'Вкажіть місто'
   else if (!findCity(delivery.city)) e.city = 'Оберіть місто зі списку'
   if (delivery.method === 'branch' && !delivery.branch.trim()) e.branch = 'Оберіть відділення'
-  if (delivery.method === 'courier' && !delivery.address.trim()) e.address = 'Вкажіть вулицю й дім'
+  if (delivery.method === 'courier') {
+    if (!delivery.address.trim()) e.address = 'Вкажіть вулицю'
+    if (!delivery.house.trim()) e.house = 'Вкажіть номер будинку'
+  }
   if (delivery.method === 'locker' && !delivery.locker.trim()) e.locker = 'Вкажіть поштомат'
   for (const k of Object.keys(errors) as Field[]) delete errors[k]
   Object.assign(errors, e)
@@ -77,17 +89,51 @@ const valid = computed<Record<Field, boolean>>(() => ({
   phone: phoneDigits(contact.phone).length === 12,
   firstName: !!contact.firstName.trim(),
   lastName: !!contact.lastName.trim(),
+  middleName: !!contact.middleName.trim(),
   email: /^\S+@\S+\.\S+$/.test(contact.email.trim()),
   city: !!findCity(delivery.city),
   branch: !!delivery.branch.trim(),
   address: !!delivery.address.trim(),
+  house: !!delivery.house.trim(),
   locker: !!delivery.locker.trim(),
 }))
+
+// Вулиця, будинок і квартира — один блок, помилка одна, під ним усім (квартира необов’язкова)
+const addressError = computed(() =>
+  errors.address && errors.house ? 'Вкажіть вулицю й номер будинку' : (errors.address ?? errors.house),
+)
 
 // Re-validate live once the user has tried to continue
 function touch() {
   if (submitted.value) validate()
 }
+
+/* ---------- Швидка оплата: Apple Pay / Google Pay одразу з доставки ---------- */
+
+// Гаманець сам дає ім’я й телефон, а от куди везти — ні: кнопка оживає, щойно вказано місто й адресу
+// для обраного способу (для адресної — вулицю й будинок)
+const wallet = ref<Wallet | null>(detectWallet())
+if (wallet.value === 'google') loadGooglePay().catch(() => (wallet.value = null))
+const walletName = computed(() => (wallet.value === 'apple' ? 'Apple Pay' : 'Google Pay'))
+
+const addressReady = computed(
+  () =>
+    valid.value.city &&
+    (delivery.method === 'courier' ? valid.value.address && valid.value.house : valid.value[delivery.method]),
+)
+
+// Прототип: платіжний лист не відкривається (для нього потрібен мерчант) — тап одразу оформлює замовлення карткою
+let placed = false
+function payWithWallet() {
+  if (!addressReady.value) return
+  payment.method = 'card'
+  deliveryConfirmed.value = true
+  placeOrder()
+  placed = true
+  router.replace({ name: 'checkout-done' })
+}
+// Кошик чистимо, лише коли екран уже поїхав (як на «Оплаті»)
+onUnmounted(() => placed && settleOrder())
 
 async function next() {
   submitted.value = true
@@ -112,11 +158,12 @@ function onPhone(value: string) {
 
 // iOS AutoFill Contact fills several fields at once, then moves focus to the next field in DOM order
 // (e.g. «Ім’я», already filled). Detect the fill and continue from the first field that's still empty.
-const FILL_ORDER: Field[] = ['phone', 'firstName', 'lastName', 'email', 'city']
+const FILL_ORDER: Field[] = ['phone', 'firstName', 'lastName', 'middleName', 'email', 'city']
 const isEmpty: Record<string, () => boolean> = {
   phone: () => phoneDigits(contact.phone).length !== 12,
   firstName: () => !contact.firstName.trim(),
   lastName: () => !contact.lastName.trim(),
+  middleName: () => !contact.middleName.trim(),
   email: () => !contact.email.trim(),
   city: () => !findCity(delivery.city),
 }
@@ -181,7 +228,13 @@ function focusNext(field: Field) {
     </CheckoutTopBar>
 
     <CheckoutAside v-if="wide" class="page__aside">
-      <SkButton block @click="next">Перейти до оплати</SkButton>
+      <div class="page__actions">
+        <SkButton block @click="next">Перейти до оплати</SkButton>
+        <template v-if="wallet">
+          <WalletButton :wallet="wallet" :disabled="!addressReady" @pay="payWithWallet" />
+          <p v-if="!addressReady" class="wallet-hint body-s">Вкажіть адресу доставки, щоб оплатити через {{ walletName }}</p>
+        </template>
+      </div>
       <p class="legal body-s">
         Підтверджуючи ви погоджуєтесь з умовами оферти, політики конфіденційності, заявою про обробку персональних даних та
         приймаєте їх.
@@ -230,6 +283,17 @@ function focusNext(field: Field) {
               @keydown.enter.prevent="focusNext('lastName')"
             />
           </div>
+          <SkInput
+            :ref="setRef('middleName')"
+            v-model="contact.middleName"
+            placeholder="По батькові (адресна доставка)"
+            autocomplete="additional-name"
+            :error="errors.middleName"
+            :valid="valid.middleName"
+            enterkeyhint="next"
+            @input="onContact('middleName')"
+            @keydown.enter.prevent="focusNext('middleName')"
+          />
           <SkInput
             :ref="setRef('email')"
             v-model="contact.email"
@@ -289,16 +353,40 @@ function focusNext(field: Field) {
             :valid="valid.branch"
             @input="touch"
           />
-          <SkInput
-            v-else-if="delivery.method === 'courier'"
-            :ref="setRef('address')"
-            v-model="delivery.address"
-            placeholder="Вулиця, дім"
-            autocomplete="street-address"
-            :error="errors.address"
-            :valid="valid.address"
-            @input="touch"
-          />
+          <template v-else-if="delivery.method === 'courier'">
+            <div class="address">
+              <SkInput
+                :ref="setRef('address')"
+                v-model="delivery.address"
+                placeholder="Вулиця"
+                autocomplete="address-line1"
+                :invalid="!!errors.address"
+                :valid="valid.address"
+                aria-describedby="address-error"
+                @input="touch"
+              />
+              <SkInput
+                :ref="setRef('house')"
+                v-model="delivery.house"
+                class="address__house"
+                placeholder="Будинок"
+                :invalid="!!errors.house"
+                :valid="valid.house"
+                aria-describedby="address-error"
+                @input="touch"
+              />
+              <SkInput
+                v-model="delivery.apartment"
+                class="address__apartment"
+                placeholder="Квартира"
+                autocomplete="address-line2"
+                :valid="!!delivery.apartment.trim()"
+              />
+            </div>
+            <Transition name="address-error">
+              <p v-if="addressError" id="address-error" class="address__error body-s" role="alert">{{ addressError }}</p>
+            </Transition>
+          </template>
           <SkInput
             v-else
             :ref="setRef('locker')"
@@ -314,8 +402,12 @@ function focusNext(field: Field) {
       </section>
 
       <template v-if="!wide">
-        <div class="page__cta">
+        <div class="page__cta page__actions">
           <SkButton block @click="next">Перейти до оплати</SkButton>
+          <template v-if="wallet">
+            <WalletButton :wallet="wallet" :disabled="!addressReady" @pay="payWithWallet" />
+            <p v-if="!addressReady" class="wallet-hint body-s">Вкажіть адресу доставки, щоб оплатити через {{ walletName }}</p>
+          </template>
         </div>
 
         <p class="legal body-s">
@@ -453,6 +545,43 @@ function focusNext(field: Field) {
   gap: var(--space-1);
 }
 
+/* Вузька форма: вулиця на весь рядок, будинок і квартира — під нею навпіл.
+   Широка: усе в один рядок, вулиця тягнеться, будинок і квартира — вузькі поля під номер */
+.method-detail {
+  container-type: inline-size;
+}
+.address {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+}
+.address > :first-child {
+  grid-column: 1 / -1;
+}
+@container (min-width: 440px) {
+  .address {
+    grid-template-columns: minmax(0, 1fr) 112px 112px;
+  }
+  .address > :first-child {
+    grid-column: auto;
+  }
+}
+/* Як помилка під полем (SkInput), лише під усім рядком */
+.address__error {
+  margin-top: var(--space-1);
+  padding-left: var(--space-5);
+  color: var(--status-danger-fg);
+}
+.address-error-enter-active,
+.address-error-leave-active {
+  transition: opacity 0.15s ease, transform 0.2s ease;
+}
+.address-error-enter-from,
+.address-error-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
 .method-detail__hint {
   padding-left: var(--space-5);
   color: var(--fg-muted);
@@ -461,6 +590,17 @@ function focusNext(field: Field) {
 /* In normal flow at the end of the page (not sticky), followed by the legal note */
 .page__cta {
   margin-top: var(--space-8);
+}
+/* «Перейти до оплати», під нею — гаманець, як «Оплатити» й «Картою» на наступному кроці */
+.page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.wallet-hint {
+  margin-top: calc(var(--space-1) * -1);
+  text-align: center;
+  color: var(--fg-muted);
 }
 
 .legal {

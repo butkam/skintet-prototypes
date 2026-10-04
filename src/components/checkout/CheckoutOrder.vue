@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // «Замовлення / N позицій ⌄ / сума» (Figma 112:1545–1550) — expands to the order contents;
 // same header as the desktop order column (CheckoutAside)
-import { nextTick, ref } from 'vue'
+import { ref } from 'vue'
 import CheckoutSummaryRow from './CheckoutSummaryRow.vue'
 import CheckoutLines from './CheckoutLines.vue'
 import SkIcon from '@/components/SkIcon.vue'
@@ -12,22 +12,11 @@ import { formatPrice } from '@/data/catalog'
 const cart = useCart()
 const { positions, deliveryPriceLabel } = useCheckout()
 const open = ref(false)
-const root = ref<HTMLElement | null>(null)
-
-// Expanded, the order leaves the sticky bar and scrolls with the page (see CheckoutTopBar).
-// Keep it where it is on screen at the moment it unsticks/sticks.
-async function toggle() {
-  const before = root.value?.getBoundingClientRect().top ?? 0
-  open.value = !open.value
-  await nextTick()
-  if (!open.value) return
-  const shift = (root.value?.getBoundingClientRect().top ?? 0) - before
-  if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: 'instant' })
-}
+const toggle = () => (open.value = !open.value)
 </script>
 
 <template>
-  <div ref="root" class="order" :data-topbar-scroll="open || undefined">
+  <div class="order">
     <CheckoutSummaryRow icon="ShoppingBag" title="Замовлення">
       <template #caption>
         <button class="order__toggle body-s" type="button" :aria-expanded="open" @click="toggle">

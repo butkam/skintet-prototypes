@@ -26,13 +26,15 @@ const BANK_DELAY_MS = 1200
 
 /* ---------- Shared state (one checkout per session) ---------- */
 
-const contact = reactive({ phone: '', firstName: '', lastName: '', email: '', subscribe: false })
+const contact = reactive({ phone: '', firstName: '', middleName: '', lastName: '', email: '', subscribe: false })
 
 /** What the customer used last time — prefilled as in the design */
-export const LAST_DELIVERY: Readonly<Record<'city' | 'branch' | 'address' | 'locker', string>> = {
+export const LAST_DELIVERY: Readonly<Record<'city' | 'branch' | 'address' | 'house' | 'apartment' | 'locker', string>> = {
   city: 'Дніпро',
   branch: '№ 12 · вул. Хрещатик, 22',
-  address: 'вул. Донецьке шосе, 7',
+  address: 'вул. Донецьке шосе',
+  house: '7',
+  apartment: '',
   locker: '№ 34512 · просп. Дмитра Яворницького, 52',
 }
 
@@ -63,6 +65,12 @@ persist(
   (saved) => {
     Object.assign(contact, saved.contact)
     Object.assign(delivery, saved.delivery)
+    // Сесії до окремого поля «Будинок»: номер був у вулиці
+    const old = saved.delivery as Partial<typeof delivery> | undefined
+    if (old && old.house === undefined) {
+      if (old.address === 'вул. Донецьке шосе, 7') Object.assign(delivery, { address: LAST_DELIVERY.address, house: LAST_DELIVERY.house })
+      else delivery.house = ''
+    }
     // v1 sessions carry the old preselected «Після доставки» — don't bring it back
     if (saved.v === 2) Object.assign(payment, saved.payment)
     Object.assign(plans, saved.plans)
@@ -141,6 +149,12 @@ export function useCheckout() {
     cart.freeDelivery.value ? 'Безкоштовно' : formatPrice(cart.delivery.value),
   )
 
+  /** «вул. Донецьке шосе, 7, кв. 15» — квартира необов’язкова */
+  const streetLine = computed(() => {
+    const apartment = delivery.apartment.trim()
+    return [delivery.address.trim(), delivery.house.trim(), apartment && `кв. ${apartment}`].filter(Boolean).join(', ')
+  })
+
   const deliveryTitle = computed(() => {
     const city = delivery.city.trim()
     switch (delivery.method) {
@@ -149,7 +163,7 @@ export function useCheckout() {
       case 'locker':
         return `Поштомат НП №${lockerNumber.value}, ${city}`
       default:
-        return [delivery.address.trim(), city].filter(Boolean).join(', ')
+        return [streetLine.value, city].filter(Boolean).join(', ')
     }
   })
 
@@ -161,12 +175,17 @@ export function useCheckout() {
       case 'locker':
         return `поштомат НП №${lockerNumber.value}, ${city}`
       default:
-        return `кур’єром, ${[delivery.address.trim(), city].filter(Boolean).join(', ')}`
+        return `кур’єром, ${[streetLine.value, city].filter(Boolean).join(', ')}`
     }
   })
 
+  /** «Ім’я По батькові Прізвище» — по батькові необов’язкове */
+  const recipientName = computed(() =>
+    [contact.firstName, contact.middleName, contact.lastName].map((s) => s.trim()).filter(Boolean).join(' '),
+  )
+
   const recipientLine = computed(() =>
-    [`${contact.firstName} ${contact.lastName}`.trim(), formatPhoneDisplay(contact.phone), deliveryPriceLabel.value]
+    [recipientName.value, formatPhoneDisplay(contact.phone), deliveryPriceLabel.value]
       .filter(Boolean)
       .join(', '),
   )
@@ -303,6 +322,7 @@ export function useCheckout() {
     profile,
     deliveryPriceLabel,
     deliveryTitle,
+    recipientName,
     recipientLine,
     positions,
     groups,

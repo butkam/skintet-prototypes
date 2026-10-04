@@ -21,7 +21,7 @@ import { backTo } from '@/router'
 
 const router = useRouter()
 const cart = useCart()
-const { contact, payment, plans, deliveryTitle, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } = useCheckout()
+const { contact, payment, plans, deliveryTitle, recipientName, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } = useCheckout()
 // Desktop: the payment form on the left; delivery, the order and the pay button in a column on the right
 const wide = useWideCart()
 
@@ -30,7 +30,7 @@ const monthsLabel = (n: number) => `${n} ${pluralMonths(n)}`
 
 // The column's totals already show the delivery price — here only who receives it
 const recipient = computed(() =>
-  [`${contact.firstName} ${contact.lastName}`.trim(), formatPhoneDisplay(contact.phone)].filter(Boolean).join(', '),
+  [recipientName.value, formatPhoneDisplay(contact.phone)].filter(Boolean).join(', '),
 )
 
 const installments = computed(() => payment.method === 'installments')

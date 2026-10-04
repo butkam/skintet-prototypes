@@ -5,7 +5,7 @@ let shownStep: number | null = null
 
 <script setup lang="ts">
 // Figma 112:1544 / 112:1593 / 125:5494 — sticky steps bar with progress line
-// Steps bar: solid, hard edge. The slot bar below it fades out at the bottom so content disappears under it
+// Steps bar: solid, hard edge, sticky. The slot bar below it (order, chosen address) scrolls with the page
 import { nextTick, ref, watch } from 'vue'
 import SkIcon from '@/components/SkIcon.vue'
 import { spring } from '@/motion/spring'
@@ -26,7 +26,7 @@ const steps = [
 
 const list = ref<HTMLElement | null>(null)
 const nav = ref<HTMLElement | null>(null)
-// The slot bar sticks right under the steps
+// The desktop order column sticks right under the steps
 const navHeight = ref(0)
 const fill = ref(0)
 const animate = ref(false)
@@ -80,9 +80,8 @@ function go(i: number) {
 </script>
 
 <template>
-  <!-- Steps and the slot bar are separate sticky layers: content marked [data-topbar-scroll]
-       (e.g. the expanded order) unsticks and scrolls away under the steps -->
-  <div v-if="!!persistent === wide" class="topbar" :style="{ '--topbar-steps-h': `${navHeight}px` }">
+  <!-- Only the steps stick; the slot bar scrolls away under them -->
+  <div v-if="!!persistent === wide" class="topbar">
     <nav ref="nav" class="topbar__steps" aria-label="Кроки оформлення" data-sticky-top>
       <div class="topbar__row">
         <ol ref="list" class="topbar__list">
@@ -112,7 +111,7 @@ function go(i: number) {
         />
       </div>
     </nav>
-    <div v-if="$slots.default" class="topbar__content" data-sticky-top>
+    <div v-if="$slots.default" class="topbar__content">
       <slot />
     </div>
   </div>
@@ -126,11 +125,11 @@ function go(i: number) {
 
 .topbar__steps,
 .topbar__content {
-  position: sticky;
   padding-inline: var(--space-5);
 }
 
 .topbar__steps {
+  position: sticky;
   top: var(--checkout-header-h);
   z-index: 15;
   /* Ends right at the progress line, so scrolling content disappears exactly under it */
@@ -144,15 +143,7 @@ function go(i: number) {
 
 /* The 16px gap under the line belongs to the slot bar */
 .topbar__content {
-  top: calc(var(--checkout-header-h) + var(--topbar-steps-h));
-  z-index: 14;
   padding-block: var(--space-4);
-}
-
-/* Unstuck: scrolls with the page, passing under the steps */
-.topbar__content:has([data-topbar-scroll]) {
-  position: relative;
-  top: auto;
 }
 
 /* Steps: solid canvas, hard edge — content passes under it without a fade */
@@ -163,20 +154,6 @@ function go(i: number) {
   z-index: -1;
   pointer-events: none;
   background: var(--bg-canvas);
-}
-
-/* Figma: solid canvas, fading out over the last 18px */
-.topbar__content::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 -18px 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    var(--bg-canvas) calc(100% - 18px),
-    color-mix(in oklch, var(--bg-canvas) 0%, transparent) 100%
-  );
 }
 
 
