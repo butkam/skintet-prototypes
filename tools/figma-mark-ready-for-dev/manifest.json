@@ -1,0 +1,8 @@
+{
+  "name": "Mark ready for dev",
+  "id": "skintet-mark-ready-for-dev",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page"
+}

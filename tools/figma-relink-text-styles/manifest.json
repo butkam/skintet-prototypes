@@ -1,0 +1,8 @@
+{
+  "name": "Relink text styles",
+  "id": "skintet-relink-text-styles",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page"
+}
