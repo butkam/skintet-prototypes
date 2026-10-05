@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// Плейсхолдер картки семплу: порожній прямокутник розміром із SampleCard.vue (123×156).
+// Плейсхолдер картки подарунка: порожній прямокутник розміром із SampleCard.vue (123×156)
+// або GiftProductCard.vue — тоді висоту задає --sk-card-h.
 // Без начинки — тримає місце й ритм ряду, поки картки не під'їхали.
 </script>
 
@@ -12,7 +13,7 @@
   position: relative;
   flex-shrink: 0;
   width: 123px;
-  height: 156px;
+  height: var(--sk-card-h, 156px);
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
   overflow: hidden;

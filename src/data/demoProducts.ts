@@ -2,7 +2,7 @@
 // Фото — прямі посилання на CDN сайту.
 // Подарунки до товарів (gift) — демо-заглушки для прототипу, не реальні акції.
 // Фото подарунка — теж із каталогу: у прототипі беремо найближчий за змістом кадр.
-import type { CartLine, OrderGift } from './catalog'
+import type { CartLine, OrderGift, Sample } from './catalog'
 
 export type DemoProduct = Omit<CartLine, 'qty' | 'kind'> & { kind: 'product' | 'set'; brand: string; url: string }
 
@@ -245,4 +245,21 @@ export const orderGifts: OrderGift[] = [
     image: img('87/b2/9b419d92030ef19c0c28b6ea99ab'),
     price: 1,
   },
+]
+
+/**
+ * Подарунки на вибір — звичайні товари замість наборів семплів (перемикач у меню, variant → giftStyle).
+ * Окремі id: той самий засіб може лежати в кошику й як покупка, і як подарунок.
+ */
+const giftProduct = (id: string, isNew?: boolean): Sample => {
+  const p = demoProducts.find((d) => d.id === id)!
+  return { id: `gift-${id}`, title: p.title, description: p.description ?? '', image: p.image, price: 1, oldPrice: p.price, isNew }
+}
+
+// Новинки (бейдж NEW) — демо: одна-дві на ряд, щоб видно було, як бейдж стоїть поруч зі звичайними картками
+export const giftProducts: Sample[] = [
+  giftProduct('no-makeup-mascara-black', true),
+  giftProduct('neuropeptide-the-cleansing-balm'),
+  giftProduct('leave-in-hair-mask-conditioner', true),
+  giftProduct('haircare-triple-keratin-repair-shampoo'),
 ]

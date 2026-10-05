@@ -3,7 +3,8 @@ import exoImage from '@/assets/images/product-viewed.png'
 import spwImage from '@/assets/images/cart-skin-spw.png'
 import setItem2 from '@/assets/images/cart-set-item-2.png'
 import setItem3 from '@/assets/images/cart-set-item-3.png'
-import { giftCardModel } from '@/variant'
+import { giftCardModel, giftStyle } from '@/variant'
+import { giftProducts } from './demoProducts'
 
 export type SetItem = { title: string; image: string }
 
@@ -26,7 +27,8 @@ export type CartLine = {
   expanded?: boolean
 }
 
-export type Sample = { id: string; title: string; description: string; image: string; price: number }
+/** Подарунок на вибір: набір семплів або звичайний товар (тоді oldPrice — його повна ціна, isNew — бейдж NEW) */
+export type Sample = { id: string; title: string; description: string; image: string; price: number; oldPrice?: number; isNew?: boolean }
 
 const setItems: SetItem[] = Array.from({ length: 8 }, (_, i) => ({
   title: 'Calmwise Soothing Cleanser Amazing Formular',
@@ -46,7 +48,7 @@ export const exoPdrn: Omit<CartLine, 'qty'> = {
   gift: { title: 'Брендовий масажер для ліфтингу Medik8 у подарунок', price: 1, image: setItem2 },
 }
 
-export const samples: Sample[] = [
+const sampleSets: Sample[] = [
   {
     id: 'sample-autumn',
     title: 'Набір семплів “Осінній догляд”',
@@ -59,6 +61,9 @@ export const samples: Sample[] = [
   { id: 'sample-anti-age', title: 'Набір семплів “Антивіковий догляд”', description: 'Мініатюри сироваток і кремів з пептидами', image: exoImage, price: 1 },
 ]
 
+/** Що пропонуємо на вибір: товари (demoProducts → giftProducts) чи набори семплів — перемикається в меню */
+export const samples: Sample[] = giftStyle === 'products' ? giftProducts : sampleSets
+
 export const sampleToLine = (s: Sample): CartLine => ({
   id: s.id,
   kind: 'sample',
@@ -66,6 +71,7 @@ export const sampleToLine = (s: Sample): CartLine => ({
   description: s.description,
   image: s.image,
   price: s.price,
+  oldPrice: s.oldPrice,
   qty: 1,
 })
 
@@ -74,7 +80,7 @@ export const demoLines = (): CartLine[] => [
   { ...exoPdrn, qty: 1 },
   { id: 'skin-spw', kind: 'set', title: 'Skin(SPW+)', image: spwImage, price: 22653, oldPrice: 26650, qty: 2, setItems, expanded: false },
   { id: 'skin-spw-mini', kind: 'set', title: 'Skin(SPW+)', image: spwImage, price: 22653, oldPrice: 26650, qty: 1, setItems, expanded: true },
-  sampleToLine(samples[0]),
+  sampleToLine(sampleSets[0]),
 ]
 
 /* ---------- Пороги шкали ---------- */
@@ -184,4 +190,26 @@ export function pluralFreeSamples(n: number) {
         ? 'безкоштовні'
         : 'безкоштовних'
   return `${adjective} ${pluralSamples(n)}`
+}
+
+/** 1 подарунок · 2 подарунки · 5 подарунків */
+export function pluralGifts(n: number) {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod10 === 1 && mod100 !== 11) return 'подарунок'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'подарунки'
+  return 'подарунків'
+}
+
+/** безкоштовний подарунок · безкоштовні подарунки · безкоштовних подарунків */
+export function pluralFreeGifts(n: number) {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  const adjective =
+    mod10 === 1 && mod100 !== 11
+      ? 'безкоштовний'
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+        ? 'безкоштовні'
+        : 'безкоштовних'
+  return `${adjective} ${pluralGifts(n)}`
 }

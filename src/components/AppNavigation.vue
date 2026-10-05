@@ -1,12 +1,12 @@
 <script setup lang="ts">
 // Figma "Navigation" (node 125:6093), Platform = Mobile: menu icon + logo + bag icon
-// Прототип: меню — випадалка з перемиканням між прототипами та скиданням покупок
+// Прототип: меню — випадалка з перемиканням між прототипами, вибором подарунків (товари чи семпли) та скиданням покупок
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
 import logo from '@/assets/images/logo.png'
 import { resetSession } from '@/composables/persist'
 import { prefersReducedMotion, spring, springs } from '@/motion/spring'
-import { prototypes } from '@/variant'
+import { giftCardModel, giftStyle, giftStyles, prototypes, setGiftStyle } from '@/variant'
 
 const props = withDefaults(defineProps<{ cartCount?: number }>(), { cartCount: 0 })
 defineEmits<{ cart: [] }>()
@@ -86,6 +86,24 @@ onBeforeUnmount(() => (menuOpen.value = false))
               </a>
             </li>
           </ul>
+          <!-- Прототип /gift-card вибору не має — перемикати там нічого -->
+          <template v-if="!giftCardModel">
+            <hr class="app-nav__menu-divider" />
+            <p class="app-nav__menu-caption body-s">Що дарувати</p>
+            <ul class="app-nav__menu-list">
+              <li v-for="s in giftStyles" :key="s.value">
+                <button
+                  class="app-nav__menu-item body-m"
+                  type="button"
+                  :aria-pressed="s.value === giftStyle"
+                  @click="setGiftStyle(s.value)"
+                >
+                  {{ s.title }}
+                  <SkIcon v-if="s.value === giftStyle" name="Check" :size="18" />
+                </button>
+              </li>
+            </ul>
+          </template>
           <hr class="app-nav__menu-divider" />
           <!-- Скидає кошик і всі дані оформлення цього прототипу -->
           <button class="app-nav__menu-item app-nav__menu-item--danger body-m" type="button" @click="resetSession">

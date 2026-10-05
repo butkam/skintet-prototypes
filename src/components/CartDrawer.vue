@@ -8,7 +8,7 @@ import CartContents from './CartContents.vue'
 import { useCart } from '@/composables/useCart'
 import { useWideCart } from '@/composables/useWideCart'
 import { prefersReducedMotion, spring } from '@/motion/spring'
-import { giftCardModel } from '@/variant'
+import { giftCardModel, giftStyle } from '@/variant'
 
 const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer } = useCart()
 // Широкий екран: дровер справа поверх затемненого екрана, а не на місці мобільної колонки
@@ -272,7 +272,7 @@ function onPointerUp(e: PointerEvent) {
               Від 3&nbsp;000&nbsp;₴ — безкоштовна доставка й подарунок, від 5&nbsp;000&nbsp;₴ — інший подарунок
             </p>
             <p v-else class="empty__text body-l">
-              Від 3&nbsp;000&nbsp;₴ — безкоштовна доставка, від 5&nbsp;000&nbsp;₴ — семпли у подарунок
+              Від 3&nbsp;000&nbsp;₴ — безкоштовна доставка, від 5&nbsp;000&nbsp;₴ — {{ giftStyle === 'products' ? 'подарунки на вибір' : 'семпли у подарунок' }}
             </p>
             <SkButton variant="secondary" @click="closeDrawer">Перейти до товарів</SkButton>
           </div>

@@ -4,6 +4,7 @@ import {
   demoLines,
   milestones,
   sampleToLine,
+  samples,
   type CartLine,
   type Sample,
 } from '@/data/catalog'
@@ -26,9 +27,12 @@ const drawerOpen = ref(false)
  */
 const baseFrozen = ref(false)
 // Кошик зберігає рядки разом з описом, тож старі збережені кошики досі мали б велику «•»
-// між описом і об'ємом — приводимо до маленького мідлдоту, як у поточних даних
+// між описом і об'ємом — приводимо до маленького мідлдоту, як у поточних даних.
+// Подарунки, обрані до перемикання товари ↔ семпли (variant → giftStyle), більше не пропонуються — прибираємо
 persist('cart', () => lines.value, (saved) => {
-  lines.value = saved.map((l) => (l.description ? { ...l, description: l.description.replaceAll(' • ', ' · ') } : l))
+  lines.value = saved
+    .filter((l) => l.kind !== 'sample' || samples.some((s) => s.id === l.id))
+    .map((l) => (l.description ? { ...l, description: l.description.replaceAll(' • ', ' · ') } : l))
 })
 /** Window scroll offset of the screen when the cart opened — restored on close */
 const baseScrollY = ref(0)

@@ -6,7 +6,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import SkIcon from './SkIcon.vue'
 import { formatAmount, milestones } from '@/data/catalog'
 import { spring } from '@/motion/spring'
-import { giftCardModel } from '@/variant'
+import { giftCardModel, giftStyle } from '@/variant'
 
 const props = defineProps<{
   subtotal: number
@@ -158,6 +158,7 @@ const message = computed(() => {
     return next === milestones[0] ? `Ще ${left} до безкоштовної доставки й подарунка` : `Ще ${left} — і подарунок зміниться на інший`
   }
   if (next.samples === 0) return `Ще ${left} до безкоштовної доставки`
+  if (giftStyle === 'products') return `Ще ${left} — і зможете обрати ${next.samples === 1 ? 'подарунок' : `${next.samples} подарунки`}`
   return `Ще ${left} — і зможете обрати ${next.samples === 1 ? 'семпл' : `${next.samples} семпли`}`
 })
 

@@ -6,14 +6,15 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SkIcon from './SkIcon.vue'
 import CartProgress from './CartProgress.vue'
 import SampleCard from './SampleCard.vue'
+import GiftProductCard from './GiftProductCard.vue'
 import SampleCardSkeleton from './SampleCardSkeleton.vue'
 import SkButton from './SkButton.vue'
 import ScrollArrows from './ScrollArrows.vue'
 import TapHint from './TapHint.vue'
 import { useCart } from '@/composables/useCart'
-import { formatAmount, formatPrice, milestones, pluralFreeSamples, samples } from '@/data/catalog'
+import { formatAmount, formatPrice, milestones, pluralFreeGifts, pluralFreeSamples, pluralGifts, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
-import { giftCardModel } from '@/variant'
+import { giftCardModel, giftStyle } from '@/variant'
 
 const props = defineProps<{
   /** Кошик попросив обрати подарунок: дія переїжджає в панель, виходів з неї більше нема */
@@ -36,17 +37,20 @@ const samplesThreshold = milestones.find((m) => m.samples === 1)?.amount ?? Infi
 const unlocked = computed(() => cart.samplesAllowed.value > 0)
 const picked = computed(() => cart.sampleLines.value.length)
 const limitReached = computed(() => picked.value >= cart.samplesAllowed.value)
+// Подарунки на вибір — звичайні товари (GiftProductCard) чи набори семплів (SampleCard): перемикач у меню
+const products = giftStyle === 'products'
 
 // Before samples unlock: the next goal and what's left to it
 const lockedHint = computed(() => {
   const s = cart.subtotal.value
   return s < deliveryThreshold
     ? `До безкоштовної доставки ще ${formatAmount(deliveryThreshold - s)}`
-    : `До безкоштовного семплу ще ${formatAmount(samplesThreshold - s)}`
+    : `До безкоштовного ${products ? 'подарунка' : 'семплу'} ще ${formatAmount(samplesThreshold - s)}`
 })
 
 const pickerTitle = computed(() => {
   const n = cart.samplesAllowed.value
+  if (products) return `Оберіть ${n} ${pluralGifts(n)}`
   return `Оберіть ${n} ${n === 1 ? 'набір' : 'набори'} семплів у подарунок`
 })
 
@@ -55,6 +59,7 @@ const toggleLabel = computed(() => {
   if (!limitReached.value) {
     // Щойно щось обрано — кажемо, скільки слотів лишилось, а не загальне запрошення
     const left = cart.samplesAllowed.value - picked.value
+    if (products) return picked.value ? `Оберіть ще ${left} ${pluralFreeGifts(left)}` : 'Оберіть безкоштовні подарунки'
     return picked.value ? `Оберіть ще ${left} ${pluralFreeSamples(left)}` : 'Оберіть безкоштовні семпли'
   }
   const n = picked.value
@@ -232,7 +237,7 @@ watch(showHint, (value) => {
 </script>
 
 <template>
-  <div ref="root" class="gifts" :class="{ 'gifts--inline': inline }" :data-sticky-top="inline ? undefined : ''">
+  <div ref="root" class="gifts" :class="{ 'gifts--inline': inline, 'gifts--products': products }" :data-sticky-top="inline ? undefined : ''">
     <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open, 'gifts__sheet--scale': giftCardModel }">
       <CartProgress :subtotal="cart.subtotal.value" :picked="picked" :declined="cart.samplesDeclined.value" />
 
@@ -273,7 +278,19 @@ watch(showHint, (value) => {
                 @scroll.passive="onTrackScroll"
               >
                 <div v-for="(s, i) in orderedSamples" :key="s.id" class="gifts__slot" :style="{ '--d': `${i * 45}ms` }">
+                  <GiftProductCard
+                    v-if="products"
+                    :title="s.title"
+                    :image="s.image"
+                    :price="s.price"
+                    :old-price="s.oldPrice"
+                    :is-new="s.isNew"
+                    :selected="cart.hasSample(s.id)"
+                    :disabled="limitReached && !cart.hasSample(s.id)"
+                    @click="toggleSample(s, $event)"
+                  />
                   <SampleCard
+                    v-else
                     :title="s.title"
                     :description="s.description"
                     :image="s.image"
@@ -299,7 +316,7 @@ watch(showHint, (value) => {
         <!-- Figma 208:2098 — замість тогла лишається рядок з поверненням до вибору -->
         <p v-if="cart.samplesDeclined.value" class="gifts__declined body-s">
           <span>Ви відмовились від подарунків</span>
-          <button class="gifts__resume link" type="button" @click="resume">Хочу семпли</button>
+          <button class="gifts__resume link" type="button" @click="resume">{{ products ? 'Хочу подарунки' : 'Хочу семпли' }}</button>
         </p>
 
         <button v-else-if="!offering" class="gifts__toggle body-s" type="button" :aria-expanded="open" @click="open = !open">
@@ -572,6 +589,11 @@ watch(showHint, (value) => {
   .gifts__toggle:hover .gifts__chevron path {
     stroke: var(--fg-default);
   }
+}
+
+/* Картки-товари вищі за семпли: скелетон тримає їхню висоту (8 + 107 фото + 8 + 32 назва + 4 + 16 ціна + 8) */
+.gifts--products {
+  --sk-card-h: 183px;
 }
 
 /* ---------- Широкий кошик: панель у потоці колонки, семпли тією ж каруселлю зі стрілками ---------- */

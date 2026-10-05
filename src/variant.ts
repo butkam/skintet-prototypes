@@ -21,6 +21,41 @@ export const prototypeBase = giftCardModel
 
 /** Для меню в хедері. Звичайні посилання, не роутер: прототип обирається під час завантаження сторінки */
 export const prototypes = [
-  { title: 'Семпли на вибір', href: import.meta.env.BASE_URL, current: !giftCardModel },
+  { title: 'Подарунки на вибір', href: import.meta.env.BASE_URL, current: !giftCardModel },
   { title: 'Подарунок карткою', href: `${import.meta.env.BASE_URL}${GIFT_CARD_SLUG}/`, current: giftCardModel },
 ]
+
+/**
+ * Що пропонуємо на вибір у прототипі «/»: звичайні товари (за замовчуванням) чи набори семплів.
+ * Налаштування прототипу, а не покупки — живе в localStorage і не скидається разом з кошиком.
+ * Як і прототип, обирається під час завантаження сторінки: перемикач у меню перезавантажує її.
+ */
+export type GiftStyle = 'products' | 'samples'
+
+const GIFT_STYLE_KEY = 'skintet:gift-style'
+
+function readGiftStyle(): GiftStyle {
+  try {
+    return localStorage.getItem(GIFT_STYLE_KEY) === 'samples' ? 'samples' : 'products'
+  } catch {
+    return 'products'
+  }
+}
+
+export const giftStyle: GiftStyle = readGiftStyle()
+
+export const giftStyles: { value: GiftStyle; title: string }[] = [
+  { value: 'products', title: 'Товари' },
+  { value: 'samples', title: 'Набори семплів' },
+]
+
+export function setGiftStyle(style: GiftStyle) {
+  if (style === giftStyle) return
+  try {
+    localStorage.setItem(GIFT_STYLE_KEY, style)
+  } catch {
+    // Storage blocked — the switch can't survive a reload, so there's nothing to reload for
+    return
+  }
+  window.location.reload()
+}
