@@ -1,16 +1,11 @@
 <script setup lang="ts">
 // Подарунок-товар у панелі подарунків: картка «Рекомендованих» (ProductMiniCard, Figma 112:2194) без «Купити»,
-// з чекбоксом зліва вгорі поверх фото. Стани — як у SampleCard: обраний — рамка 2px, недоступний (ліміт) — 50%.
+// з чекбоксом зліва вгорі поверх фото і без цін — лише фото й назва. Стани — як у SampleCard: обраний — рамка 2px, недоступний (ліміт) — 50%.
 import SkCheckbox from './SkCheckbox.vue'
-import { formatAmount } from '@/data/catalog'
 
 defineProps<{
   title: string
   image: string
-  /** Ціна подарунка в кошику */
-  price: number
-  /** Повна ціна товару — закреслена поруч */
-  oldPrice?: number
   /** Новинка: білий бейдж NEW справа вгорі, навпроти чекбокса */
   isNew?: boolean
   selected?: boolean
@@ -33,11 +28,6 @@ defineProps<{
     <span v-if="isNew" class="gift-card__badge" aria-hidden="true">NEW</span>
     <img class="gift-card__image" :src="image" alt="" />
     <span class="gift-card__title body-s">{{ title }}</span>
-    <!-- Ціни озвучує скрінрідер з кошика; тут вистачає назви -->
-    <span class="gift-card__prices body-s" aria-hidden="true">
-      <span>{{ formatAmount(price) }}</span>
-      <s v-if="oldPrice" class="gift-card__old-price">{{ formatAmount(oldPrice) }}</s>
-    </span>
   </button>
 </template>
 
@@ -139,19 +129,5 @@ defineProps<{
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-}
-
-.gift-card__prices {
-  display: flex;
-  align-items: baseline;
-  /* 8px, не 4: закреслена ціна не зливається з актуальною */
-  gap: var(--space-2);
-  margin: var(--space-1) var(--space-1) 0;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.gift-card__old-price {
-  color: var(--fg-muted);
 }
 </style>

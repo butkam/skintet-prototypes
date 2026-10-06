@@ -282,8 +282,6 @@ watch(showHint, (value) => {
                     v-if="products"
                     :title="s.title"
                     :image="s.image"
-                    :price="s.price"
-                    :old-price="s.oldPrice"
                     :is-new="s.isNew"
                     :selected="cart.hasSample(s.id)"
                     :disabled="limitReached && !cart.hasSample(s.id)"
@@ -591,9 +589,9 @@ watch(showHint, (value) => {
   }
 }
 
-/* Картки-товари вищі за семпли: скелетон тримає їхню висоту (8 + 107 фото + 8 + 32 назва + 4 + 16 ціна + 8) */
+/* Картки-товари вищі за семпли: скелетон тримає їхню висоту (8 + 107 фото + 8 + 32 назва + 8) */
 .gifts--products {
-  --sk-card-h: 183px;
+  --sk-card-h: 163px;
 }
 
 /* ---------- Широкий кошик: панель у потоці колонки, семпли тією ж каруселлю зі стрілками ---------- */
