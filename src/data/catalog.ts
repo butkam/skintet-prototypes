@@ -61,7 +61,7 @@ const sampleSets: Sample[] = [
   { id: 'sample-anti-age', title: 'Набір семплів “Антивіковий догляд”', description: 'Мініатюри сироваток і кремів з пептидами', image: exoImage, price: 1 },
 ]
 
-/** Що пропонуємо на вибір: товари (demoProducts → giftProducts) чи набори семплів — перемикається в меню */
+/** Що пропонуємо на вибір: товари (demoProducts → giftProducts) чи набори семплів — залежить від прототипу (variant → giftStyle) */
 export const samples: Sample[] = giftStyle === 'products' ? giftProducts : sampleSets
 
 export const sampleToLine = (s: Sample): CartLine => ({

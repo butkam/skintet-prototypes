@@ -6,13 +6,36 @@ import SkButton from './SkButton.vue'
 import ProductRail from './ProductRail.vue'
 import CartContents from './CartContents.vue'
 import { useCart } from '@/composables/useCart'
-import { useWideCart } from '@/composables/useWideCart'
-import { prefersReducedMotion, spring } from '@/motion/spring'
-import { giftCardModel, giftStyle } from '@/variant'
+import { useTwoColumnCart, useWideCart } from '@/composables/useWideCart'
+import { prefersReducedMotion, spring, springs } from '@/motion/spring'
+import { giftCardModel, giftStyle, prototypeSlug } from '@/variant'
 
-const { lines, count, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer } = useCart()
+const { lines, count, samplesAllowed, giftPicker, drawerOpen, baseFrozen, baseScrollY, baseTop, baseCovered, drawerExit, closeDrawer } = useCart()
+
+/* ---------- Прототип «6 жовтня» (Figma 425:6125): скільки подарунків доступно — праворуч у хедері ---------- */
+
+// Шкала там не липне, тож скільки подарунків уже можна обрати (0–3, за сумою) — у хедері, завжди на очах
+const showGiftCount = prototypeSlug === '2026-10-06'
+const giftCount = ref<HTMLElement | null>(null)
+// Подарунок у хедері — кнопка: веде вниз кошика, до вибору (CartGiftPicker)
+function toGiftPicker() {
+  giftPicker.value?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'instant' : 'smooth' })
+}
+
+// Число підстрибує, щойно змінилось — видно, що сума дотягла до нового подарунка (чи впала нижче)
+watch(
+  samplesAllowed,
+  (next, prev) => {
+    if (next === prev || !giftCount.value || prefersReducedMotion()) return
+    const s = spring(springs.pop)
+    giftCount.value.animate([{ transform: 'scale(0.6)' }, { transform: 'scale(1)' }], { duration: s.duration, easing: s.easing })
+  },
+)
 // Широкий екран: дровер справа поверх затемненого екрана, а не на місці мобільної колонки
 const wide = useWideCart()
+// Дві колонки всередині (ліворуч подарунки й рекомендовані). «6 жовтня» — одна колонка, як на телефоні,
+// лише ширша: та сама шторка справа, гортається сама (drawer-root--wide без drawer-root--columns)
+const twoColumns = useTwoColumnCart()
 
 // Різні товари з демо-каталогу — кожен зі своїм фото й ціною
 const VIEWED_IDS = [
@@ -238,7 +261,7 @@ function onPointerUp(e: PointerEvent) {
 <template>
   <Transition :css="false" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave" @after-leave="onAfterLeave">
     <!-- In normal document flow (not fixed) so iOS Safari shows it behind the bottom toolbar -->
-    <div v-if="drawerOpen" class="drawer-root" :class="{ 'is-still': baseCovered, 'drawer-root--wide': wide }">
+    <div v-if="drawerOpen" class="drawer-root" :class="{ 'is-still': baseCovered, 'drawer-root--wide': wide, 'drawer-root--columns': twoColumns }">
       <div v-if="wide" class="drawer-scrim" aria-hidden="true" @click="closeDrawer" />
       <section
         ref="panel"
@@ -253,7 +276,11 @@ function onPointerUp(e: PointerEvent) {
       >
         <div class="drawer__body" :class="{ 'drawer__body--filled': lines.length }">
           <!-- Header lives inside the scroller so content fades out beneath it -->
-          <header class="drawer__header header-fade" data-sticky-top :class="{ 'drawer__header--solid': lines.length }">
+          <header
+            class="drawer__header header-fade"
+            data-sticky-top
+            :class="{ 'drawer__header--solid': lines.length, 'drawer__header--flush': showGiftCount }"
+          >
             <button ref="closeButton" class="drawer__icon-btn" type="button" aria-label="Закрити кошик" @click="closeDrawer">
               <SkIcon name="CrossLarge" />
             </button>
@@ -261,6 +288,23 @@ function onPointerUp(e: PointerEvent) {
             <h2 id="cart-drawer-title" class="drawer__title body-m">
               Кошик<span v-if="count" class="drawer__count">({{ count }})</span>
             </h2>
+            <!-- Є доступні подарунки — іконка час від часу підблискує, а тап веде вниз, до вибору -->
+            <button
+              v-if="showGiftCount && lines.length"
+              class="drawer__gifts"
+              :class="{ 'is-lit': samplesAllowed > 0 }"
+              type="button"
+              :disabled="!samplesAllowed || !giftPicker"
+              :aria-label="samplesAllowed ? `Доступно подарунків: ${samplesAllowed}. Перейти до вибору` : 'Подарунків поки нема'"
+              @click="toGiftPicker"
+            >
+              <span ref="giftCount" class="drawer__gifts-count body-s" aria-hidden="true">{{ samplesAllowed }}</span>
+              <span class="drawer__gifts-icon" aria-hidden="true">
+                <SkIcon name="Gift" :size="21" color="var(--fg-default)" class="drawer__gifts-box" />
+                <span class="drawer__gifts-spark drawer__gifts-spark--a" />
+                <span class="drawer__gifts-spark drawer__gifts-spark--b" />
+              </span>
+            </button>
           </header>
 
           <CartContents v-if="lines.length" />
@@ -373,6 +417,11 @@ function onPointerUp(e: PointerEvent) {
   margin: 0;
   box-shadow: var(--elevation-l);
 }
+/* «6 жовтня»: одна колонка, як на телефоні, лише трохи ширша */
+.drawer-root--wide:not(.drawer-root--columns) .drawer {
+  width: 480px;
+}
+
 .drawer-root--wide .drawer::before,
 .drawer-root--wide .drawer::after {
   display: none;
@@ -388,21 +437,22 @@ function onPointerUp(e: PointerEvent) {
 /* З товарами: хедер, під ним товари й оформлення (CartContents → .cart__main), кожне гортається само.
    Ліва колонка (подарунки, рекомендовані, промокод) стоїть поза панеллю й іде від самого верху —
    тож тут нічого не обрізаємо */
-.drawer-root--wide .drawer__body--filled {
+.drawer-root--columns .drawer__body--filled {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: visible;
 }
 
-/* Заголовок ліворуч, хрестик праворуч — як у бокових панелях на десктопі */
-.drawer-root--wide .drawer__header {
+/* Заголовок ліворуч, хрестик праворуч — як у бокових панелях на десктопі.
+   Одноколонкова шторка («6 жовтня») лишає хедер телефона: хрестик ліворуч, назва по центру, подарунки праворуч */
+.drawer-root--columns .drawer__header {
   flex-direction: row-reverse;
   padding: var(--space-5) var(--space-6);
 }
-.drawer-root--wide .drawer__icon-btn {
+.drawer-root--columns .drawer__icon-btn {
   margin: -10px -10px -10px 0;
 }
-.drawer-root--wide .drawer__title {
+.drawer-root--columns .drawer__title {
   position: static;
   transform: none;
 }
@@ -423,6 +473,12 @@ function onPointerUp(e: PointerEvent) {
   /* Bleed 2px under the stuck scale (z-index 11) to cover sub-pixel rounding gaps */
   inset: 0 0 -2px 0;
   background: var(--bg-canvas);
+}
+
+/* «6 жовтня»: шкала не липне, тож і щілину під нею закривати нічим — фон рівно до лінії,
+   інакше під нею лишалась біла смужка над вмістом, що гортається */
+.drawer__header--flush.drawer__header--solid::before {
+  inset: 0;
 }
 
 /* Figma 156:7038: hairline divider under the header, above the scale */
@@ -464,6 +520,121 @@ function onPointerUp(e: PointerEvent) {
   gap: var(--space-1);
   font-weight: 400;
   white-space: nowrap;
+}
+
+/* Figma 425:6138: «0» Body/S і іконка подарунка в 32px — праворуч, навпроти хрестика */
+.drawer__gifts {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: -4px 0;
+  color: var(--fg-default);
+}
+/* Тап-зона 44px заввишки, не рухаючи хедер */
+.drawer__gifts::after {
+  content: '';
+  position: absolute;
+  inset: -6px -10px -6px -8px;
+}
+.drawer__gifts:disabled {
+  cursor: default;
+}
+.drawer__gifts:focus-visible {
+  outline: var(--border-width-focus) solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+.drawer__gifts-count {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+.drawer__gifts-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+}
+
+/* ---------- Підблискування: раз на такт коробка смикається, і біля неї спалахують дві іскри ---------- */
+
+.drawer__gifts-box {
+  transform-origin: 50% 85%;
+}
+.drawer__gifts-spark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--fg-default);
+  /* Чотирикутна залита зірочка — контурна Sparkle на такому розмірі тоншала до пів пікселя */
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  opacity: 0;
+  transform: scale(0);
+}
+.drawer__gifts-spark--a {
+  top: 0;
+  right: 0;
+}
+.drawer__gifts-spark--b {
+  top: 9px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+}
+
+.drawer__gifts.is-lit .drawer__gifts-box {
+  animation: gifts-jiggle 3.2s ease-in-out infinite;
+}
+.drawer__gifts.is-lit .drawer__gifts-spark {
+  animation: gifts-spark 3.2s ease-out infinite;
+}
+.drawer__gifts.is-lit .drawer__gifts-spark--b {
+  animation-delay: 0.12s;
+}
+
+@keyframes gifts-jiggle {
+  0%,
+  64%,
+  86%,
+  100% {
+    transform: none;
+  }
+  68% {
+    transform: rotate(-10deg) scale(1.06);
+  }
+  73% {
+    transform: rotate(8deg) scale(1.06);
+  }
+  78% {
+    transform: rotate(-5deg);
+  }
+  82% {
+    transform: rotate(2deg);
+  }
+}
+
+@keyframes gifts-spark {
+  0%,
+  70% {
+    opacity: 0;
+    transform: scale(0) rotate(0);
+  }
+  78% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+  92%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer__gifts.is-lit .drawer__gifts-box,
+  .drawer__gifts.is-lit .drawer__gifts-spark {
+    animation: none;
+  }
 }
 
 .drawer__count {

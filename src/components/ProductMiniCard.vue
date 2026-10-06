@@ -1,14 +1,18 @@
 <script setup lang="ts">
 // Figma node 112:2194 — картка «Ви переглядали» / «Рекомендовані засоби», 123px завширшки, з кнопкою «Купити»
 import SkIcon from './SkIcon.vue'
+import { prototypeSlug } from '@/variant'
 
 // `added` — товар щойно поклали в кошик: «Купити» стає «Додано» з галочкою
 defineProps<{ title: string; price: string; image: string; added?: boolean }>()
 defineEmits<{ add: [] }>()
+
+// Прототип «6 жовтня»: картка без заливки, з легкою обводкою, фото менше
+const outlined = prototypeSlug === '2026-10-06'
 </script>
 
 <template>
-  <article class="mini-card">
+  <article class="mini-card" :class="{ 'mini-card--outlined': outlined }">
     <img class="mini-card__image" :src="image" alt="" />
     <p class="mini-card__title body-s">{{ title }}</p>
     <p class="mini-card__price body-s">{{ price }}</p>
@@ -49,6 +53,23 @@ defineEmits<{ add: [] }>()
   height: 107px;
   border-radius: var(--radius-sm);
   object-fit: cover;
+}
+
+/* Прототип «6 жовтня»: фон як у сторінки, обводка неконтрастна (border/default) —
+   ряд карток легший; фото 64px по центру, текст лишається ліворуч */
+.mini-card--outlined {
+  border: var(--border-width-hairline) solid var(--border-default);
+  background: var(--bg-canvas);
+}
+.mini-card--outlined .mini-card__image {
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  margin-top: var(--space-2);
+}
+/* Обводка забирає 2px ширини — назва займає, що лишилось, а не фіксовані 99px */
+.mini-card--outlined .mini-card__title {
+  width: auto;
 }
 
 /* Кнопка на всю ширину картки під ціною: світла, щоб ряд карток не важчав.

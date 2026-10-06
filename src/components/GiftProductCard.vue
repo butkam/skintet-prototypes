@@ -2,6 +2,7 @@
 // Подарунок-товар у панелі подарунків: картка «Рекомендованих» (ProductMiniCard, Figma 112:2194) без «Купити»,
 // з чекбоксом зліва вгорі поверх фото і без цін — лише фото й назва. Стани — як у SampleCard: обраний — рамка 2px, недоступний (ліміт) — 50%.
 import SkCheckbox from './SkCheckbox.vue'
+import { prototypeSlug } from '@/variant'
 
 defineProps<{
   title: string
@@ -12,12 +13,15 @@ defineProps<{
   /** Limit reached and this one isn't selected */
   disabled?: boolean
 }>()
+
+// Прототип «6 жовтня»: як картки рекомендованих там — без заливки, з легкою обводкою, фото менше
+const outlined = prototypeSlug === '2026-10-06'
 </script>
 
 <template>
   <button
     class="gift-card"
-    :class="{ 'is-selected': selected, 'is-disabled': disabled }"
+    :class="{ 'is-selected': selected, 'is-disabled': disabled, 'gift-card--outlined': outlined }"
     type="button"
     role="checkbox"
     :aria-checked="!!selected"
@@ -119,6 +123,26 @@ defineProps<{
   height: 107px;
   border-radius: var(--radius-sm);
   object-fit: cover;
+}
+
+/* Прототип «6 жовтня» — як ProductMiniCard там: фон сторінки, обводка border/default, фото 64px по центру.
+   Рамка обраної (2px) лягає поверх обводки */
+.gift-card--outlined {
+  border: var(--border-width-hairline) solid var(--border-default);
+  background: var(--bg-canvas);
+}
+.gift-card--outlined::after {
+  inset: calc(var(--border-width-hairline) * -1);
+}
+.gift-card--outlined .gift-card__image {
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  margin-top: var(--space-2);
+}
+/* Обводка забирає 2px ширини — назва займає, що лишилось, а не фіксовані 99px */
+.gift-card--outlined .gift-card__title {
+  width: auto;
 }
 
 .gift-card__title {

@@ -28,7 +28,7 @@ const drawerOpen = ref(false)
 const baseFrozen = ref(false)
 // Кошик зберігає рядки разом з описом, тож старі збережені кошики досі мали б велику «•»
 // між описом і об'ємом — приводимо до маленького мідлдоту, як у поточних даних.
-// Подарунки, обрані до перемикання товари ↔ семпли (variant → giftStyle), більше не пропонуються — прибираємо
+// Подарунки, яких цей прототип не пропонує (кошик, збережений до розділення семплів і товарів), — прибираємо
 persist('cart', () => lines.value, (saved) => {
   lines.value = saved
     .filter((l) => l.kind !== 'sample' || samples.some((s) => s.id === l.id))
@@ -223,6 +223,9 @@ function remove(id: string) {
 /** Панель подарунків розгорнута. Спільний стан: «Замовити» теж уміє її відкрити */
 const giftsOpen = ref(false)
 
+/** Прототип «6 жовтня»: блок вибору подарунків унизу кошика — до нього веде подарунок у хедері */
+const giftPicker = ref<HTMLElement | null>(null)
+
 /** Свідома відмова від подарункових семплів: панель згортається до повідомлення */
 const samplesDeclined = ref(false)
 persist('samples-declined', () => samplesDeclined.value, (saved) => (samplesDeclined.value = saved))
@@ -288,6 +291,7 @@ export function useCart() {
     samplesAllowed,
     samplesDeclined,
     giftsOpen,
+    giftPicker,
     declineSamples,
     resumeSamples,
     drawerOpen,

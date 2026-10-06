@@ -7,18 +7,21 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SkButton from './SkButton.vue'
 import CartGifts from './CartGifts.vue'
+import CartGiftPicker from './CartGiftPicker.vue'
 import CartLines from './CartLines.vue'
 import CartOrderGift from './CartOrderGift.vue'
 import CartPromo from './CartPromo.vue'
 import CartSummary from './CartSummary.vue'
 import ProductRail from './ProductRail.vue'
 import { useCart } from '@/composables/useCart'
-import { useWideCart } from '@/composables/useWideCart'
+import { useTwoColumnCart } from '@/composables/useWideCart'
 import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
+import { prototypeSlug } from '@/variant'
 
 const cart = useCart()
-const wide = useWideCart()
+// Дві колонки — широкий екран (крім «6 жовтня»: там і на десктопі одна, як на телефоні)
+const wide = useTwoColumnCart()
 const router = useRouter()
 
 // «Замовити» → оформлення: close the cart, and land the next page at the top
@@ -32,6 +35,13 @@ async function checkout() {
 }
 
 const pickedSamples = computed(() => cart.sampleLines.value.length)
+
+// Прототип «6 жовтня»: на телефоні «Замовити» завжди прилипає до низу екрана — лише кнопка,
+// підсумок лишається на своєму місці. Наприкінці кошика кнопка стає на звичайне місце.
+// Вибір подарунків там — унизу кошика, під рекомендованими (CartGiftPicker), а не в шторці
+const dated = prototypeSlug === '2026-10-06'
+const pinned = dated
+const picker = ref<InstanceType<typeof CartGiftPicker> | null>(null)
 
 // Під промокодом; те, що вже в кошику, стрічка ховає сама
 const RECOMMENDED_IDS = [
@@ -63,7 +73,7 @@ const orderLabel = computed(() =>
 // Дія живе в панелі, лише поки та відкрита: інакше (сума впала нижче порогу)
 // кошик лишився б узагалі без кнопки. На широкому екрані панель — сусідня колонка,
 // тож кнопка лишається на своєму місці під підсумком
-const offering = computed(() => !wide.value && giftsOffered.value && cart.giftsOpen.value)
+const offering = computed(() => !dated && !wide.value && giftsOffered.value && cart.giftsOpen.value)
 
 // Ліва колонка гортається окремо: на пропозицію подарунка повертаємо її до шкали
 const side = ref<HTMLElement | null>(null)
@@ -71,6 +81,11 @@ const side = ref<HTMLElement | null>(null)
 function order() {
   if (!giftsOffered.value && giftsLeft.value > 0 && !cart.samplesDeclined.value) {
     giftsOffered.value = true
+    // «6 жовтня»: шторка не розгортається — кошик доїжджає до вибору внизу, кнопка стає «Без подарунків»
+    if (dated) {
+      picker.value?.root?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'instant' : 'smooth' })
+      return
+    }
     cart.giftsOpen.value = true
     side.value?.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'instant' : 'smooth' })
     return
@@ -89,6 +104,7 @@ function order() {
           <CartPromo />
         </div>
         <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
+        <CartGiftPicker v-if="dated" ref="picker" class="cart__picker" :hint="giftsOffered" />
       </div>
     </div>
 
@@ -122,13 +138,18 @@ function order() {
     </div>
 
     <ProductRail class="cart__rail" title="Рекомендовані засоби" align="start" :ids="RECOMMENDED_IDS" />
+    <CartGiftPicker v-if="dated" ref="picker" class="cart__picker" :hint="giftsOffered" />
 
     <CartSummary class="cart__summary" />
 
     <!-- Поки дія живе в панелі подарунків, кнопка лишається на місці, лише невидима: якби вона зникала,
          кошик ставав коротшим і Safari на iPhone підкручував сторінку — і дотик до картки подарунка
          міг влучити в «Без подарунка» в шторці, тобто одразу на оформлення -->
-    <div class="cart__checkout" :class="{ 'is-hidden': offering }" :inert="offering || undefined">
+    <div
+      class="cart__checkout"
+      :class="{ 'is-hidden': offering, 'cart__checkout--pinned': pinned }"
+      :inert="offering || undefined"
+    >
       <SkButton block @click="order">
         {{ orderLabel }}
         <template #amount>{{ formatPrice(cart.total.value) }}</template>
@@ -161,11 +182,15 @@ function order() {
   margin-top: var(--space-8);
 }
 
+.cart__picker {
+  margin-top: var(--space-8);
+}
+
 .cart__summary {
   margin-top: var(--space-8);
 }
 
-/* ---------- Checkout (in normal flow at the end of the cart, not sticky) ---------- */
+/* ---------- Checkout (in normal flow at the end of the cart; sticky only in «6 жовтня») ---------- */
 
 .cart__checkout {
   margin-top: var(--space-8);
@@ -173,6 +198,14 @@ function order() {
 }
 .cart__checkout.is-hidden {
   visibility: hidden;
+}
+
+/* Прототип «6 жовтня»: кнопка прилипає до низу екрана, а в самому низу кошика стає на своє звичайне
+   місце. Без підкладки: вміст кошика видно під кнопкою й довкола неї аж до краю екрана */
+.cart__checkout--pinned {
+  position: sticky;
+  bottom: calc(env(safe-area-inset-bottom) + var(--space-4));
+  z-index: 5;
 }
 
 /* ---------- Широкий екран: дві колонки однакової ширини ---------- */

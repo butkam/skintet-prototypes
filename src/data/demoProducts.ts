@@ -3,8 +3,18 @@
 // Подарунки до товарів (gift) — демо-заглушки для прототипу, не реальні акції.
 // Фото подарунка — теж із каталогу: у прототипі беремо найближчий за змістом кадр.
 import type { CartLine, OrderGift, Sample } from './catalog'
+import { prototypeSlug } from '@/variant'
 
 export type DemoProduct = Omit<CartLine, 'qty' | 'kind'> & { kind: 'product' | 'set'; brand: string; url: string }
+
+// Прототип «6 жовтня»: в описі лише бренд і об'єм — «Medik8 · 30 мл» замість «Medik8 · Сироватка … · 30 мл».
+// Об'єм — остання частина після « · »; нема його (LED-маска) — лишається сам бренд
+const shortDescriptions = prototypeSlug === '2026-10-06'
+const describe = (brand: string, description: string) => {
+  if (!shortDescriptions) return `${brand} · ${description}`
+  const parts = description.split(' · ')
+  return parts.length > 1 ? `${brand} · ${parts[parts.length - 1]}` : brand
+}
 
 const img = (path: string) => `https://skintet.com/media/cache/sylius_shop_product_original/${path}.webp`
 
@@ -22,7 +32,7 @@ const product = (p: {
 }): DemoProduct => ({
   ...p,
   kind: 'product',
-  description: `${p.brand} · ${p.description}`,
+  description: describe(p.brand, p.description),
   image: img(p.image),
   url: `https://skintet.com/products/${p.id}`,
 })
@@ -248,7 +258,7 @@ export const orderGifts: OrderGift[] = [
 ]
 
 /**
- * Подарунки на вибір — звичайні товари замість наборів семплів (перемикач у меню, variant → giftStyle).
+ * Подарунки на вибір — звичайні товари замість наборів семплів (прототип /gift-products/, variant → giftStyle).
  * Окремі id: той самий засіб може лежати в кошику й як покупка, і як подарунок.
  */
 const giftProduct = (id: string, isNew?: boolean): Sample => {

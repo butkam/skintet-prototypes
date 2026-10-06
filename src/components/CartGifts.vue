@@ -14,7 +14,7 @@ import TapHint from './TapHint.vue'
 import { useCart } from '@/composables/useCart'
 import { formatAmount, formatPrice, milestones, pluralFreeGifts, pluralFreeSamples, pluralGifts, samples } from '@/data/catalog'
 import { prefersReducedMotion, spring } from '@/motion/spring'
-import { giftCardModel, giftStyle } from '@/variant'
+import { giftCardModel, giftStyle, prototypeSlug } from '@/variant'
 
 const props = defineProps<{
   /** Кошик попросив обрати подарунок: дія переїжджає в панель, виходів з неї більше нема */
@@ -37,8 +37,12 @@ const samplesThreshold = milestones.find((m) => m.samples === 1)?.amount ?? Infi
 const unlocked = computed(() => cart.samplesAllowed.value > 0)
 const picked = computed(() => cart.sampleLines.value.length)
 const limitReached = computed(() => picked.value >= cart.samplesAllowed.value)
-// Подарунки на вибір — звичайні товари (GiftProductCard) чи набори семплів (SampleCard): перемикач у меню
+// Подарунки на вибір — звичайні товари (GiftProductCard) чи набори семплів (SampleCard): залежить від прототипу (variant → giftStyle)
 const products = giftStyle === 'products'
+// Прототип «6 жовтня» (Figma 425:6125): вибір переїхав униз кошика (CartGiftPicker), а шкала — звичайний блок
+// під хедером: не липне й не лягає шторкою поверх товарів. Скільки подарунків обрано — в хедері кошика
+const flat = prototypeSlug === '2026-10-06'
+const scaleOnly = giftCardModel || flat
 
 // Before samples unlock: the next goal and what's left to it
 const lockedHint = computed(() => {
@@ -179,7 +183,7 @@ let resizeObserver: ResizeObserver | undefined
 
 function syncHeight() {
   if (!root.value || !sheet.value) return
-  if (props.inline) {
+  if (props.inline || flat) {
     root.value.style.height = ''
     return
   }
@@ -237,12 +241,17 @@ watch(showHint, (value) => {
 </script>
 
 <template>
-  <div ref="root" class="gifts" :class="{ 'gifts--inline': inline, 'gifts--products': products }" :data-sticky-top="inline ? undefined : ''">
-    <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open, 'gifts__sheet--scale': giftCardModel }">
+  <div
+    ref="root"
+    class="gifts"
+    :class="{ 'gifts--inline': inline, 'gifts--products': products, 'gifts--flat': flat }"
+    :data-sticky-top="inline || flat ? undefined : ''"
+  >
+    <div ref="sheet" class="gifts__sheet" :class="{ 'is-open': open, 'gifts__sheet--scale': scaleOnly }">
       <CartProgress :subtotal="cart.subtotal.value" :picked="picked" :declined="cart.samplesDeclined.value" />
 
       <!-- Прототип /gift-card: під шкалою нічого — ні підказки, ні вибору -->
-      <template v-if="!giftCardModel">
+      <template v-if="!scaleOnly">
       <!-- Locked: how much is left to the next goal -->
       <p v-if="!unlocked" class="gifts__hint body-s" aria-live="polite">
         <span class="gifts__hint-row">
@@ -592,6 +601,25 @@ watch(showHint, (value) => {
 /* Картки-товари вищі за семпли: скелетон тримає їхню висоту (8 + 107 фото + 8 + 32 назва + 8) */
 .gifts--products {
   --sk-card-h: 163px;
+}
+
+/* ---------- Прототип «6 жовтня» (Figma 425:6125): шкала в потоці, без шторки — 16px до хедера й до товарів ---------- */
+
+.gifts--flat {
+  position: static;
+  height: auto;
+  /* Шторка лягала над хедером (z-index 11); у потоці шкала гортається під ним — як решта кошика.
+     Елемент flex-колонки тримає z-index і без position, тож скидаємо явно */
+  z-index: auto;
+}
+
+.gifts--flat .gifts__sheet {
+  position: relative;
+  border-radius: 0;
+  box-shadow: none;
+}
+.gifts--flat .gifts__sheet--scale {
+  padding-bottom: var(--space-4);
 }
 
 /* ---------- Широкий кошик: панель у потоці колонки, семпли тією ж каруселлю зі стрілками ---------- */

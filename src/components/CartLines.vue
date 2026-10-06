@@ -2,12 +2,15 @@
 // Figma node 132:6136 — список товарів кошика
 import CartLineItem from './CartLineItem.vue'
 import { useCart } from '@/composables/useCart'
-import { useWideCart } from '@/composables/useWideCart'
+import { useTwoColumnCart } from '@/composables/useWideCart'
+import { scrollShift } from '@/motion/scrollShift'
 import { prefersReducedMotion } from '@/motion/spring'
 import { LINE_ENTER_MS, snap, tween } from '@/motion/tween'
+import { prototypeSlug } from '@/variant'
 
 const cart = useCart()
-const wide = useWideCart()
+// Дві колонки: стрічка й подарунки — в іншій колонці, тож рядок розгортається завжди
+const wide = useTwoColumnCart()
 
 function toggleSet(id: string) {
   const line = cart.lines.value.find((l) => l.id === id)
@@ -77,7 +80,7 @@ function onEnter(el: Element, done: () => void) {
     const list = node.parentElement!
     const before = list.getBoundingClientRect().bottom
     finish()
-    window.scrollBy({ top: list.getBoundingClientRect().bottom - before, behavior: 'instant' })
+    scrollShift(list, list.getBoundingClientRect().bottom - before)
   })
   entering.set(node, () => stop())
 }
@@ -91,6 +94,10 @@ function onLeave(el: Element, done: () => void) {
   entering.get(node)?.()
   entering.delete(node)
   if (prefersReducedMotion()) return done()
+  // Прототип «6 жовтня»: подарунок знімають унизу кошика (CartGiftPicker), а його рядок — вище, поза екраном.
+  // Згортання там ніхто не побачить, лише документ щокадру смикався б під пальцем — рядок іде одразу,
+  // а вибір зсуває документ один раз
+  if (prototypeSlug === '2026-10-06' && !wide.value && !inSight(node)) return done()
 
   const cs = getComputedStyle(node)
   const height = node.getBoundingClientRect().height

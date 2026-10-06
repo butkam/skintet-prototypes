@@ -5,7 +5,8 @@ import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import ProductMiniCard from './ProductMiniCard.vue'
 import ScrollArrows from './ScrollArrows.vue'
 import { useCart } from '@/composables/useCart'
-import { useWideCart } from '@/composables/useWideCart'
+import { useTwoColumnCart } from '@/composables/useWideCart'
+import { scrollShift } from '@/motion/scrollShift'
 import { demoProducts } from '@/data/demoProducts'
 import { formatPrice } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
@@ -19,7 +20,7 @@ const props = withDefaults(
 )
 
 const { lines, add } = useCart()
-const wide = useWideCart()
+const wide = useTwoColumnCart()
 
 /** Щойно натиснуті: картка ще трохи стоїть з галочкою, а потім іде зі стрічки в кошик */
 const added = ref<string[]>([])
@@ -88,7 +89,7 @@ async function commit(id: string) {
   const hold = () => {
     if (!root.value?.isConnected) return
     const shift = root.value.getBoundingClientRect().top - before
-    if (shift) window.scrollBy({ top: shift, behavior: 'instant' })
+    if (shift) scrollShift(root.value, shift)
   }
   hold()
   if (wide.value) holds.push(tween(LINE_ENTER_MS, hold))

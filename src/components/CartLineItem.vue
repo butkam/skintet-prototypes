@@ -5,6 +5,7 @@ import SkIcon from './SkIcon.vue'
 import { formatPrice, pluralItems, type CartLine } from '@/data/catalog'
 import { prefersReducedMotion } from '@/motion/spring'
 import { snap, tween } from '@/motion/tween'
+import { prototypeSlug } from '@/variant'
 
 const props = defineProps<{ line: CartLine }>()
 const emit = defineEmits<{ increment: []; decrement: []; toggle: [] }>()
@@ -12,6 +13,11 @@ const emit = defineEmits<{ increment: []; decrement: []; toggle: [] }>()
 // Gift samples: one of each — removable, but the quantity can't grow
 const single = computed(() => props.line.kind === 'sample')
 const setCount = computed(() => props.line.setItems?.length ?? 0)
+
+// Прототип «6 жовтня»: фото в кошику більші — thumbnail/cart (72px) замість 56px,
+// а подарунок до товару — без ціни «1,00 ₴», лише що саме дарують
+const largeThumb = prototypeSlug === '2026-10-06'
+const showGiftPrice = prototypeSlug !== '2026-10-06'
 
 /* ---------- Розкриття складу набору ---------- */
 
@@ -50,7 +56,7 @@ onBeforeUnmount(() => cancel?.())
 </script>
 
 <template>
-  <article class="line" :class="`line--${line.kind}`">
+  <article class="line" :class="[`line--${line.kind}`, { 'line--large-thumb': largeThumb }]">
     <div class="line__top">
       <img class="line__thumb" :src="line.image" alt="" />
       <div class="line__info">
@@ -85,7 +91,7 @@ onBeforeUnmount(() => cancel?.())
       <span v-if="line.gift.image" class="line__gift-badge"><SkIcon name="GiftSmallDark" :size="12" /></span>
       <span v-else class="line__gift-icon"><SkIcon name="GiftSmallDark" :size="16" /></span>
       <span class="line__gift-title body-s">{{ line.gift.title }}</span>
-      <span class="line__gift-price heading-s">{{ formatPrice(line.gift.price) }}</span>
+      <span v-if="showGiftPrice" class="line__gift-price heading-s">{{ formatPrice(line.gift.price) }}</span>
     </div>
 
     <div class="line__controls">
@@ -124,15 +130,21 @@ onBeforeUnmount(() => cancel?.())
 /* The thumbnail is taken out of flow: the text column, gift and controls keep the same gaps
    whatever the text length, and the row only grows to fit the image when the content is shorter */
 .line {
+  /* Розмір фото: від нього рахуються колонка тексту, керування й пілюля подарунка */
+  --line-thumb: var(--thumbnail-sample);
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-3);
-  min-height: calc(var(--thumbnail-sample) + var(--space-5));
+  min-height: calc(var(--line-thumb) + var(--space-5));
   padding-bottom: var(--space-5);
   border-bottom: var(--border-width-hairline) solid var(--border-default);
   background: var(--bg-canvas);
+}
+
+.line--large-thumb {
+  --line-thumb: var(--thumbnail-cart);
 }
 
 .line__top {
@@ -145,8 +157,8 @@ onBeforeUnmount(() => cancel?.())
   position: absolute;
   top: 0;
   left: 0;
-  width: var(--thumbnail-sample);
-  height: var(--thumbnail-sample);
+  width: var(--line-thumb);
+  height: var(--line-thumb);
   border-radius: var(--radius-sm);
   object-fit: cover;
 }
@@ -154,7 +166,7 @@ onBeforeUnmount(() => cancel?.())
 /* Text column always fills everything right of the thumbnail (16px gutter), at any screen width */
 .line__info,
 .line__controls {
-  width: calc(100% - var(--thumbnail-sample) - var(--space-4));
+  width: calc(100% - var(--line-thumb) - var(--space-4));
 }
 
 .line__info {
@@ -249,7 +261,7 @@ onBeforeUnmount(() => cancel?.())
   align-items: center;
   gap: var(--space-1);
   /* Starts 4px left of the text column, as in the design */
-  width: calc(100% - var(--thumbnail-sample) - var(--space-3));
+  width: calc(100% - var(--line-thumb) - var(--space-3));
   padding: var(--space-2) 0 var(--space-2) var(--space-2);
   /* Концентрично до фото: його скруглення + відступ від краю пілюлі */
   border-radius: calc(var(--radius-sm) + var(--space-2)) 0 0 calc(var(--radius-sm) + var(--space-2));

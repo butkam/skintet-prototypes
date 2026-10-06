@@ -1,61 +1,55 @@
 /**
- * Два прототипи подарунків в одному застосунку, кожен за своєю адресою:
- *   /           — семпли на вибір у шторці під шкалою (Figma 160:7315)
- *   /gift-card/ — подарунок до замовлення карткою над товарами, без шторки (Figma 234:3047)
+ * Кілька прототипів подарунків в одному застосунку, кожен за своєю адресою:
+ *   /               — набори семплів на вибір у шторці під шкалою (Figma 160:7315)
+ *   /gift-products/ — те саме, але на вибір звичайні товари (GiftProductCard)
+ *   /2026-10-06/    — гілка «Товари на вибір» від 6 жовтня: поки така сама, далі змінюється окремо
+ *   /gift-card/     — подарунок до замовлення карткою над товарами, без шторки (Figma 234:3047)
  *
  * Прототип обирається один раз — за адресою, з якою відкрили сторінку. Роутер працює під його
  * префіксом (router → history), а кошик і оформлення зберігаються в сесії окремо (persist),
  * тож усі переходи й дані лишаються в межах одного прототипу.
  */
-const GIFT_CARD_SLUG = 'gift-card'
 
-const path = window.location.pathname.slice(import.meta.env.BASE_URL.length)
-
-/** Подарунок до замовлення: від 3 000 ₴ разом з доставкою, від 5 000 ₴ його змінює інший */
-export const giftCardModel = path === GIFT_CARD_SLUG || path.startsWith(`${GIFT_CARD_SLUG}/`)
-
-/** Корінь поточного прототипу: «/» або «/gift-card/» (на GitHub Pages — під «/<repo>/») */
-export const prototypeBase = giftCardModel
-  ? `${import.meta.env.BASE_URL}${GIFT_CARD_SLUG}/`
-  : import.meta.env.BASE_URL
-
-/** Для меню в хедері. Звичайні посилання, не роутер: прототип обирається під час завантаження сторінки */
-export const prototypes = [
-  { title: 'Подарунки на вибір', href: import.meta.env.BASE_URL, current: !giftCardModel },
-  { title: 'Подарунок карткою', href: `${import.meta.env.BASE_URL}${GIFT_CARD_SLUG}/`, current: giftCardModel },
-]
-
-/**
- * Що пропонуємо на вибір у прототипі «/»: звичайні товари (за замовчуванням) чи набори семплів.
- * Налаштування прототипу, а не покупки — живе в localStorage і не скидається разом з кошиком.
- * Як і прототип, обирається під час завантаження сторінки: перемикач у меню перезавантажує її.
- */
+/** Що пропонуємо на вибір у шторці: звичайні товари чи набори семплів */
 export type GiftStyle = 'products' | 'samples'
 
-const GIFT_STYLE_KEY = 'skintet:gift-style'
-
-function readGiftStyle(): GiftStyle {
-  try {
-    return localStorage.getItem(GIFT_STYLE_KEY) === 'samples' ? 'samples' : 'products'
-  } catch {
-    return 'products'
-  }
+type Prototype = {
+  /** Адреса під BASE_URL; null — корінь */
+  slug: string | null
+  title: string
+  giftStyle: GiftStyle
+  /** Подарунок до замовлення карткою замість вибору в шторці */
+  giftCard?: boolean
+  /** Відгалуження від прототипу вище: у меню з кутиком перед назвою */
+  branch?: boolean
 }
 
-export const giftStyle: GiftStyle = readGiftStyle()
-
-export const giftStyles: { value: GiftStyle; title: string }[] = [
-  { value: 'products', title: 'Товари' },
-  { value: 'samples', title: 'Набори семплів' },
+const PROTOTYPES: Prototype[] = [
+  { slug: null, title: 'Семпли на вибір', giftStyle: 'samples' },
+  { slug: 'gift-products', title: 'Товари на вибір', giftStyle: 'products' },
+  { slug: '2026-10-06', title: '6 жовтня', giftStyle: 'products', branch: true },
+  { slug: 'gift-card', title: 'Подарунок карткою', giftStyle: 'samples', giftCard: true },
 ]
 
-export function setGiftStyle(style: GiftStyle) {
-  if (style === giftStyle) return
-  try {
-    localStorage.setItem(GIFT_STYLE_KEY, style)
-  } catch {
-    // Storage blocked — the switch can't survive a reload, so there's nothing to reload for
-    return
-  }
-  window.location.reload()
-}
+const path = window.location.pathname.slice(import.meta.env.BASE_URL.length)
+const current =
+  PROTOTYPES.find((p) => p.slug && (path === p.slug || path.startsWith(`${p.slug}/`))) ?? PROTOTYPES[0]
+
+/** Адреса поточного прототипу — щоб змінювати лише один: `prototypeSlug === '2026-10-06'` */
+export const prototypeSlug = current.slug
+
+/** Подарунок до замовлення: від 3 000 ₴ разом з доставкою, від 5 000 ₴ його змінює інший */
+export const giftCardModel = !!current.giftCard
+
+export const giftStyle: GiftStyle = current.giftStyle
+
+const baseOf = (p: Prototype) => (p.slug ? `${import.meta.env.BASE_URL}${p.slug}/` : import.meta.env.BASE_URL)
+
+/** Корінь поточного прототипу: «/» або «/<slug>/» (на GitHub Pages — під «/<repo>/») */
+export const prototypeBase = baseOf(current)
+
+/** Ключ прототипу для сховища (persist): у кожного свій кошик і оформлення */
+export const prototypeKey = current.slug ?? 'samples'
+
+/** Для меню в хедері. Звичайні посилання, не роутер: прототип обирається під час завантаження сторінки */
+export const prototypes = PROTOTYPES.map((p) => ({ title: p.title, href: baseOf(p), current: p === current, branch: !!p.branch }))

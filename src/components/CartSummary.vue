@@ -1,19 +1,28 @@
 <script setup lang="ts">
 // Figma 112:2369 — підсумок кошика
+import { computed } from 'vue'
 import { useCart } from '@/composables/useCart'
-import { formatAmount, formatPrice } from '@/data/catalog'
+import { formatAmount, formatPrice, pluralItems } from '@/data/catalog'
+import { prototypeSlug } from '@/variant'
 
 const cart = useCart()
+
+// Прототип «6 жовтня»: «15 товарів на суму» замість «Товари, 15» і без рядка «Подарунки»
+const dated = prototypeSlug === '2026-10-06'
+const goodsLabel = computed(() => {
+  const n = cart.goodsCount.value
+  return dated ? `${n} ${pluralItems(n)} на суму` : `Товари, ${n}`
+})
 </script>
 
 <template>
   <dl class="summary">
     <div class="summary__row">
-      <dt class="body-m">Товари, {{ cart.goodsCount.value }}</dt>
+      <dt class="body-m">{{ goodsLabel }}</dt>
       <dd class="body-m">{{ formatPrice(cart.subtotal.value) }}</dd>
     </div>
     <!-- Подарунки до товарів і семпли — один рядок -->
-    <div v-if="cart.presentCount.value" class="summary__row">
+    <div v-if="cart.presentCount.value && !dated" class="summary__row">
       <dt class="body-m">
         Подарунки, {{ cart.presentCount.value
         }}<template v-if="cart.presentUnitPrice.value !== null"> × {{ formatAmount(cart.presentUnitPrice.value) }}</template>
