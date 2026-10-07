@@ -132,6 +132,20 @@ defineExpose({ root })
 </template>
 
 <style scoped>
+/* Виділено, як смужка промокоду (CartPromo → .promo::before): заливка neutral/100 (70%) і тонкі лінії
+   border/strong зверху й знизу розходяться від центру й тануть до країв — на 214.5px в обидва боки.
+   Лише вбік, не вгору-вниз: блок високий, і кругле світіння лишило б заголовок і картки на білому.
+   Білі картки (outlined) стоять на заливці */
+.picker {
+  --line: transparent calc(50% - 214.5px), var(--border-strong) 50%, transparent calc(50% + 214.5px);
+  --fill: transparent calc(50% - 214.5px), color-mix(in oklch, var(--neutral-100) 70%, transparent) 50%, transparent calc(50% + 214.5px);
+  padding-block: var(--space-8);
+  background:
+    linear-gradient(to right, var(--line)) top / 100% var(--border-width-hairline) no-repeat,
+    linear-gradient(to right, var(--line)) bottom / 100% var(--border-width-hairline) no-repeat,
+    linear-gradient(to right, var(--fill));
+}
+
 .picker__head {
   display: flex;
   align-items: baseline;
