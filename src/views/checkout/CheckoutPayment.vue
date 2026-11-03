@@ -22,7 +22,8 @@ import { backTo } from '@/router'
 
 const router = useRouter()
 const cart = useCart()
-const { contact, payment, plans, deliveryTitle, recipientName, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } = useCheckout()
+const { contact, payment, plans, deliveryTitle, codAvailable, recipientName, recipientLine, groups, isSplit, schedule, placeOrder, settleOrder } =
+  useCheckout()
 // Desktop: the payment form on the left; delivery, the order and the pay button in a column on the right
 const wide = useWideCart()
 
@@ -36,6 +37,16 @@ const recipient = computed(() =>
 
 const installments = computed(() => payment.method === 'installments')
 const transfer = computed(() => payment.method === 'transfer')
+const cod = computed(() => payment.method === 'cod')
+
+// Поштомат Укрпошти не видає посилки з оплатою при отриманні — картки немає, а обрану раніше знімаємо
+watch(
+  codAvailable,
+  (ok) => {
+    if (!ok && cod.value) payment.method = null
+  },
+  { immediate: true },
+)
 
 const installmentsHint = computed(() =>
   isSplit.value ? 'У вашому кошику діють різні умови' : groups.value[0]?.kind === 'device' ? 'До 6 платежів без переплат' : 'До 3 платежів без переплат',
@@ -224,7 +235,7 @@ onUnmounted(() => placed && settleOrder())
             </Transition>
           </div>
 
-          <SkOptionCard label="Після доставки" :selected="payment.method === 'cod'" @select="payment.method = 'cod'" />
+          <SkOptionCard v-if="codAvailable" label="Після доставки" :selected="cod" @select="payment.method = 'cod'" />
         </div>
       </section>
 

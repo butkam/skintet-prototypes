@@ -5,6 +5,7 @@ import { formatPrice, pluralPositions, type CartLine } from '@/data/catalog'
 
 /* ---------- Types ---------- */
 
+export type Carrier = 'nova' | 'ukr'
 export type DeliveryMethod = 'branch' | 'courier' | 'locker'
 export type PaymentMethod = 'card' | 'installments' | 'transfer' | 'cod'
 export type Bank = 'monobank' | 'privatbank'
@@ -40,6 +41,7 @@ export const LAST_DELIVERY: Readonly<Record<'city' | 'branch' | 'address' | 'hou
 
 const delivery = reactive({
   ...LAST_DELIVERY,
+  carrier: 'nova' as Carrier,
   method: 'branch' as DeliveryMethod,
 })
 
@@ -154,8 +156,20 @@ const addMonths = (k: number) => {
 export function useCheckout() {
   const cart = useCart()
 
-  const branchNumber = computed(() => delivery.branch.match(/№\s*(\d+)/)?.[1] ?? '')
-  const lockerNumber = computed(() => delivery.locker.match(/(\d+)/)?.[1] ?? delivery.locker)
+  // НП нумерує відділення й поштомати («№ 12 · вул. …»), Укрпошта — називає індексом
+  // (п’ять цифр); немає індексу — показуємо, що ввели (адресу)
+  const ukrIndex = (s: string) => s.match(/\b\d{5}\b/)?.[0] ?? s.trim()
+  const branchNumber = computed(() =>
+    delivery.carrier === 'ukr' ? ukrIndex(delivery.branch) : `№${delivery.branch.match(/№\s*(\d+)/)?.[1] ?? ''}`,
+  )
+  const lockerNumber = computed(() =>
+    delivery.carrier === 'ukr' ? ukrIndex(delivery.locker) : `№${delivery.locker.match(/(\d+)/)?.[1] ?? delivery.locker}`,
+  )
+  // «Відділення НП» / «Відділення Укрпошти», а коротко — «НП №12» / «Укрпошта 49000»
+  const carrierOf = computed(() => (delivery.carrier === 'ukr' ? 'Укрпошти' : 'НП'))
+  const carrierShort = computed(() => (delivery.carrier === 'ukr' ? 'Укрпошта' : 'НП'))
+  /** Укрпошта не приймає післяплату з видачею в поштоматі — там лише оплата онлайн */
+  const codAvailable = computed(() => !(delivery.carrier === 'ukr' && delivery.method === 'locker'))
 
   const deliveryPriceLabel = computed(() =>
     cart.freeDelivery.value ? 'Безкоштовно' : formatPrice(cart.delivery.value),
@@ -171,9 +185,9 @@ export function useCheckout() {
     const city = delivery.city.trim()
     switch (delivery.method) {
       case 'branch':
-        return `Відділення НП №${branchNumber.value}, ${city}`
+        return `Відділення ${carrierOf.value} ${branchNumber.value}, ${city}`
       case 'locker':
-        return `Поштомат НП №${lockerNumber.value}, ${city}`
+        return `Поштомат ${carrierOf.value} ${lockerNumber.value}, ${city}`
       default:
         return [streetLine.value, city].filter(Boolean).join(', ')
     }
@@ -183,9 +197,9 @@ export function useCheckout() {
     const city = delivery.city.trim()
     switch (delivery.method) {
       case 'branch':
-        return `НП №${branchNumber.value}, ${city}`
+        return `${carrierShort.value} ${branchNumber.value}, ${city}`
       case 'locker':
-        return `поштомат НП №${lockerNumber.value}, ${city}`
+        return `поштомат ${carrierOf.value} ${lockerNumber.value}, ${city}`
       default:
         return `кур’єром, ${[streetLine.value, city].filter(Boolean).join(', ')}`
     }
@@ -340,6 +354,7 @@ export function useCheckout() {
     profile,
     deliveryPriceLabel,
     deliveryTitle,
+    codAvailable,
     orderNumber,
     recipientName,
     recipientLine,

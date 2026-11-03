@@ -17,14 +17,33 @@ import { findCity } from '@/data/cities'
 import { formatPrice } from '@/data/catalog'
 import { useCart } from '@/composables/useCart'
 import { useWideCart } from '@/composables/useWideCart'
-import { LAST_DELIVERY, formatPhoneInput, phoneDigits, useCheckout, type DeliveryMethod } from '@/composables/useCheckout'
-import novaPoshta from '@/assets/images/nova-poshta.png'
+import { LAST_DELIVERY, formatPhoneInput, phoneDigits, useCheckout, type Carrier, type DeliveryMethod } from '@/composables/useCheckout'
+import novaPoshtaMark from '@/assets/images/carrier-nova-poshta.svg'
+import ukrposhtaMark from '@/assets/images/carrier-ukrposhta.svg'
 
 const router = useRouter()
 const cart = useCart()
-const { contact, delivery, payment, deliveryConfirmed, placeOrder, settleOrder } = useCheckout()
+const { contact, delivery, payment, deliveryConfirmed, codAvailable, placeOrder, settleOrder } = useCheckout()
 // Desktop: the form on the left, the order with «Перейти до оплати» in a column on the right
 const wide = useWideCart()
+
+// Пошта — перед містом, як спосіб доставки: перемикач із символами пошт замість іконок.
+// НП шукає відділення й поштомат за номером, Укрпошта — за індексом або адресою
+const CARRIERS: Carrier[] = ['nova', 'ukr']
+const carrierMeta: Record<Carrier, { label: string; mark: string; branch: string; locker: string }> = {
+  nova: {
+    label: 'Нова пошта',
+    mark: novaPoshtaMark,
+    branch: 'Номер відділення',
+    locker: 'Номер поштомату',
+  },
+  ukr: {
+    label: 'Укрпошта',
+    mark: ukrposhtaMark,
+    branch: 'Індекс або адреса відділення',
+    locker: 'Індекс або адреса поштомату',
+  },
+}
 
 const METHODS: DeliveryMethod[] = ['branch', 'courier', 'locker']
 // `eta` — скільки йде посилка цим способом; `lastUsed` — hint under the field while it still
@@ -54,6 +73,15 @@ function onCity() {
   touch()
 }
 
+// Відділення й поштомат в кожної пошти свої — зі зміною пошти поля чистимо. Збережені (LAST_DELIVERY) —
+// Нової пошти: повертаємо їх, коли знову обирають НП у тому ж місті. Адреса від пошти не залежить
+function onCarrier() {
+  for (const f of ['branch', 'locker'] as const) {
+    delivery[f] = delivery.carrier === 'nova' && delivery.city === LAST_DELIVERY.city ? LAST_DELIVERY[f] : ''
+  }
+  touch()
+}
+
 /* ---------- Validation ---------- */
 
 type Field = 'phone' | 'firstName' | 'lastName' | 'middleName' | 'email' | 'city' | 'branch' | 'address' | 'house' | 'locker'
@@ -68,8 +96,9 @@ function validate() {
   if (phoneDigits(contact.phone).length !== 12) e.phone = 'Вкажіть номер телефону повністю'
   if (!contact.firstName.trim()) e.firstName = 'Вкажіть ім’я'
   if (!contact.lastName.trim()) e.lastName = 'Вкажіть прізвище'
-  // По батькові потрібне лише кур’єру — для відділення й поштомату його можна не вказувати
-  if (delivery.method === 'courier' && !contact.middleName.trim()) e.middleName = 'Для адресної доставки вкажіть по батькові'
+  // По батькові потрібне завжди: НП — для кур’єра, Укрпошті — для оплати при отриманні. Питаємо один раз
+  // тут, щоб не перепитувати, коли змінять спосіб доставки чи оплати
+  if (!contact.middleName.trim()) e.middleName = 'Вкажіть по батькові'
   if (contact.email.trim() && !/^\S+@\S+\.\S+$/.test(contact.email.trim())) e.email = 'Перевірте імейл'
   if (!delivery.city.trim()) e.city = 'Вкажіть місто'
   else if (!findCity(delivery.city)) e.city = 'Оберіть місто зі списку'
@@ -110,8 +139,8 @@ function touch() {
 
 /* ---------- Швидка оплата: Apple Pay / Google Pay одразу з доставки ---------- */
 
-// Гаманець сам дає ім’я й телефон, а от куди везти — ні: кнопка оживає, щойно вказано місто й адресу
-// для обраного способу (для адресної — вулицю й будинок)
+// Гаманець сам дає ім’я й телефон, а от по батькові й куди везти — ні: кнопка оживає, щойно вказано
+// по батькові, місто й адресу для обраного способу (для адресної — вулицю й будинок)
 const wallet = ref<Wallet | null>(detectWallet())
 if (wallet.value === 'google') loadGooglePay().catch(() => (wallet.value = null))
 const walletName = computed(() => (wallet.value === 'apple' ? 'Apple Pay' : 'Google Pay'))
@@ -121,11 +150,17 @@ const addressReady = computed(
     valid.value.city &&
     (delivery.method === 'courier' ? valid.value.address && valid.value.house : valid.value[delivery.method]),
 )
+const walletReady = computed(() => addressReady.value && valid.value.middleName)
+const walletHint = computed(() =>
+  addressReady.value
+    ? `Вкажіть по батькові, щоб оплатити через ${walletName.value}`
+    : `Вкажіть адресу доставки, щоб оплатити через ${walletName.value}`,
+)
 
 // Прототип: платіжний лист не відкривається (для нього потрібен мерчант) — тап одразу оформлює замовлення карткою
 let placed = false
 function payWithWallet() {
-  if (!addressReady.value) return
+  if (!walletReady.value) return
   payment.method = 'card'
   deliveryConfirmed.value = true
   placeOrder()
@@ -231,8 +266,8 @@ function focusNext(field: Field) {
       <div class="page__actions">
         <SkButton block @click="next">Перейти до оплати</SkButton>
         <template v-if="wallet">
-          <WalletButton :wallet="wallet" tone="white" :disabled="!addressReady" @pay="payWithWallet" />
-          <p v-if="!addressReady" class="wallet-hint body-s">Вкажіть адресу доставки, щоб оплатити через {{ walletName }}</p>
+          <WalletButton :wallet="wallet" tone="white" :disabled="!walletReady" @pay="payWithWallet" />
+          <p v-if="!walletReady" class="wallet-hint body-s">{{ walletHint }}</p>
         </template>
       </div>
       <p class="legal body-s">
@@ -286,7 +321,7 @@ function focusNext(field: Field) {
           <SkInput
             :ref="setRef('middleName')"
             v-model="contact.middleName"
-            placeholder="По батькові (адресна доставка)"
+            placeholder="По батькові"
             autocomplete="additional-name"
             :error="errors.middleName"
             :valid="valid.middleName"
@@ -318,10 +353,14 @@ function focusNext(field: Field) {
 
       <!-- Доставка -->
       <section class="section section--delivery" aria-labelledby="delivery-title">
-        <h2 id="delivery-title" class="section__title section__title--np heading-s">
-          Доставка
-          <span class="np-logo"><img :src="novaPoshta" alt="Нова Пошта" /></span>
-        </h2>
+        <h2 id="delivery-title" class="section__title heading-s">Доставка</h2>
+
+        <SkSegmented v-model="delivery.carrier" class="carriers" :options="CARRIERS" label="Пошта" block @update:model-value="onCarrier">
+          <template #default="{ option }">
+            <img class="carrier-mark" :src="carrierMeta[option].mark" alt="" />
+            {{ carrierMeta[option].label }}
+          </template>
+        </SkSegmented>
 
         <CityField :ref="setRef('city')" v-model="delivery.city" :error="errors.city" :valid="valid.city" @input="onCity" />
 
@@ -347,7 +386,7 @@ function focusNext(field: Field) {
             v-if="delivery.method === 'branch'"
             :ref="setRef('branch')"
             v-model="delivery.branch"
-            placeholder="Номер відділення"
+            :placeholder="carrierMeta[delivery.carrier].branch"
             inputmode="search"
             :error="errors.branch"
             :valid="valid.branch"
@@ -391,13 +430,14 @@ function focusNext(field: Field) {
             v-else
             :ref="setRef('locker')"
             v-model="delivery.locker"
-            placeholder="Номер поштомату"
+            :placeholder="carrierMeta[delivery.carrier].locker"
             inputmode="search"
             :error="errors.locker"
             :valid="valid.locker"
             @input="touch"
           />
           <p v-if="showLastUsed" class="method-detail__hint body-s">{{ methodMeta[delivery.method].lastUsed }}</p>
+          <p v-if="!codAvailable" class="method-detail__hint body-s">У поштоматі Укрпошти — лише з оплатою онлайн.</p>
         </div>
       </section>
 
@@ -405,8 +445,8 @@ function focusNext(field: Field) {
         <div class="page__cta page__actions">
           <SkButton block @click="next">Перейти до оплати</SkButton>
           <template v-if="wallet">
-            <WalletButton :wallet="wallet" tone="white" :disabled="!addressReady" @pay="payWithWallet" />
-            <p v-if="!addressReady" class="wallet-hint body-s">Вкажіть адресу доставки, щоб оплатити через {{ walletName }}</p>
+            <WalletButton :wallet="wallet" tone="white" :disabled="!walletReady" @pay="payWithWallet" />
+            <p v-if="!walletReady" class="wallet-hint body-s">{{ walletHint }}</p>
           </template>
         </div>
 
@@ -463,28 +503,6 @@ function focusNext(field: Field) {
   margin-bottom: var(--space-4);
 }
 
-.section__title--np {
-  gap: var(--space-2);
-  color: var(--action-secondary-fg);
-}
-
-/* Figma 112:1542 crops the logo's transparent padding: 108.7% × 138.3%, offset −6% / −19% */
-.np-logo {
-  position: relative;
-  width: 62px;
-  height: 19px;
-  overflow: hidden;
-}
-
-.np-logo img {
-  position: absolute;
-  left: -5.97%;
-  top: -19.15%;
-  width: 108.72%;
-  height: 138.3%;
-  max-width: none;
-}
-
 .fields {
   display: flex;
   flex-direction: column;
@@ -514,6 +532,17 @@ function focusNext(field: Field) {
 
 .section--delivery {
   margin-top: 36px;
+}
+
+.carriers {
+  margin-bottom: var(--space-4);
+}
+
+/* Лише символ пошти, у розмір іконок способів доставки */
+.carrier-mark {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .methods {
