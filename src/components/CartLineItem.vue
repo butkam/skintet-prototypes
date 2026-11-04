@@ -60,7 +60,11 @@ onBeforeUnmount(() => cancel?.())
     <div class="line__top">
       <img class="line__thumb" :src="line.image" alt="" />
       <div class="line__info">
-        <h3 class="line__title heading-s">{{ line.title }}</h3>
+        <h3 class="line__title heading-s">
+          <!-- Подарунок (семпл чи товар на вибір): значок на початку назви, та сама іконка, що в подарунка до товару -->
+          <SkIcon v-if="line.kind === 'sample'" name="GiftSmallDark" :size="16" class="line__title-gift" />
+          {{ line.title }}
+        </h3>
         <p v-if="line.description && line.kind !== 'set'" class="line__desc body-s">{{ line.description }}</p>
 
         <template v-if="line.kind === 'set'">
@@ -186,6 +190,13 @@ onBeforeUnmount(() => cancel?.())
 
 .line__desc {
   color: var(--fg-muted);
+}
+
+/* Іконка в рядку назви: трохи вище центру 20px рядка, на рівні великих літер, і впритул до тексту */
+.line__title-gift {
+  display: inline-block;
+  vertical-align: -1px;
+  margin-right: 2px;
 }
 
 /* Подарунок — з описом товару, як у його картці: до трьох рядків */
