@@ -290,6 +290,7 @@ watch(showHint, (value) => {
                   <GiftProductCard
                     v-if="products"
                     :title="s.title"
+                    :description="s.description"
                     :image="s.image"
                     :is-new="s.isNew"
                     :selected="cart.hasSample(s.id)"
@@ -598,9 +599,9 @@ watch(showHint, (value) => {
   }
 }
 
-/* Картки-товари вищі за семпли: скелетон тримає їхню висоту (8 + 107 фото + 8 + 32 назва + 8) */
+/* Картки-товари вищі за семпли: скелетон тримає їхню висоту (8 + 107 фото + 8 + 32 назва + 4 + 48 опис + 8) */
 .gifts--products {
-  --sk-card-h: 163px;
+  --sk-card-h: 215px;
 }
 
 /* ---------- Прототип «6 жовтня» (Figma 425:6125): шкала в потоці, без шторки — 16px до хедера й до товарів ---------- */

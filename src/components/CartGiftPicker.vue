@@ -113,6 +113,7 @@ defineExpose({ root })
             v-for="s in samples"
             :key="s.id"
             :title="s.title"
+            :description="s.description"
             :image="s.image"
             :is-new="s.isNew"
             :selected="cart.hasSample(s.id)"

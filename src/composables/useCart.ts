@@ -28,10 +28,12 @@ const drawerOpen = ref(false)
 const baseFrozen = ref(false)
 // Кошик зберігає рядки разом з описом, тож старі збережені кошики досі мали б велику «•»
 // між описом і об'ємом — приводимо до маленького мідлдоту, як у поточних даних.
-// Подарунки, яких цей прототип не пропонує (кошик, збережений до розділення семплів і товарів), — прибираємо
+// Подарунки, яких цей прототип не пропонує (кошик, збережений до розділення семплів і товарів), — прибираємо,
+// а в решти опис беремо з каталогу: він міг змінитися, відколи подарунок поклали в кошик
 persist('cart', () => lines.value, (saved) => {
   lines.value = saved
     .filter((l) => l.kind !== 'sample' || samples.some((s) => s.id === l.id))
+    .map((l) => (l.kind === 'sample' ? { ...l, description: samples.find((s) => s.id === l.id)!.description } : l))
     .map((l) => (l.description ? { ...l, description: l.description.replaceAll(' • ', ' · ') } : l))
 })
 /** Window scroll offset of the screen when the cart opened — restored on close */

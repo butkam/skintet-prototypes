@@ -188,6 +188,11 @@ onBeforeUnmount(() => cancel?.())
   color: var(--fg-muted);
 }
 
+/* Подарунок — з описом товару, як у його картці: до трьох рядків */
+.line--sample .line__desc {
+  -webkit-line-clamp: 3;
+}
+
 /* ---------- Set ---------- */
 
 .line__set-toggle {

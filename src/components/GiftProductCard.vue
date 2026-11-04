@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // Подарунок-товар у панелі подарунків: картка «Рекомендованих» (ProductMiniCard, Figma 112:2194) без «Купити»,
-// з чекбоксом зліва вгорі поверх фото і без цін — лише фото й назва. Стани — як у SampleCard: обраний — рамка 2px, недоступний (ліміт) — 50%.
+// з чекбоксом зліва вгорі поверх фото і без цін — фото, назва й опис (сірим, до трьох рядків). Стани — як у SampleCard: обраний — рамка 2px, недоступний (ліміт) — 50%.
 import SkCheckbox from './SkCheckbox.vue'
 import { prototypeSlug } from '@/variant'
 
 defineProps<{
   title: string
+  description?: string
   image: string
   /** Новинка: білий бейдж NEW справа вгорі, навпроти чекбокса */
   isNew?: boolean
@@ -32,6 +33,7 @@ const outlined = prototypeSlug === '2026-10-06'
     <span v-if="isNew" class="gift-card__badge" aria-hidden="true">NEW</span>
     <img class="gift-card__image" :src="image" alt="" />
     <span class="gift-card__title body-s">{{ title }}</span>
+    <span v-if="description" class="gift-card__desc body-s">{{ description }}</span>
   </button>
 </template>
 
@@ -140,18 +142,30 @@ const outlined = prototypeSlug === '2026-10-06'
   height: 64px;
   margin-top: var(--space-2);
 }
-/* Обводка забирає 2px ширини — назва займає, що лишилось, а не фіксовані 99px */
-.gift-card--outlined .gift-card__title {
+/* Обводка забирає 2px ширини — назва й опис займають, що лишилось, а не фіксовані 99px */
+.gift-card--outlined :is(.gift-card__title, .gift-card__desc) {
   width: auto;
 }
 
-.gift-card__title {
+.gift-card__title,
+.gift-card__desc {
   width: 99px;
-  height: 32px;
   margin: var(--space-2) var(--space-1) 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   overflow: hidden;
+}
+
+.gift-card__title {
+  height: 32px;
+  -webkit-line-clamp: 2;
+}
+
+/* Тим самим Body/S, що й назва, лише сірим; висота — рівно три рядки, щоб картки в ряду були однакові */
+.gift-card__desc {
+  height: 48px;
+  margin-top: var(--space-1);
+  -webkit-line-clamp: 3;
+  color: var(--fg-muted);
 }
 </style>

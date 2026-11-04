@@ -261,15 +261,30 @@ export const orderGifts: OrderGift[] = [
  * Подарунки на вибір — звичайні товари замість наборів семплів (прототип /gift-products/, variant → giftStyle).
  * Окремі id: той самий засіб може лежати в кошику й як покупка, і як подарунок.
  */
-const giftProduct = (id: string, isNew?: boolean): Sample => {
+// `about` — опис товару: у картці подарунка й у рядку кошика, до трьох рядків
+const giftProduct = (id: string, about: string, isNew?: boolean): Sample => {
   const p = demoProducts.find((d) => d.id === id)!
-  return { id: `gift-${id}`, title: p.title, description: p.description ?? '', image: p.image, price: 1, oldPrice: p.price, isNew }
+  return { id: `gift-${id}`, title: p.title, description: about, image: p.image, price: 1, oldPrice: p.price, isNew }
 }
 
 // Новинки (бейдж NEW) — демо: одна-дві на ряд, щоб видно було, як бейдж стоїть поруч зі звичайними картками
 export const giftProducts: Sample[] = [
-  giftProduct('no-makeup-mascara-black', true),
-  giftProduct('neuropeptide-the-cleansing-balm'),
-  giftProduct('leave-in-hair-mask-conditioner', true),
-  giftProduct('haircare-triple-keratin-repair-shampoo'),
+  giftProduct(
+    'no-makeup-mascara-black',
+    'Туш, що подовжує й підкручує вії без грудочок і доглядає за ними: пептиди й вітаміни у формулі зміцнюють вії. Тримається весь день і легко змивається теплою водою.',
+    true,
+  ),
+  giftProduct(
+    'neuropeptide-the-cleansing-balm',
+    'Живильний бальзам розтоплює макіяж, SPF і забруднення та перетворюється на ніжне молочко. Нейропептиди й олії доглядають за шкірою, не пересушуючи її.',
+  ),
+  giftProduct(
+    'leave-in-hair-mask-conditioner',
+    'Незмивна маска-кондиціонер 5 в 1: розплутує, зволожує, захищає від гарячого укладання, додає блиску й прибирає пухнастість. Підходить і для фарбованого волосся.',
+    true,
+  ),
+  giftProduct(
+    'haircare-triple-keratin-repair-shampoo',
+    'Шампунь з потрійним кератиновим комплексом м’яко очищує й відновлює пошкоджене волосся. Зволожує, повертає гладкість і блиск, не обтяжуючи.',
+  ),
 ]
