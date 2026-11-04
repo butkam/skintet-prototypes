@@ -1,9 +1,6 @@
 /* Prototype changes on top of the live skintet.com styles (style.min.css) */
 
 /* «Повна рутина»: the set can be paid in parts — a secondary button under the main one */
-.main-wrapper .main__content-care .care-result__cta {
-  position: relative;
-}
 
 /* SkButton from the Vue prototypes (src/components/SkButton.vue), secondary + amount, with the tokens
    resolved: the action and the sum split by a faint rule, 16px of air on each side of it */
@@ -66,46 +63,155 @@
   padding-block: 11px;
 }
 
-/* Desktop: the row keeps price and button on one line; the secondary button hangs under the main one */
-@media (min-width: 1025px) {
-  .main-wrapper .main__content-care .care-result {
-    padding-bottom: 56px;
-  }
+/* Info card from the product page (product-page.min.css, not loaded here): «Оплата частинами» with the
+   banks and the number of payments, «Доставка» with the free-delivery threshold */
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--bottom {
+  margin: 8px 0 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #fff;
+}
 
-  .main-wrapper .main__content-care .care-result__cta {
-    width: 360px;
-    flex-shrink: 0;
-  }
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item {
+  font-size: 0;
+  line-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 10px;
+}
 
-  .main-wrapper .main__content-care .care-result__cta .btn-add {
-    width: 100%;
-  }
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .col {
+  display: flex;
+  align-items: center;
+  column-gap: 7px;
+}
 
-  .main-wrapper .main__content-care .care-result__more {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .icon-holder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .txt,
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .txt-info {
+  font-size: 14px;
+  font-family: Sailec;
+  font-weight: 400;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+
+.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .txt-info {
+  display: block;
+  text-align: right;
+  color: #228b22;
+}
+
+.main-wrapper .main__content-care .care-result .parts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.main-wrapper .main__content-care .care-result .parts-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.main-wrapper .main__content-care .care-result .parts-list svg,
+.main-wrapper .main__content-care .care-result .parts-list img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* On the site the PrivatBank mark is a 24px square with 8px corners */
+.main-wrapper .main__content-care .care-result .parts-list img {
+  border-radius: 8px;
+}
+
+/* Set previews: grey like the big product cards, overlapping like a stack of coins. The less room, the
+   more they overlap (o = S − row / n, so n steps of S − o fill the row), up to half a preview — then the
+   row wraps. The last coin pokes out by o past its step: the right padding of half a preview holds it */
+.main-wrapper .main__content-care .care-result .images {
+  --thumb: 56px;
+  --count: 7;
+  container-type: inline-size;
+  padding-right: calc(var(--thumb) / 2);
+}
+
+.main-wrapper .main__content-care .care-result .images li {
+  width: auto;
+  max-width: none;
+  margin-right: calc(-1 * clamp(0px, var(--thumb) - 100cqi / var(--count) + 0.5px, var(--thumb) / 2));
+}
+
+.main-wrapper .main__content-care .care-result .images li a {
+  width: var(--thumb);
+  height: var(--thumb);
+  /* 12px outside the 4px white ring, so the grey itself gets 8px corners */
+  /* All positioned: a transformed (hovered) coin would otherwise paint over the ones after it */
+  position: relative;
+  border-radius: 12px;
+  background-color: #f5f5f5;
+  transition: transform 0.2s ease;
+}
+
+/* Hover: the coin rises a little, staying in its place in the stack */
+@media (hover: hover) and (pointer: fine) {
+  .main-wrapper .main__content-care .care-result .images li a:hover {
+    transform: translateY(-4px);
   }
 }
 
-/* Small desktop: the row has no room for title, price and both buttons — «4 засоби» goes up over the
-   previews, the price stays by the buttons on the title's line */
-@media (min-width: 1025px) and (max-width: 1279px) {
+@media (prefers-reduced-motion: reduce) {
+  .main-wrapper .main__content-care .care-result .images li a {
+    transition: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result .images {
+    --thumb: 64px;
+  }
+}
+
+/* Desktop: the set on the left («4 засоби» over the previews), then the purchase — the price
+   with both buttons beside it, and the info card under the buttons, as wide as they are */
+@media (min-width: 1025px) {
   .main-wrapper .main__content-care .care-result {
     display: grid;
-    grid-template-columns: 1fr auto 360px;
+    grid-template-columns: minmax(160px, 1fr) auto minmax(360px, 1.25fr);
     grid-template-areas:
       "title price cta"
-      "images . cta";
+      "images price cta"
+      "images . card";
+    grid-template-rows: auto auto 1fr;
     align-items: start;
-    row-gap: 16px;
-    /* The previews reach lower than the hanging button: no extra room for it, as on the live site */
-    padding-bottom: 0;
+    gap: 8px 24px;
   }
 
   .main-wrapper .main__content-care .care-result__info {
     display: contents;
+  }
+
+  /* 16px under the title: the row gap is only 8, the card's gap to the buttons */
+  .main-wrapper .main__content-care .care-result .images {
+    grid-area: images;
+    margin-top: 8px;
   }
 
   .main-wrapper .main__content-care .care-result__info .info {
@@ -116,13 +222,17 @@
     grid-area: price;
   }
 
-  .main-wrapper .main__content-care .care-result .images {
-    grid-area: images;
-    justify-self: start;
-  }
-
   .main-wrapper .main__content-care .care-result__cta {
     grid-area: cta;
+  }
+
+  .main-wrapper .main__content-care .care-result__cta .btn-add {
+    width: 100%;
+  }
+
+  .main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--bottom {
+    grid-area: card;
+    margin: 0;
   }
 }
 
