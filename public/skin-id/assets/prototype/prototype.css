@@ -1,0 +1,49 @@
+/* Prototype changes on top of the live skintet.com styles (style.min.css) */
+
+/* «Повна рутина»: the set can be paid in parts — mono and Privat marks under the button */
+.main-wrapper .main__content-care .care-result__cta {
+  position: relative;
+}
+
+.main-wrapper .main__content-care .care-result__parts {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 0;
+}
+
+.main-wrapper .main__content-care .care-result__parts-logos {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.main-wrapper .main__content-care .care-result__parts-logos img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.main-wrapper .main__content-care .care-result__parts-text {
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #1b1b1b;
+}
+
+/* Desktop: the row keeps price and button on one line; the note hangs under the button */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-care .care-result {
+    padding-bottom: 44px;
+  }
+
+  .main-wrapper .main__content-care .care-result__parts {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+  }
+}
