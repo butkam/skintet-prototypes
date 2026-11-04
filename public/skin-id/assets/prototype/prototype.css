@@ -1,49 +1,146 @@
 /* Prototype changes on top of the live skintet.com styles (style.min.css) */
 
-/* «Повна рутина»: the set can be paid in parts — mono and Privat marks under the button */
+/* «Повна рутина»: the set can be paid in parts — a secondary button under the main one */
 .main-wrapper .main__content-care .care-result__cta {
   position: relative;
 }
 
-.main-wrapper .main__content-care .care-result__parts {
-  display: flex;
+/* SkButton from the Vue prototypes (src/components/SkButton.vue), secondary + amount, with the tokens
+   resolved: the action and the sum split by a faint rule, 16px of air on each side of it */
+.sk-button {
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin: 12px 0 0;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 40px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: Sailec, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-.main-wrapper .main__content-care .care-result__parts-logos {
+/* A little shorter than the text line, almost merging with the button; margin adds to the gap */
+.sk-button__rule {
+  flex: none;
+  width: 1px;
+  height: 0.875em;
+  margin-inline: 8px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.sk-button--block {
   display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+  width: 100%;
 }
 
-.main-wrapper .main__content-care .care-result__parts-logos img {
-  display: block;
-  width: 32px;
-  height: 32px;
-  border-radius: 9999px;
-  object-fit: cover;
+.sk-button:focus-visible {
+  outline: 2px solid oklch(22.21% 0 0);
+  outline-offset: 4px;
 }
 
-.main-wrapper .main__content-care .care-result__parts-text {
-  font-family: Sailec;
-  font-size: 12px;
-  line-height: 16px;
-  color: #1b1b1b;
+.sk-button--secondary {
+  background: oklch(100% 0 0);
+  color: oklch(22.21% 0 0);
+  border-color: oklch(92.19% 0 0);
 }
 
-/* Desktop: the row keeps price and button on one line; the note hangs under the button */
+@media (hover: hover) and (pointer: fine) {
+  .sk-button--secondary:hover:not(:disabled) {
+    background: oklch(97.02% 0 0);
+  }
+}
+
+/* Same 48px as the site's own «Додати в кошик» above it, which has no border */
+.main-wrapper .main__content-care .care-result__more .sk-button {
+  margin-top: 8px;
+  padding-block: 11px;
+}
+
+/* Desktop: the row keeps price and button on one line; the secondary button hangs under the main one */
 @media (min-width: 1025px) {
   .main-wrapper .main__content-care .care-result {
-    padding-bottom: 44px;
+    padding-bottom: 56px;
   }
 
-  .main-wrapper .main__content-care .care-result__parts {
+  .main-wrapper .main__content-care .care-result__cta {
+    width: 360px;
+    flex-shrink: 0;
+  }
+
+  .main-wrapper .main__content-care .care-result__cta .btn-add {
+    width: 100%;
+  }
+
+  .main-wrapper .main__content-care .care-result__more {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
+  }
+}
+
+/* Small desktop: the row has no room for title, price and both buttons — «4 засоби» goes up over the
+   previews, the price stays by the buttons on the title's line */
+@media (min-width: 1025px) and (max-width: 1279px) {
+  .main-wrapper .main__content-care .care-result {
+    display: grid;
+    grid-template-columns: 1fr auto 360px;
+    grid-template-areas:
+      "title price cta"
+      "images . cta";
+    align-items: start;
+    row-gap: 16px;
+    /* The previews reach lower than the hanging button: no extra room for it, as on the live site */
+    padding-bottom: 0;
+  }
+
+  .main-wrapper .main__content-care .care-result__info {
+    display: contents;
+  }
+
+  .main-wrapper .main__content-care .care-result__info .info {
+    grid-area: title;
+  }
+
+  .main-wrapper .main__content-care .care-result__info .price-holder {
+    grid-area: price;
+  }
+
+  .main-wrapper .main__content-care .care-result .images {
+    grid-area: images;
+    justify-self: start;
+  }
+
+  .main-wrapper .main__content-care .care-result__cta {
+    grid-area: cta;
+  }
+}
+
+/* Mobile: previews start from the left edge, under «4 засоби», instead of the centre */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result .images {
+    justify-content: flex-start;
+  }
+}
+
+/* Narrow phones (320px): the label and the sum don't fit at 16px */
+@media (max-width: 374px) {
+  .main-wrapper .main__content-care .care-result__more .sk-button {
+    padding-inline: 16px;
+    font-size: 14px;
+  }
+
+  .main-wrapper .main__content-care .care-result__more .sk-button__rule {
+    margin-inline: 4px;
   }
 }
