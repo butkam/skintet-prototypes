@@ -1,0 +1,586 @@
+/* Prototype: the mobile catalog menu (Figma page «Cat»: Мобайл · Меню → Каталог → Обличчя → Обличчя · Креми).
+   Sits on top of the live style.min.css; the live panel (#item_1) keeps its slide-in from the right. */
+
+.cm-prototype {
+  --cm-fg: #1b1b1b;
+  --cm-muted: #6b6b6b;
+  --cm-line: #e5e5e5;
+  --cm-surface: #f9f9f9;
+  --cm-gutter: 24px;
+}
+
+/* ── Header: back arrow before the logo while a catalog level is open ── */
+
+.cm-back {
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 0 0 -10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cm-fg);
+  cursor: pointer;
+}
+
+.cm-back svg {
+  stroke-width: 1.5;
+}
+
+.cm-back svg path {
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* 10px of the button's own air + 14px = 24px from the arrow to the logo, as in Figma */
+.cm-deep .cm-back {
+  display: inline-flex;
+}
+
+.cm-deep .cm-back + .menu-logo {
+  margin-left: 14px;
+  margin-right: auto;
+}
+
+/* ── Panels ── */
+
+/* Same slide as the live panel, but easing out instead of linear */
+.cm-prototype .menu-main-mobile-catalog.cm-panel {
+  padding: 0 var(--cm-gutter);
+  transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cm-level {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* ── Level 2: categories ── */
+
+.cm-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.cm-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--cm-line);
+  background: none;
+  font: 400 15px/20px Sailec, Arial, Helvetica, sans-serif;
+  color: var(--cm-fg);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cm-row:last-child {
+  border-bottom: 0;
+}
+
+.cm-row__icon {
+  display: flex;
+  flex: none;
+  color: var(--cm-fg);
+}
+
+.cm-row__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cm-row__arrow {
+  display: flex;
+  flex: none;
+  color: var(--cm-muted);
+}
+
+/* ── Level 3: subcategory pills ── */
+
+.cm-pills {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  padding-top: 20px;
+}
+
+.cm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin: 0 0 8px;
+  padding: 0 15px 0 17px;
+  border: 1px solid var(--cm-line);
+  border-radius: 999px;
+  background: #fff;
+  font: 400 14px/20px Sailec, Arial, Helvetica, sans-serif;
+  color: var(--cm-fg);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cm-pill svg {
+  flex: none;
+}
+
+/* Sections other than «Обличчя» have no pill icons yet */
+.cm-pill--plain {
+  padding: 0 16px;
+}
+
+/* A category without subcategories: a link to its page, not an opener */
+/* Explicit size and no shrinking: Safari can size an SVG nested in a flex item to nothing */
+.cm-pill__go {
+  display: inline-flex;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  margin-right: -2px;
+  color: #6b6b6b;
+}
+
+.cm-pill__go svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.cm-pill--plain .cm-pill__go {
+  margin-right: -4px;
+}
+
+.cm-pill--link {
+  text-decoration: none;
+}
+
+/* Selected at once, on the click itself: only the hover fades */
+.cm-pill[aria-expanded='true'] {
+  background: var(--cm-fg);
+  border-color: var(--cm-fg);
+  color: #fff;
+  transition: none;
+}
+
+/* The links under the open pill: a full row, opening by height (catalog-menu.js: expand / collapse) */
+.cm-sub {
+  flex: 0 0 100%;
+  height: 0;
+  overflow: hidden;
+  transition: height 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Lined up with the pill's icon (17px of padding + the 1px border = 18px).
+   Every link is a 44px tap target: 20px of text and 12px above and below it */
+.cm-sub__inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 18px;
+}
+
+.cm-sub__inner > :first-child {
+  margin-top: 4px;
+}
+
+.cm-sub__inner > :last-child {
+  margin-bottom: 8px;
+}
+
+.cm-sub a {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  font: 400 14px/20px Sailec, Arial, Helvetica, sans-serif;
+  color: var(--cm-fg);
+  text-decoration: none;
+}
+
+.cm-sub a.cm-sub__more {
+  gap: 6px;
+  color: var(--cm-muted);
+}
+
+/* ── Bestsellers ── */
+
+.cm-best {
+  padding-top: 24px;
+}
+
+.cm-best__title {
+  margin: 0 0 12px;
+  font: 400 14px/20px Sailec, Arial, Helvetica, sans-serif;
+  color: var(--cm-muted);
+}
+
+.cm-best__rail {
+  display: flex;
+  gap: 12px;
+  margin: 0 calc(var(--cm-gutter) * -1);
+  padding: 0 var(--cm-gutter);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 var(--cm-gutter);
+  scrollbar-width: none;
+}
+
+.cm-best__rail::-webkit-scrollbar {
+  display: none;
+}
+
+.cm-card {
+  display: flex;
+  flex: 0 0 160px;
+  flex-direction: column;
+  color: var(--cm-fg);
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.cm-card__photo {
+  display: block;
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  background: var(--cm-surface);
+  overflow: hidden;
+}
+
+.cm-card__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cm-card__name {
+  display: -webkit-box;
+  margin-top: 8px;
+  font: 400 12px/16px Sailec, Arial, Helvetica, sans-serif;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.cm-card__price {
+  margin-top: 5px;
+  font: 700 16px/20px NibProBold, Georgia, serif;
+}
+
+/* ── Skin(ID) promo at the bottom of every level ── */
+
+.cm-promo {
+  position: relative;
+  margin: auto 0 0;
+  padding: 64px 24px 24px;
+  border-radius: 16px;
+  background: var(--cm-surface);
+  overflow: hidden;
+}
+
+.cm-level > .cm-promo {
+  margin-top: auto;
+  margin-bottom: 24px;
+}
+
+/* Above the promo: at least 24px of air, more when the level is short and the promo sinks to the bottom */
+.cm-level > :nth-last-child(2) {
+  margin-bottom: 24px;
+}
+
+.cm-promo__stones {
+  position: absolute;
+  top: -41px;
+  left: 50%;
+  display: flex;
+  gap: 20px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.cm-promo__stones img {
+  display: block;
+  flex: none;
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+}
+
+.cm-promo__title {
+  margin: 0;
+  font: 400 22px/28px NibProSemiBoldItalic, Georgia, serif;
+  color: var(--cm-fg);
+}
+
+.cm-promo__text {
+  margin: 9px 0 0;
+  max-width: 250px;
+  font: 400 14px/20px Sailec, Arial, Helvetica, sans-serif;
+  color: var(--cm-muted);
+}
+
+.cm-promo__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 252px;
+  max-width: 100%;
+  height: 44px;
+  margin-top: 16px;
+  border-radius: 999px;
+  background: var(--cm-fg);
+  font: 400 16px/24px Sailec, Arial, Helvetica, sans-serif;
+  color: #fff;
+  text-decoration: none;
+}
+
+.cm-root-promo {
+  padding: 24px var(--cm-gutter);
+}
+
+/* Above 1024px the live menu is the desktop nav in the header: none of the mobile additions belong there */
+@media (min-width: 1025px) {
+  .cm-root-promo,
+  .cm-back {
+    display: none !important;
+  }
+}
+
+/* ── Desktop: the mega menu under «Каталог» (Figma 521:7110) ──
+   Sections 280px | pills and bestsellers | Skin(ID) promo 300px, 36px apart; at 1440 the middle is 708px */
+
+.cm-prototype .catalog-in.cm-mega {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 36px;
+  padding: 33px 40px 40px;
+}
+
+/* Smaller desktops: a narrower sections column, so the middle keeps room for the pills and links.
+   The promo stays 300px: narrower, its title breaks and the button fills it edge to edge */
+@media (max-width: 1359px) {
+  .cm-prototype .catalog-in.cm-mega {
+    grid-template-columns: 232px minmax(0, 1fr) 300px;
+    gap: 32px;
+  }
+}
+
+.cm-mega__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cm-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font: 400 14px/20px Sailec, Arial, Helvetica, sans-serif;
+  color: var(--cm-fg);
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.cm-section:hover,
+.cm-section.is-active {
+  background: #f5f5f5;
+}
+
+.cm-section__icon {
+  display: flex;
+  flex: none;
+}
+
+.cm-section__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.cm-section__chevron {
+  display: none;
+  flex: none;
+  color: var(--cm-muted);
+}
+
+.cm-section.is-active .cm-section__chevron {
+  display: flex;
+}
+
+/* «Всі продукти» leads to the catalog page: «↗» always, where the sections show «›» when open */
+.cm-section__out {
+  display: flex;
+  flex: none;
+  color: var(--cm-muted);
+}
+
+.cm-mega .cm-pills {
+  padding-top: 0;
+}
+
+@media (hover: hover) {
+  .cm-mega .cm-pill:not([aria-expanded='true']):hover {
+    background: #f5f5f5;
+  }
+}
+
+/* Links in three columns, lined up with the pills' icons on both sides; with a mouse 12px between rows is enough */
+/* Three columns at 1440 (708px), fewer as the middle narrows, so a long name keeps to one line where
+   it can; when it can't, it wraps top-aligned with its neighbours */
+.cm-mega .cm-sub__inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  align-items: start;
+  column-gap: 24px;
+  row-gap: 12px;
+  /* 12px of the empty last row + 12px: 24px of air before the pills below */
+  padding-bottom: 12px;
+}
+
+.cm-mega .cm-sub__inner > :first-child {
+  margin-top: 0;
+}
+
+.cm-mega .cm-sub__inner > * {
+  margin: 0;
+  padding: 0;
+}
+
+/* Empty full-width rows: the 12px row gap above the first and below the last row of links
+   (padding would stay visible while the row is collapsed to 0) */
+.cm-mega .cm-sub__inner::before,
+.cm-mega .cm-sub__inner::after {
+  content: '';
+  grid-column: 1 / -1;
+  height: 0;
+}
+
+/* Subcategory links on hover: italic in parentheses, like the account menu on the live site
+   (.main__aside-menu a:hover) */
+@media (hover: hover) {
+  .cm-sub a:hover .cm-sub__label {
+    font-style: italic;
+  }
+
+  /* The parentheses hang outside the name, so hovering never widens the link or wraps it */
+  .cm-sub a:hover .cm-sub__label::before {
+    content: '(';
+    position: absolute;
+    right: 100%;
+  }
+
+  .cm-sub a:hover .cm-sub__label::after {
+    content: ')';
+    position: absolute;
+    left: 100%;
+  }
+}
+
+.cm-sub__label {
+  position: relative;
+}
+
+.cm-mega .cm-best {
+  padding-top: 20px;
+}
+
+.cm-mega .cm-best__rail {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+/* Desktop promo: 300×400, the stones whole at the top, the button at the bottom */
+.cm-promo.cm-promo--tall {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  margin: 0;
+  padding: 131px 24px 24px;
+  box-sizing: border-box;
+}
+
+.cm-promo--tall .cm-promo__stones {
+  top: 20px;
+}
+
+.cm-promo--tall .cm-promo__button {
+  margin-top: auto;
+}
+
+/* ── Safari performance: the live page's heavy layers ──
+   Safari keeps compositing blurs that are out of sight, so every repaint (even selecting text) recomputes them */
+
+/* The header's backdrop blur: the mega menu sits inside the header, so every change of its height made Safari
+   blur everything under it again (measured: the first frame after a pill click came ~1.1s late, 11–83ms
+   with blurs off). At 95% white the blur barely shows: plain white at the same opacity instead */
+.menu::before {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Search overlay and cart backdrop: full-screen backdrop blurs left at opacity 0 when closed.
+   Hidden once their fade-out is over, shown again the moment they open */
+.search-box:not(.is-active) {
+  visibility: hidden;
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, visibility 0s linear 0.4s;
+}
+
+.search-box.is-active {
+  visibility: visible;
+}
+
+.sidebar:not(.active) {
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.sidebar.active {
+  visibility: visible;
+}
+
+/* Skin(ID) banner: instead of the background photo blurred by 100px (heavy in Safari), a gradient of the colours
+   it rendered to for Skin(RPA−): light top left, darkest right of centre and low, lighter again bottom right */
+.main-wrapper .main__content-banner .bg,
+.wrapper .main__content-banner .bg {
+  opacity: 1;
+  background:
+    radial-gradient(ellipse 55% 65% at 64% 62%, rgb(150 152 145 / 0.35), rgb(150 152 145 / 0) 72%),
+    linear-gradient(135deg, #dbdbd9 0%, #bebfbb 30%, #a6a7a2 50%, #a0a19c 70%, #b0b0ac 88%, #c3c2bf 100%);
+}
+
+.main-wrapper .main__content-banner .bg img,
+.wrapper .main__content-banner .bg img {
+  display: none;
+}
+
+/* ?noblur (diagnostics): every blur on the page off, to see whether Safari's delay comes from them */
+html.cm-noblur *,
+html.cm-noblur *::before,
+html.cm-noblur *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* ?noshadow (diagnostics): the dropdown without its full-width 48px shadow */
+html.cm-noshadow .catalog {
+  box-shadow: none !important;
+}

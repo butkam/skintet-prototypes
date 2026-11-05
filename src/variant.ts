@@ -5,6 +5,7 @@
  *   /2026-10-06/    — гілка «Товари на вибір» від 6 жовтня: поки така сама, далі змінюється окремо
  *   /gift-card/     — подарунок до замовлення карткою над товарами, без шторки (Figma 234:3047)
  *   /skin-id/       — статична копія сторінки результату Skin(ID) з skintet.com (public/skin-id, не Vue)
+ *   /catalog-menu/  — та сама сторінка з новим мобільним меню каталогу (public/catalog-menu, ресурси з skin-id)
  *
  * Прототип обирається один раз — за адресою, з якою відкрили сторінку. Роутер працює під його
  * префіксом (router → history), а кошик і оформлення зберігаються в сесії окремо (persist),
@@ -53,7 +54,10 @@ export const prototypeBase = baseOf(current)
 export const prototypeKey = current.slug ?? 'samples'
 
 /** Статичні копії сторінок skintet.com у public/<slug>/ — не Vue, тож лише пункт у меню (див. vite.config → staticPages) */
-const STATIC_PAGES = [{ slug: 'skin-id', title: 'Skin(ID)' }]
+const STATIC_PAGES = [
+  { slug: 'skin-id', title: 'Skin(ID)' },
+  { slug: 'catalog-menu', title: 'Меню каталогу' },
+]
 
 /** Для меню в хедері. Звичайні посилання, не роутер: прототип обирається під час завантаження сторінки */
 export const prototypes = [

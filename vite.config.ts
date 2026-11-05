@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue'
 
 // Static copies of live skintet.com pages in public/<slug>/ (e.g. Skin(ID) result):
 // in dev, serve their index.html instead of falling back to the Vue app
-const staticPages = ['skin-id']
+const staticPages = ['skin-id', 'catalog-menu']
 
 export default defineConfig({
   plugins: [
