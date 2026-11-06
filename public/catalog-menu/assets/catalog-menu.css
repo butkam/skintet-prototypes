@@ -48,8 +48,23 @@
 /* ── Panels ── */
 
 /* Same slide as the live panel, but easing out instead of linear */
+/* Room at the end of every mobile list for the peeking Skin(ID) dock (see .cm-dock) */
+.cm-prototype {
+  --cm-peek: 68px;
+  /* the strip at the bottom of the screen the card tucks behind (see .cm-dock::after) */
+  --cm-strip: calc(16px + env(safe-area-inset-bottom));
+  /* the strip, the peek and 24px: at the end of a list its last item stops above the card */
+  --cm-dock-room: calc(var(--cm-strip) + var(--cm-peek) + 24px);
+}
+
+@media (max-width: 1024px) {
+  .cm-prototype .menu-main-mobile-all {
+    padding-bottom: var(--cm-dock-room);
+  }
+}
+
 .cm-prototype .menu-main-mobile-catalog.cm-panel {
-  padding: 0 var(--cm-gutter) env(safe-area-inset-bottom);
+  padding: 0 var(--cm-gutter) var(--cm-dock-room);
   transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -298,9 +313,10 @@
   overflow: hidden;
 }
 
+/* 40px under the last item: as much as the bottom fade, so at the end of a list nothing sits in it */
 .cm-level > .cm-promo {
   margin-top: auto;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
 /* Above the promo: at least 24px of air, more when the level is short and the promo sinks to the bottom */
@@ -356,8 +372,9 @@
 }
 
 .cm-root-promo {
-  padding: 24px var(--cm-gutter) calc(24px + env(safe-area-inset-bottom));
+  padding: 24px var(--cm-gutter) calc(40px + env(safe-area-inset-bottom));
 }
+
 
 /* Mobile promo (Figma 556:8616): text on the left, a column of three stones cut by the right edge */
 .cm-promo:not(.cm-promo--tall) {
@@ -393,6 +410,13 @@
 .cm-promo:not(.cm-promo--tall) .cm-promo__button {
   position: relative;
   margin: 16px 0 0 -4px;
+}
+
+/* «Каталог» in the live menu: a chevron instead of the live arrow, like the sections in the next level */
+.cm-prototype .menu-main-mobile-item-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M8.33 5L13.33 10L8.33 15' stroke='%231b1b1b' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 20px;
+  opacity: 0.6;
 }
 
 /* Above 1024px the live menu is the desktop nav in the header: none of the mobile additions belong there */
@@ -641,4 +665,66 @@ html.cm-noblur *::after {
 /* ?noshadow (diagnostics): the dropdown without its full-width 48px shadow */
 html.cm-noshadow .catalog {
   box-shadow: none !important;
+}
+
+/* ── Mobile: the Skin(ID) promo docked at the bottom of the menu ──
+   Its top (--cm-peek) shows above the screen's bottom edge and the menu scrolls under it; .is-open slides it
+   up whole. The scrim doesn't dim anything: it only catches the tap outside the card that tucks it back */
+.cm-dock {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .cm-dock.is-shown {
+    display: block;
+  }
+
+  .cm-dock__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    pointer-events: none;
+  }
+
+  .cm-dock.is-open .cm-dock__scrim {
+    pointer-events: auto;
+  }
+
+  .cm-dock__sheet {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10002;
+    padding: 0 var(--cm-gutter) calc(var(--cm-strip) + 16px);
+    transform: translateY(calc(100% - var(--cm-peek) - var(--cm-strip)));
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .cm-dock.is-open .cm-dock__sheet {
+    transform: none;
+  }
+
+  /* --elevation-m from the design system (src/styles/tokens.css), cast upwards: the card rises from the
+     bottom over the list scrolling under it */
+  .cm-dock .cm-promo {
+    margin: 0;
+    box-shadow: 0 0 1px oklch(0% 0 0 / 0.24), 0 -4px 12px oklch(0% 0 0 / 0.08);
+    cursor: pointer;
+  }
+
+  /* A white strip across the bottom of the screen with a light line on top: the peeking card goes behind
+     it, so it reads as tucked away; open, the card sits above it */
+  .cm-dock::after {
+    content: '';
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10003;
+    height: var(--cm-strip);
+    border-top: 1px solid var(--cm-line);
+    background: #fff;
+    pointer-events: none;
+  }
 }

@@ -19,6 +19,9 @@
   /* ── Icons (exported from Figma; colours are currentColor so a selected pill turns them white) ── */
 
   const ICON = {
+    // «›»: opens the next level of the menu (the desktop sections' chevron, at 20px)
+    chevron20:
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.33 5L13.33 10L8.33 15" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     arrowRight:
       '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.75 10H16.25M11.25 5L16.25 10L11.25 15" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     arrowSmall:
@@ -465,11 +468,10 @@
             (s, si) => `<button type="button" class="cm-row" data-section="${si}">
               <span class="cm-row__icon">${SECTION_ICON[s.label]}</span>
               <span class="cm-row__label">${esc(s.label)}</span>
-              <span class="cm-row__arrow">${ICON.arrowRight}</span>
+              <span class="cm-row__arrow">${ICON.chevron20}</span>
             </button>`
           ).join('')}
         </nav>
-        ${promo()}
       </div>`
 
     // Level 3: a section — a panel of the same kind, so the live close-all resets it too
@@ -479,11 +481,22 @@
     section.dataset.menuId = 'section'
     catalog.after(section)
 
-    // Level 1: the live menu, with the promo under it
-    const rootPromo = document.createElement('div')
-    rootPromo.className = 'cm-root-promo'
-    rootPromo.innerHTML = promo()
-    all.append(rootPromo)
+    // The Skin(ID) promo docked at the bottom of every level: its top peeks out, a tap opens it whole,
+    // a tap on the dimmed menu above (or on the card outside its button) tucks it back.
+    // On <body>, outside the live menu: that menu has a transform, so a fixed box inside it would scroll
+    const dock = document.createElement('div')
+    dock.className = 'cm-dock'
+    dock.innerHTML = `<div class="cm-dock__scrim"></div><div class="cm-dock__sheet">${promo()}</div>`
+    document.body.append(dock)
+    const setDock = (open) => dock.classList.toggle('is-open', open)
+    dock.addEventListener('click', (e) => {
+      if (e.target.closest('.cm-dock__scrim')) return setDock(false)
+      if (!dock.classList.contains('is-open')) {
+        e.preventDefault()
+        return setDock(true)
+      }
+      if (!e.target.closest('.cm-promo__button')) setDock(false)
+    })
 
     // Back arrow before the logo, while a catalog level is open
     const back = document.createElement('button')
@@ -495,14 +508,24 @@
 
     // «Каталог» opens its panel from the whole row: on the live page the text is a link to /catalog
     // and only the arrow opens the panel (the live script still does the opening)
+    // The panels sit inside the root list's scroller: back to its top first, or a panel opened from a
+    // scrolled list starts that far up and the list shows under it
     document.querySelectorAll('.menu-main-mobile-link-sub').forEach((a) =>
       a.addEventListener('click', (e) => {
-        if (mobile.matches) e.preventDefault()
+        if (!mobile.matches) return
+        e.preventDefault()
+        all.scrollTop = 0
       })
     )
 
     const panels = () => [...document.querySelectorAll('.menu-main-mobile-catalog.active')]
-    const sync = () => document.body.classList.toggle('cm-deep', mobile.matches && panels().length > 0)
+    const sync = () => {
+      document.body.classList.toggle('cm-deep', mobile.matches && panels().length > 0)
+      // The dock shows while the mobile menu is open (the live burger puts .active on <body>)
+      const menuOpen = mobile.matches && document.body.classList.contains('active')
+      dock.classList.toggle('is-shown', menuOpen)
+      if (!menuOpen) setDock(false)
+    }
     mobile.addEventListener('change', sync)
 
     back.addEventListener('click', () => {
@@ -519,7 +542,7 @@
       const row = e.target.closest('[data-section]')
       if (!row) return
       const s = SECTIONS[Number(row.dataset.section)]
-      section.innerHTML = `<div class="cm-level">${pills(s, Number(row.dataset.section))}${bestsellers(s)}${promo()}</div>`
+      section.innerHTML = `<div class="cm-level">${pills(s, Number(row.dataset.section))}${bestsellers(s)}</div>`
       section.scrollTop = 0
       section.classList.add('active')
       sync()
