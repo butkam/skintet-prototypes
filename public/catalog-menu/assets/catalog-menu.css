@@ -49,14 +49,22 @@
 
 /* Same slide as the live panel, but easing out instead of linear */
 .cm-prototype .menu-main-mobile-catalog.cm-panel {
-  padding: 0 var(--cm-gutter);
+  padding: 0 var(--cm-gutter) env(safe-area-inset-bottom);
   transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* The panel is a flex column: without flex: none the level (and the promo in it, overflow: hidden) shrank to
+   the screen instead of scrolling, cutting the promo's button off */
 .cm-level {
   display: flex;
+  flex: none;
   flex-direction: column;
   min-height: 100%;
+}
+
+.cm-level > *,
+.cm-root-promo {
+  flex-shrink: 0;
 }
 
 /* ── Level 2: categories ── */
@@ -348,7 +356,43 @@
 }
 
 .cm-root-promo {
-  padding: 24px var(--cm-gutter);
+  padding: 24px var(--cm-gutter) calc(24px + env(safe-area-inset-bottom));
+}
+
+/* Mobile promo (Figma 556:8616): text on the left, a column of three stones cut by the right edge */
+.cm-promo:not(.cm-promo--tall) {
+  padding: 24px;
+}
+
+.cm-promo:not(.cm-promo--tall) .cm-promo__stones {
+  top: -75px;
+  right: -25px;
+  left: auto;
+  flex-direction: column;
+  gap: 23px;
+  transform: none;
+}
+
+.cm-promo:not(.cm-promo--tall) .cm-promo__stones img:nth-child(4) {
+  display: none;
+}
+
+.cm-promo:not(.cm-promo--tall) .cm-promo__title,
+.cm-promo:not(.cm-promo--tall) .cm-promo__text {
+  position: relative;
+  max-width: 250px;
+}
+
+.cm-promo:not(.cm-promo--tall) .cm-promo__text {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* 4px to the left of the text: the pill's round end lines up with it by eye (as in Figma) */
+.cm-promo:not(.cm-promo--tall) .cm-promo__button {
+  position: relative;
+  margin: 16px 0 0 -4px;
 }
 
 /* Above 1024px the live menu is the desktop nav in the header: none of the mobile additions belong there */
@@ -501,10 +545,24 @@
   padding-top: 20px;
 }
 
+/* Three cards that fit the middle column: up to 160px each (Figma), narrower when the column is.
+   A row of three fixed 160px cards ran under the promo on smaller desktops */
 .cm-mega .cm-best__rail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 160px));
   margin: 0;
   padding: 0;
   overflow: visible;
+}
+
+.cm-mega .cm-card {
+  min-width: 0;
+}
+
+.cm-mega .cm-card__photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
 }
 
 /* Desktop promo: 300×400, the stones whole at the top, the button at the bottom */
