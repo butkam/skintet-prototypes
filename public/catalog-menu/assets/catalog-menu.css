@@ -728,3 +728,33 @@ html.cm-noshadow .catalog {
     pointer-events: none;
   }
 }
+
+/* ── Hover on arrows: the arrow flies off its way, fading, and comes back once from the other side ──
+   «↗» goes up-right (links to a page, the Skin(ID) button), «→» and «›» go right (more, next level) */
+@keyframes cm-fly-e {
+  0% { transform: translateX(0); opacity: 1; }
+  40% { transform: translateX(8px); opacity: 0; }
+  41% { transform: translateX(-8px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes cm-fly-ne {
+  0% { transform: translate(0, 0); opacity: 1; }
+  40% { transform: translate(6px, -6px); opacity: 0; }
+  41% { transform: translate(-6px, 6px); opacity: 0; }
+  100% { transform: translate(0, 0); opacity: 1; }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .cm-pill--link:hover .cm-pill__go svg,
+  .cm-section:hover .cm-section__out svg,
+  .cm-promo__button:hover svg,
+  a.cm-row:hover .cm-row__arrow svg {
+    animation: cm-fly-ne 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .cm-sub a.cm-sub__more:hover svg,
+  button.cm-row:hover .cm-row__arrow svg {
+    animation: cm-fly-e 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
