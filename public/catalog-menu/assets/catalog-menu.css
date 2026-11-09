@@ -48,34 +48,24 @@
 /* ── Panels ── */
 
 /* Same slide as the live panel, but easing out instead of linear */
-/* Room at the end of every mobile list for the peeking Skin(ID) dock (see .cm-dock) */
+/* The peeking Skin(ID) card at the end of every mobile list (see .cm-peek) */
 .cm-prototype {
   --cm-peek: 68px;
-  /* the strip at the bottom of the screen the card tucks behind (see .cm-dock::after) */
+  /* the strip at the bottom of the screen the card tucks behind (see .cm-strip) */
   --cm-strip: calc(16px + env(safe-area-inset-bottom));
-  /* the whole card (measured by catalog-menu.js) and 24px: at the very end of a list the card has scrolled out
-     whole and the last item stops 24px above it; before that the card peeks over the list (see follow()) */
-  --cm-dock-room: calc(var(--cm-sheet-h, calc(var(--cm-strip) + var(--cm-peek))) + 24px);
-}
-
-@media (max-width: 1024px) {
-  .cm-prototype .menu-main-mobile-all {
-    padding-bottom: var(--cm-dock-room);
-  }
 }
 
 .cm-prototype .menu-main-mobile-catalog.cm-panel {
-  padding: 0 var(--cm-gutter) var(--cm-dock-room);
+  padding: 0 var(--cm-gutter);
   transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* The panel is a flex column: without flex: none the level (and the promo in it, overflow: hidden) shrank to
-   the screen instead of scrolling, cutting the promo's button off */
+/* The panel is a flex column: without flex: none the level shrank to the screen instead of scrolling.
+   No min-height: the Skin(ID) card follows the list right away (24px), with no empty screen above it */
 .cm-level {
   display: flex;
   flex: none;
   flex-direction: column;
-  min-height: 100%;
 }
 
 .cm-level > *,
@@ -668,65 +658,57 @@ html.cm-noshadow .catalog {
   box-shadow: none !important;
 }
 
-/* ── Mobile: the Skin(ID) promo docked at the bottom of the menu ──
-   Its top (--cm-peek) shows above the screen's bottom edge and the menu scrolls under it; .is-open slides it
-   up whole. The scrim doesn't dim anything: it only catches the tap outside the card that tucks it back */
-.cm-dock {
+/* ── Mobile: the Skin(ID) card at the end of every list ──
+   position: sticky with a negative bottom (set by catalog-menu.js from the card's height): until the end of
+   the list only its top (--cm-peek) shows above the strip, then it scrolls out with the list — one scroll,
+   run by the browser. A tap on the peeking card scrolls the list to the end */
+.cm-peek,
+.cm-strip {
   display: none;
 }
 
 @media (max-width: 1024px) {
-  .cm-dock.is-shown {
+  .cm-peek {
+    position: sticky;
+    z-index: 1;
     display: block;
+    flex: none;
+    margin-top: 24px;
+    padding-bottom: calc(var(--cm-strip) + 16px);
+    cursor: pointer;
   }
 
-  .cm-dock__scrim {
-    position: fixed;
-    inset: 0;
-    z-index: 10001;
-    pointer-events: none;
-  }
-
-  .cm-dock.is-open .cm-dock__scrim {
-    pointer-events: auto;
-  }
-
-  .cm-dock__sheet {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 10002;
-    padding: 0 var(--cm-gutter) calc(var(--cm-strip) + 16px);
-    transform: translateY(calc(100% - var(--cm-peek) - var(--cm-strip)));
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .cm-dock.is-open .cm-dock__sheet {
-    transform: none;
+  .menu-main-mobile-all > .cm-peek {
+    margin-right: var(--cm-gutter);
+    margin-left: var(--cm-gutter);
   }
 
   /* --elevation-m from the design system (src/styles/tokens.css), cast upwards: the card rises from the
      bottom over the list scrolling under it */
-  .cm-dock .cm-promo {
+  .cm-peek .cm-promo {
     margin: 0;
     box-shadow: 0 0 1px oklch(0% 0 0 / 0.24), 0 -4px 12px oklch(0% 0 0 / 0.08);
-    cursor: pointer;
   }
 
   /* A white strip across the bottom of the screen with a light line on top: the peeking card goes behind
-     it, so it reads as tucked away; open, the card sits above it */
-  .cm-dock::after {
-    content: '';
+     it, so it reads as tucked away; at the end of the list the card stands above it.
+     Always laid out (visibility only), so the script can read its height with the safe area */
+  .cm-strip {
     position: fixed;
     right: 0;
     bottom: 0;
     left: 0;
     z-index: 10003;
+    display: block;
     height: var(--cm-strip);
     border-top: 1px solid var(--cm-line);
     background: #fff;
     pointer-events: none;
+    visibility: hidden;
+  }
+
+  .cm-strip.is-shown {
+    visibility: visible;
   }
 }
 

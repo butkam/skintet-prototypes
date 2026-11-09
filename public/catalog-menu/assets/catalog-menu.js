@@ -434,55 +434,43 @@
     section.dataset.menuId = 'section'
     catalog.after(section)
 
-    // The Skin(ID) promo docked at the bottom of every level: its top peeks out, a tap opens it whole,
-    // a tap on the dimmed menu above (or on the card outside its button) tucks it back.
-    // On <body>, outside the live menu: that menu has a transform, so a fixed box inside it would scroll
-    const dock = document.createElement('div')
-    dock.className = 'cm-dock'
-    dock.innerHTML = `<div class="cm-dock__scrim"></div><div class="cm-dock__sheet">${promo()}</div>`
-    document.body.append(dock)
-    const sheet = dock.querySelector('.cm-dock__sheet')
-    const setDock = (open) => {
-      dock.classList.toggle('is-open', open)
-      follow(true)
-    }
+    // The strip across the bottom of the screen the peeking card tucks behind. On <body>, outside the live
+    // menu: that menu has a transform, so a fixed box inside it would scroll
+    const strip = document.createElement('div')
+    strip.className = 'cm-strip'
+    document.body.append(strip)
 
-    // At the end of a list the card scrolls out with it: every list ends with room for the whole card
-    // (--cm-sheet-h, see .cm-prototype), and over the last stretch — as long as the card's hidden part — the
-    // card rises 1:1 with the scroll, so at the very bottom it stands whole under the last item
-    const peekPx = () => parseFloat(getComputedStyle(sheet).getPropertyValue('--cm-peek')) || 68
-    const scroller = () => {
-      const open = panels()
-      return section.classList.contains('active') ? section : open.length ? open[open.length - 1] : all
+    // The Skin(ID) promo at the end of every list (the root menu, «Каталог», a section), position: sticky
+    // with a negative bottom: until the list's end it sticks to the screen's bottom edge with only its top
+    // (--cm-peek) showing, and at the end it simply scrolls out with the list. One scroll, run by the browser.
+    // The negative bottom is the card's own height less what peeks out, measured by a ResizeObserver
+    const peekObserver = new ResizeObserver((entries) =>
+      entries.forEach(({ target }) => {
+        const css = getComputedStyle(target)
+        const shown = (parseFloat(css.getPropertyValue('--cm-peek')) || 68) + (strip.offsetHeight || 16)
+        target.style.bottom = `${Math.min(0, Math.round(shown - target.offsetHeight))}px`
+      })
+    )
+    const peekCard = () => {
+      const card = document.createElement('div')
+      card.className = 'cm-peek'
+      card.innerHTML = promo()
+      peekObserver.observe(card)
+      return card
     }
-    const follow = (animate) => {
-      if (!dock.classList.contains('is-shown') || dock.classList.contains('is-open')) {
-        sheet.style.transform = ''
-        sheet.style.transition = ''
-        return
-      }
-      const strip = parseFloat(getComputedStyle(dock, '::after').height) || 16
-      const hidden = Math.max(0, sheet.offsetHeight - peekPx() - strip)
-      const box = scroller()
-      const left = box.scrollHeight - box.scrollTop - box.clientHeight
-      sheet.style.transition = animate ? '' : 'none'
-      sheet.style.transform = `translateY(${Math.floor(Math.min(Math.max(left, 0), hidden))}px)`
-    }
-    const measure = () => document.documentElement.style.setProperty('--cm-sheet-h', `${sheet.offsetHeight}px`)
-    new ResizeObserver(() => {
-      measure()
-      follow(false)
-    }).observe(sheet)
-    document.addEventListener('scroll', (e) => e.target === scroller() && follow(false), { capture: true, passive: true })
-
-    dock.addEventListener('click', (e) => {
-      if (e.target.closest('.cm-dock__scrim')) return setDock(false)
-      if (!dock.classList.contains('is-open')) {
+    // a tap on the peeking card scrolls its list to the end, where the card stands whole
+    const onPeekClick = (e) => {
+      const card = e.target.closest('.cm-peek')
+      if (!card || !mobile.matches) return
+      const box = card.parentElement
+      if (box.scrollHeight - box.scrollTop - box.clientHeight > 1) {
         e.preventDefault()
-        return setDock(true)
+        box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' })
       }
-      if (!e.target.closest('.cm-promo__button')) setDock(false)
-    })
+    }
+    all.append(peekCard())
+    catalog.append(peekCard())
+    ;[all, catalog].forEach((box) => box.addEventListener('click', onPeekClick))
 
     // Back arrow before the logo, while a catalog level is open
     const back = document.createElement('button')
@@ -507,13 +495,8 @@
     const panels = () => [...document.querySelectorAll('.menu-main-mobile-catalog.active')]
     const sync = () => {
       document.body.classList.toggle('cm-deep', mobile.matches && panels().length > 0)
-      // The dock shows while the mobile menu is open (the live burger puts .active on <body>)
-      const menuOpen = mobile.matches && document.body.classList.contains('active')
-      dock.classList.toggle('is-shown', menuOpen)
-      if (!menuOpen) dock.classList.remove('is-open')
-      measure()
-      // after the panel slide has set the new list's scroll: back to peeking, or out if that list is short
-      requestAnimationFrame(() => follow(true))
+      // The strip shows while the mobile menu is open (the live burger puts .active on <body>)
+      strip.classList.toggle('is-shown', mobile.matches && document.body.classList.contains('active'))
     }
     mobile.addEventListener('change', sync)
 
@@ -531,13 +514,16 @@
       const row = e.target.closest('[data-section]')
       if (!row) return
       const s = SECTIONS[Number(row.dataset.section)]
+      section.querySelectorAll('.cm-peek').forEach((c) => peekObserver.unobserve(c))
       section.innerHTML = `<div class="cm-level">${pills(s, Number(row.dataset.section))}${bestsellers(s)}</div>`
+      section.append(peekCard())
       section.scrollTop = 0
       section.classList.add('active')
       sync()
     })
 
     section.addEventListener('click', onPillsClick)
+    section.addEventListener('click', onPeekClick)
 
     // The live script opens / closes panels on its own clicks (Каталог, burger, Escape): follow them
     document.addEventListener('click', () => setTimeout(sync), true)
