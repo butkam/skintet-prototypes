@@ -53,8 +53,9 @@
   --cm-peek: 68px;
   /* the strip at the bottom of the screen the card tucks behind (see .cm-dock::after) */
   --cm-strip: calc(16px + env(safe-area-inset-bottom));
-  /* the strip, the peek and 24px: at the end of a list its last item stops above the card */
-  --cm-dock-room: calc(var(--cm-strip) + var(--cm-peek) + 24px);
+  /* the whole card (measured by catalog-menu.js) and 24px: at the very end of a list the card has scrolled out
+     whole and the last item stops 24px above it; before that the card peeks over the list (see follow()) */
+  --cm-dock-room: calc(var(--cm-sheet-h, calc(var(--cm-strip) + var(--cm-peek))) + 24px);
 }
 
 @media (max-width: 1024px) {
