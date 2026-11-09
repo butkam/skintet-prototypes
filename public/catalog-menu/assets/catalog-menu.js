@@ -16,49 +16,57 @@
 
   const IMG = '../catalog-menu/assets/images/'
 
-  /* ── Icons (exported from Figma; colours are currentColor so a selected pill turns them white) ── */
+  /* ── Icons (exported from Figma «Іконки меню» → «UI icon/…»: 1px strokes on half pixels, so they sit on the pixel grid;
+     colours are currentColor so a selected pill turns them white) ── */
 
   const ICON = {
     // «›»: opens the next level of the menu (the desktop sections' chevron, at 20px)
     chevron20:
-      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.33 5L13.33 10L8.33 15" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 5.5L12.5 9.5L8.5 13.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     arrowRight:
       '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.75 10H16.25M11.25 5L16.25 10L11.25 15" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     arrowSmall:
-      '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7H11.5M8 3.5L11.5 7L8 10.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5H11.5M8.5 4.5L11.5 7.5L8.5 10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     back:
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19.5 12H4.5M10.5 6L4.5 12L10.5 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19.5 11.5H4.5M10.5 5.5L4.5 11.5L10.5 17.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     chevron:
-      '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.667 4L10.667 8L6.667 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 3.5L10.5 7.5L6.5 11.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     // «↗»: a link that leads to a page (a category without subcategories, «Всі продукти»)
     out14:
-      '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4.08 9.92L9.92 4.08M9.92 9.33V4.08H4.67" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4.5 9.5L9.5 4.5M9.5 8.5V4.5H5.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     out16:
-      '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.67 11.33L11.33 4.67M11.33 10.67V4.67H5.33" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5.5 10.5L10.5 5.5M10.5 9.5V5.5H6.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     out20:
-      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.83 14.17L14.17 5.83M14.17 13.33V5.83H6.67" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6.5 13.5L13.5 6.5M13.5 12.5V6.5H7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     arrowUpRight:
       '<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.375 10.625L10.625 4.375M10.625 10V4.375H5" stroke="currentColor" stroke-width="0.9375" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   }
 
-  const stroke = (paths, width = 1.25) =>
-    `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">${paths
-      .map((d) => `<path d="${d}" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`)
-      .join('')}</svg>`
-
+  /* 20px section icons, exported from Figma «Cat» → «Іконки меню» (components «Section icon/…»): 1px strokes with
+     every straight line centred on a half pixel, so they sit on the pixel grid */
   const SECTION_ICON = {
-    'Всі продукти': stroke(['M3.125 3.125H8.542V6.875H3.125Z', 'M11.458 13.125H16.875V16.875H11.458Z', 'M3.125 9.792H8.542V16.875H3.125Z', 'M11.458 3.125H16.875V10.208H11.458Z']),
-    Обличчя:
-      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.708C14.257 17.708 17.708 14.257 17.708 10C17.708 5.743 14.257 2.292 10 2.292C5.743 2.292 2.292 5.743 2.292 10C2.292 14.257 5.743 17.708 10 17.708Z" stroke="currentColor" stroke-width="1.25"/><path d="M13.812 11.663C13.493 11.526 13.174 11.39 12.854 11.254C12.799 11.366 12.741 11.469 12.675 11.572C12.102 12.494 11.065 13.027 10.002 13.021C8.939 13.025 7.902 12.491 7.325 11.57C7.259 11.467 7.201 11.364 7.145 11.252C6.826 11.39 6.507 11.527 6.188 11.664C6.246 11.816 6.31 11.96 6.385 12.105C7.039 13.419 8.523 14.289 10.001 14.271C11.479 14.293 12.967 13.422 13.617 12.104C13.692 11.958 13.755 11.815 13.812 11.663Z" fill="currentColor"/><path d="M8.958 8.25C8.958 9.171 8.399 9.792 7.708 9.792C7.018 9.792 6.458 9.171 6.458 8.25C6.458 7.33 7.018 6.667 7.708 6.667C8.399 6.667 8.958 7.33 8.958 8.25Z" fill="currentColor"/><path d="M13.542 8.25C13.542 9.171 12.982 9.792 12.292 9.792C11.601 9.792 11.042 9.171 11.042 8.25C11.042 7.33 11.601 6.667 12.292 6.667C12.982 6.667 13.542 7.33 13.542 8.25Z" fill="currentColor"/></svg>',
-    Макіяж: stroke(['M8.25 7.5V4.4C8.25 4.05 8.43 3.73 8.73 3.55L11 2.15C11.33 1.95 11.75 2.19 11.75 2.58V7.5', 'M7.5 7.5H12.5V10.5H7.5Z', 'M7 10.5H13V17.25C13 17.8 12.55 18.25 12 18.25H8C7.45 18.25 7 17.8 7 17.25Z']),
-    'Зона навколо очей': stroke(['M2.5 8.75C6 3.5 14 3.5 17.5 8.75C14 14 6 14 2.5 8.75Z', 'M10 6.5C11.243 6.5 12.25 7.507 12.25 8.75C12.25 9.993 11.243 11 10 11C8.757 11 7.75 9.993 7.75 8.75C7.75 7.507 8.757 6.5 10 6.5Z', 'M4.5 15.25C7.5 17.5 12.5 17.5 15.5 15.25']),
-    Губи: stroke(['M1.875 10C4 7.4 6.2 5.2 7.9 5.2C8.9 5.2 9.5 5.8 10 6.4C10.5 5.8 11.1 5.2 12.1 5.2C13.8 5.2 16 7.4 18.125 10C16 13.2 13.2 15 10 15C6.8 15 4 13.2 1.875 10Z', 'M1.875 10C6 10.9 14 10.9 18.125 10']),
-    'Вії та брови': stroke(['M3 6.25C6.5 3.25 12.5 3 17 5.25', 'M3.5 10.5C6.5 14.25 13.5 14.25 16.5 10.5', 'M10 13.3V16.25', 'M6.6 12.6L5.6 15.1', 'M13.4 12.6L14.4 15.1']),
-    Волосся: stroke(['M5 3C7 5.5 3 8 5 10.5C7 13 3 15.5 5 17M10 3C12 5.5 8 8 10 10.5C12 13 8 15.5 10 17M15 3C17 5.5 13 8 15 10.5C17 13 13 15.5 15 17'], 1.3),
-    Тіло: stroke(['M10 5.208C11.036 5.208 11.875 4.369 11.875 3.333C11.875 2.298 11.036 1.458 10 1.458C8.964 1.458 8.125 2.298 8.125 3.333C8.125 4.369 8.964 5.208 10 5.208Z', 'M12.708 18.542V15.625H14.792L12.708 7.292H7.292L5.208 15.625H7.292V18.542']),
-    Набори: stroke(['M2.75 10.25H17.25V16.75C17.25 17.44 16.69 18 16 18H4C3.31 18 2.75 17.44 2.75 16.75Z', 'M5 10.25V6.75C5 6.2 5.45 5.75 6 5.75H8C8.55 5.75 9 6.2 9 6.75V10.25', 'M6 5.75V3H8V5.75', 'M11 10.25V8.75C11 8.2 11.45 7.75 12 7.75H14.75C15.3 7.75 15.75 8.2 15.75 8.75V10.25', 'M11.5 7.75V6H15.25V7.75', 'M8 14.25H12']),
-    'Гаджети та аксесуари': stroke(['M5.208 11.667L11.25 3.75L10.833 8.333H14.792L8.75 16.25L9.167 11.667Z']),
+    'Всі продукти':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 3.5H8.5V7.5H3.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.5 12.5H16.5V16.5H11.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 10.5H8.5V16.5H3.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.5 3.5H16.5V9.5H11.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Обличчя':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5C14.142 17.5 17.5 14.142 17.5 10C17.5 5.858 14.142 2.5 10 2.5C5.858 2.5 2.5 5.858 2.5 10C2.5 14.142 5.858 17.5 10 17.5Z" stroke="currentColor"/><path d="M13.812 11.663C13.493 11.526 13.174 11.39 12.854 11.254C12.799 11.366 12.741 11.469 12.675 11.572C12.102 12.494 11.065 13.027 10.002 13.021C8.939 13.025 7.902 12.491 7.325 11.57C7.259 11.467 7.201 11.364 7.145 11.252C6.826 11.39 6.507 11.527 6.188 11.664C6.246 11.816 6.31 11.96 6.385 12.105C7.039 13.419 8.523 14.289 10.001 14.271C11.479 14.293 12.967 13.422 13.617 12.104C13.692 11.958 13.755 11.815 13.812 11.663Z" fill="currentColor"/><path d="M9 8.25C9 9.172 8.44 9.75 7.75 9.75C7.06 9.75 6.5 9.172 6.5 8.25C6.5 7.328 7.06 6.75 7.75 6.75C8.44 6.75 9 7.328 9 8.25Z" fill="currentColor"/><path d="M13.5 8.25C13.5 9.172 12.94 9.75 12.25 9.75C11.56 9.75 11 9.172 11 8.25C11 7.328 11.56 6.75 12.25 6.75C12.94 6.75 13.5 7.328 13.5 8.25Z" fill="currentColor"/></svg>',
+    'Макіяж':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 7.5V4.5L11.5 2.5V7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 7.5H12.5V10.5H7.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10.5H13.5V16.5C13.5 17.052 13.052 17.5 12.5 17.5H7.5C6.948 17.5 6.5 17.052 6.5 16.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Зона навколо очей':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 8.5C6 3.5 14 3.5 17.5 8.5C14 13.5 6 13.5 2.5 8.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 6C11.381 6 12.5 7.119 12.5 8.5C12.5 9.881 11.381 11 10 11C8.619 11 7.5 9.881 7.5 8.5C7.5 7.119 8.619 6 10 6Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 15.5C8 16.833 12 16.833 14.5 15.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Губи':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 10C4 7.5 6.2 5.5 7.9 5.5C8.9 5.5 9.5 6 10 6.5C10.5 6 11.1 5.5 12.1 5.5C13.8 5.5 16 7.5 18 10C16 13 13.2 14.5 10 14.5C6.8 14.5 4 13 2 10Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 10C6 10.9 14 10.9 18 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Вії та брови':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 6.5C7 3.5 13 3.25 17.5 5.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10.5C7 14.25 14 14.25 17 10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 13.5V16.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.1 12.6L6.1 15.1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.9 12.6L14.9 15.1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Волосся':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 2.5C7 5 3 7.5 5 10C7 12.5 3 15 5 17.5M10 2.5C12 5 8 7.5 10 10C12 12.5 8 15 10 17.5M15 2.5C17 5 13 7.5 15 10C17 12.5 13 15 15 17.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Тіло':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 5.5C11.105 5.5 12 4.605 12 3.5C12 2.395 11.105 1.5 10 1.5C8.895 1.5 8 2.395 8 3.5C8 4.605 8.895 5.5 10 5.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 18.5V15.5H14.5L12.5 7.5H7.5L5.5 15.5H7.5V18.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Набори':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 10.5H17.5V16.5C17.5 17.052 17.052 17.5 16.5 17.5H3.5C2.948 17.5 2.5 17.052 2.5 16.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10.5V6.5C5.5 5.948 5.948 5.5 6.5 5.5H7.5C8.052 5.5 8.5 5.948 8.5 6.5V10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 5.5V3.5H7.5V5.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 10.5V8.5C10.5 7.948 10.948 7.5 11.5 7.5H13.5C14.052 7.5 14.5 7.948 14.5 8.5V10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.5 7.5V5.5H13.5V7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 14.5H11.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'Гаджети та аксесуари':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 11.5L11.5 3.5L11 8.5H14.5L8.5 16.5L9 11.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   }
+
 
   /* 15px pill glyphs, exported from Figma «Cat» → «Іконки субменю · 30» (components «Pill icon/…», 9 листопада 2026),
      in the style of the icons on skintet.com: the body («Форма») in a top-to-bottom fade, details («Деталь») at 40%
