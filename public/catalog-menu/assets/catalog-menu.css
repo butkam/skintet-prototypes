@@ -288,9 +288,11 @@
   overflow: hidden;
 }
 
+/* NibProBold is a bold face declared without a weight (400 in its @font-face): asking it for 700 made the
+   browser embolden it once more */
 .cm-card__price {
   margin-top: 5px;
-  font: 700 16px/20px NibProBold, Georgia, serif;
+  font: 400 16px/20px NibProBold, Georgia, serif;
 }
 
 /* ── Skin(ID) promo at the bottom of every level ── */
