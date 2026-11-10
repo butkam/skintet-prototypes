@@ -1,0 +1,9 @@
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Prototype: the PrivatBank mark alone, no ring, filling a 14px box (a mask in the routine card footer).
+     The 14-unit square of bank-privatbank-line.svg (9…23 on its 32px grid) at 1:1, so every edge sits on a
+     whole pixel at any pixel ratio -->
+<g transform="translate(-9 -9)">
+<path d="M9 9H23V23H16V20.5A4.5 4.5 0 0 0 11.5 16H9Z M12 12H20V20H19A7 7 0 0 0 12 13Z" fill="#1B1B1B" fill-rule="evenodd"/>
+<rect x="9" y="18" width="5" height="5" fill="#1B1B1B"/>
+</g>
+</svg>

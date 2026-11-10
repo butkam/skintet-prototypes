@@ -1,7 +1,5 @@
 /* Prototype changes on top of the live skintet.com styles (style.min.css) */
 
-/* «Повна рутина»: the set can be paid in parts — a secondary button under the main one */
-
 /* SkButton from the Vue prototypes (src/components/SkButton.vue), secondary + amount, with the tokens
    resolved: the action and the sum split by a faint rule, 16px of air on each side of it */
 .sk-button {
@@ -57,92 +55,6 @@
   }
 }
 
-/* Same 48px as the site's own «Додати в кошик» above it, which has no border */
-.main-wrapper .main__content-care .care-result__more .sk-button {
-  margin-top: 8px;
-  padding-block: 11px;
-}
-
-/* Info card from the product page (product-page.min.css, not loaded here): «Оплата частинами» with the
-   banks and the number of payments, «Доставка» with the free-delivery threshold */
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--bottom {
-  margin: 8px 0 0;
-  border: 1px solid #e5e5e5;
-  border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background-color: #fff;
-}
-
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item {
-  font-size: 0;
-  line-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  column-gap: 10px;
-}
-
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .col {
-  display: flex;
-  align-items: center;
-  column-gap: 7px;
-}
-
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .icon-holder {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .txt,
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .txt-info {
-  font-size: 14px;
-  font-family: Sailec;
-  font-weight: 400;
-  line-height: 20px;
-  color: #1b1b1b;
-}
-
-.main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--item .txt-info {
-  display: block;
-  text-align: right;
-  color: #228b22;
-}
-
-.main-wrapper .main__content-care .care-result .parts-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.main-wrapper .main__content-care .care-result .parts-list li {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.main-wrapper .main__content-care .care-result .parts-list svg,
-.main-wrapper .main__content-care .care-result .parts-list img {
-  display: block;
-  width: 24px;
-  height: 24px;
-}
-
-/* On the site the PrivatBank mark is a 24px square with 8px corners */
-.main-wrapper .main__content-care .care-result .parts-list img {
-  border-radius: 8px;
-}
-
 /* Set previews: grey like the big product cards, overlapping like a stack of coins. The less room, the
    more they overlap (o = S − row / n, so n steps of S − o fill the row), up to half a preview — then the
    row wraps. The last coin pokes out by o past its step: the right padding of half a preview holds it */
@@ -189,53 +101,6 @@
   }
 }
 
-/* Desktop: the set on the left («4 засоби» over the previews), then the purchase — the price
-   with both buttons beside it, and the info card under the buttons, as wide as they are */
-@media (min-width: 1025px) {
-  .main-wrapper .main__content-care .care-result {
-    display: grid;
-    grid-template-columns: minmax(160px, 1fr) auto minmax(360px, 1.25fr);
-    grid-template-areas:
-      "title price cta"
-      "images price cta"
-      "images . card";
-    grid-template-rows: auto auto 1fr;
-    align-items: start;
-    gap: 8px 24px;
-  }
-
-  .main-wrapper .main__content-care .care-result__info {
-    display: contents;
-  }
-
-  /* 16px under the title: the row gap is only 8, the card's gap to the buttons */
-  .main-wrapper .main__content-care .care-result .images {
-    grid-area: images;
-    margin-top: 8px;
-  }
-
-  .main-wrapper .main__content-care .care-result__info .info {
-    grid-area: title;
-  }
-
-  .main-wrapper .main__content-care .care-result__info .price-holder {
-    grid-area: price;
-  }
-
-  .main-wrapper .main__content-care .care-result__cta {
-    grid-area: cta;
-  }
-
-  .main-wrapper .main__content-care .care-result__cta .btn-add {
-    width: 100%;
-  }
-
-  .main-wrapper .main__content-care .care-result .wayfx-product__additional--info--description--bottom {
-    grid-area: card;
-    margin: 0;
-  }
-}
-
 /* Mobile: previews start from the left edge, under «4 засоби», instead of the centre */
 @media (max-width: 1024px) {
   .main-wrapper .main__content-care .care-result .images {
@@ -245,12 +110,551 @@
 
 /* Narrow phones (320px): the label and the sum don't fit at 16px */
 @media (max-width: 374px) {
-  .main-wrapper .main__content-care .care-result__more .sk-button {
+  .main-wrapper .main__content-care .care-result__cta .sk-button {
     padding-inline: 16px;
     font-size: 14px;
   }
 
-  .main-wrapper .main__content-care .care-result__more .sk-button__rule {
+  .main-wrapper .main__content-care .care-result__cta .sk-button__rule {
     margin-inline: 4px;
   }
+}
+
+/* Prototype: a scheme step covered by the client's own product */
+/* brand + badge: no «·» between them, a little more room */
+.main-wrapper .main__content-care .item .more-info > :has(+ .shelf-badge)::after {
+  content: none;
+}
+.main-wrapper .main__content-care .item .more-info:has(.shelf-badge) {
+  column-gap: 8px;
+}
+.main-wrapper .main__content-care .item .shelf-badge {
+  /* the site's pill: .p-card__badge geometry, colours of .care-result .product-discount */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px 0 6px;
+  border-radius: 100px;
+  background: #e5f7e7;
+  color: #107a40;
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* our recommendation: the same pill, neutral */
+.main-wrapper .main__content-care .item .shelf-badge--rec {
+  background: #f5f5f5;
+  color: #1b1b1b;
+}
+.main-wrapper .main__content-care .item .shelf-badge svg {
+  display: block;
+  flex: 0 0 auto;
+}
+.main-wrapper .main__content-care .item.item--shelf .description {
+  margin-bottom: 0;
+}
+.main-wrapper .main__content-care .item.item--shelf:not(:has(.img-holder)) .description {
+  grid-column: 1 / -1; /* mobile spans 2 columns; without a photo there is only one */
+}
+/* No photo (product not recognised in the catalog) — no image column, text keeps its width */
+.main-wrapper .main__content-care .item.item--shelf:not(:has(.img-holder)) {
+  grid-template-columns: minmax(0, 583px);
+}
+
+/* Prototype: rows under a shelf step — another product from her shelf, our product to buy once hers
+   runs out. Table rows, not cards: a zigzag rule above each, flush with the text column */
+.main-wrapper .main__content-care .item .shelf-rows {
+  grid-row: 5;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
+}
+.main-wrapper .main__content-care .item .shelf-next {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding-top: 24px; /* 20px of air + the 4px zigzag */
+  /* a zigzag rule: 12px period, 4px tall (3px swing); the path runs past the tile so the joins stay sharp */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='4' viewBox='0 0 12 4'%3E%3Cpath d='M-6 .5 0 3.5 6 .5 12 3.5 18 .5' fill='none' stroke='%23d6d6d6' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top / 12px 4px;
+}
+@media (max-width: 1024px) {
+  /* narrow: photo and name in a row, Buy under the name (48px photo + 16px gap) */
+  .main-wrapper .main__content-care .item .shelf-rows {
+    grid-column: 1 / -1;
+  }
+  .main-wrapper .main__content-care .item .shelf-next {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .main-wrapper .main__content-care .item .shelf-next .shelf-next__info {
+    flex: 1 1 calc(100% - 64px);
+  }
+  .main-wrapper .main__content-care .item .shelf-next .sk-button {
+    margin-left: 64px;
+  }
+}
+.main-wrapper .main__content-care .item .shelf-next__img {
+  flex: none;
+  display: block;
+}
+.main-wrapper .main__content-care .item .shelf-next__img img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  object-fit: cover;
+}
+/* no photo of her product: a plain tile of the same size */
+.main-wrapper .main__content-care .item .shelf-next__img--empty {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f5f5f5;
+}
+.main-wrapper .main__content-care .item .shelf-next__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.main-wrapper .main__content-care .item .shelf-next__label {
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+.main-wrapper .main__content-care .item .shelf-next__name {
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+.main-wrapper .main__content-care .item .shelf-next__note {
+  margin-top: 4px;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.sk-button--small {
+  padding: 6px 16px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Scheme steps: more air between the text and the photo (the site has 8px, too tight when the text column shrinks) */
+.main-wrapper .main__content-care .item {
+  column-gap: 40px;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item {
+    column-gap: 16px;
+  }
+}
+
+/* «Чого бракує» as a card, in the style of «Розбір твоєї полички» (.main__content-help): a white card in
+   a #fafafa frame, 4px around and thick at the bottom, where payment in parts and delivery sit in small print */
+.main-wrapper .main__content-care .care-result {
+  display: block;
+  margin-top: 40px;
+  padding: 4px 4px 0;
+  background-color: #fafafa;
+  border-radius: 24px 24px 32px 32px;
+}
+.main-wrapper .main__content-care .care-result__body {
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 32px;
+}
+/* title and price on one line, the previews under them across the whole card */
+.main-wrapper .main__content-care .care-result__info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title price"
+    "images images";
+  align-items: start;
+  gap: 16px 24px;
+  margin: 0;
+}
+.main-wrapper .main__content-care .care-result__set {
+  display: contents;
+}
+.main-wrapper .main__content-care .care-result__info .info {
+  grid-area: title;
+}
+.main-wrapper .main__content-care .care-result .images {
+  grid-area: images;
+  margin-bottom: 0;
+}
+.main-wrapper .main__content-care .care-result__info .price-holder {
+  grid-area: price;
+  text-align: right;
+}
+.main-wrapper .main__content-care .care-result__info .old-price__holder {
+  justify-content: flex-end;
+}
+.main-wrapper .main__content-care .care-result__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+/* Same 48px as «Додати в кошик», which has no border */
+.main-wrapper .main__content-care .care-result__cta .sk-button {
+  padding-block: 11px;
+}
+.main-wrapper .main__content-care .care-result__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 14px 32px 16px;
+  /* the type of the «(1/3) Аналіз skin(ID) …» steps above «Розбір твоєї полички» */
+  font-family: Sailec;
+  font-size: 10px;
+  line-height: 20px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.6);
+}
+.main-wrapper .main__content-care .care-result__foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.main-wrapper .main__content-care .care-result__bank {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* the bank marks in the text colour: the line SVGs used as masks */
+.main-wrapper .main__content-care .care-result__bank-mark {
+  display: block;
+  width: 14px;
+  height: 14px;
+  /* a touch lighter than the caps text (.6) */
+  background-color: rgba(0, 0, 0, 0.45);
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+}
+/* monobank's open shape reads smaller than the solid PrivatBank square: 16px against 14px balances them */
+.main-wrapper .main__content-care .care-result__bank-mark--mono {
+  --mark: url("bank-monobank-mark.svg");
+  width: 16px;
+  height: 16px;
+}
+.main-wrapper .main__content-care .care-result__bank-mark--privat {
+  --mark: url("bank-privatbank-mark.svg");
+}
+/* the dashed line between the steps above «Розбір твоєї полички», here between payment and delivery */
+.main-wrapper .main__content-care .care-result__foot-rule {
+  flex: 1;
+  min-width: 16px;
+  /* as .steps-slider::after: a zero-height box bordered all round, so the dashes are 2px thick */
+  height: 0;
+  border: 1px dashed #eaeaea;
+}
+.main-wrapper .main__content-care .care-result__short {
+  display: none;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result__body {
+    padding: 24px 20px;
+  }
+  .main-wrapper .main__content-care .care-result__cta {
+    margin-top: 24px;
+  }
+  /* by their content, on the left edge — not stretched across the card; they wrap only when they don't fit */
+  .main-wrapper .main__content-care .care-result__cta .btn,
+  .main-wrapper .main__content-care .care-result__cta .sk-button {
+    width: auto;
+    max-width: 100%;
+  }
+  /* inside the card the button is ~290px: «Купити частинами | від 3 329 ₴/міс» doesn't fit, so «Частинами» */
+  .main-wrapper .main__content-care .care-result__long {
+    display: none;
+  }
+  .main-wrapper .main__content-care .care-result__short {
+    display: inline;
+  }
+  /* payment and delivery go on two lines here — the line break separates them */
+  .main-wrapper .main__content-care .care-result__foot {
+    padding: 12px 20px 14px;
+  }
+  .main-wrapper .main__content-care .care-result__foot-rule {
+    display: none;
+  }
+}
+/* free delivery in the site's green (as «…для тебе безкоштовна!» and the −15% discount) */
+.main-wrapper .main__content-care .care-result__foot-item--free {
+  color: #107a40;
+}
+
+/* Prototype: «Додатково з твоєї полички» — one row of cards running past the screen edge */
+.main-wrapper .shelf-extra {
+  /* how far the row may run past the content column: the wrapper's padding, plus the side margin past 1512px */
+  --bleed: calc(40px + max(0px, (100vw - 1512px) / 2));
+  margin: 64px 0;
+  /* .main__content is a flex item: without this the long row would widen the whole content column */
+  contain: inline-size;
+}
+.main-wrapper .shelf-extra__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.main-wrapper .shelf-extra__heading {
+  flex: 1;
+  min-width: 0;
+}
+/* the section titles below («Рекомендовані інгредієнти», «Поради») */
+.main-wrapper .shelf-extra__title {
+  margin: 0;
+  font-family: NibProBold;
+  font-size: 32px;
+  font-weight: normal;
+  line-height: 36px;
+  color: #000;
+}
+.main-wrapper .shelf-extra__lead {
+  margin: 8px 0 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .shelf-extra__arrows {
+  display: flex;
+  gap: 8px;
+}
+/* the site's slider arrows (.landing-methodology .results__arrows .arrow) */
+.main-wrapper .shelf-extra__arrow {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #1b1b1b;
+  cursor: pointer;
+  transition: border-color 0.25s linear, opacity 0.25s linear;
+}
+.main-wrapper .shelf-extra__arrow:hover:not(:disabled) {
+  border-color: #000;
+}
+.main-wrapper .shelf-extra__arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.main-wrapper .shelf-extra__arrow--prev svg {
+  transform: scaleX(-1);
+}
+.main-wrapper .shelf-extra__list {
+  display: flex;
+  gap: 16px;
+  margin: 0 calc(-1 * var(--bleed)) 0 0;
+  padding: 0 var(--bleed) 0 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.main-wrapper .shelf-extra__list::-webkit-scrollbar {
+  display: none;
+}
+/* the card of the ingredient slider on phones: a 1px #e5e5e5 border, 24px corners */
+.main-wrapper .shelf-extra__card {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px;
+  border: 1px solid #e5e5e5;
+  border-radius: 24px;
+  scroll-snap-align: start;
+}
+.main-wrapper .shelf-extra__brand {
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .shelf-extra__name {
+  margin-top: 4px;
+  font-family: NibProBold;
+  font-size: 20px;
+  line-height: 24px;
+  color: #000;
+}
+.main-wrapper .shelf-extra__how {
+  margin: 12px 0 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-extra {
+    --bleed: 20px;
+    margin: 48px 0;
+  }
+  .main-wrapper .shelf-extra__title {
+    font-size: 24px;
+    line-height: 28px;
+  }
+  /* phones scroll by swiping: no arrows */
+  .main-wrapper .shelf-extra__arrows {
+    display: none;
+  }
+  .main-wrapper .shelf-extra__list {
+    gap: 8px;
+    margin-left: -20px;
+    padding-left: 20px;
+    scroll-padding-inline: 20px;
+  }
+  .main-wrapper .shelf-extra__card {
+    flex-basis: 272px;
+    padding: 20px;
+  }
+  .main-wrapper .shelf-extra__name {
+    font-size: 16px;
+    line-height: 20px;
+  }
+}
+
+/* Optical alignment: rounded things (cards, buttons, the morning/evening tabs, photos) hug the content edge,
+   but their curves start inside it, so flush text looks pushed out. Headings and the text of the steps go
+   4px in; the rounded elements stay on the edge */
+.main-wrapper {
+  --optical-inset: 4px;
+}
+.main-wrapper .main__content-care > .main-title,
+.main-wrapper .main__content-care .item > .steps,
+.main-wrapper .main__content-care .item > .item-ttl,
+.main-wrapper .main__content-care .item > .more-info,
+.main-wrapper .main__content-care .item > .description,
+.main-wrapper .shelf-extra__heading,
+.main-wrapper .main__content-components .components__main-title .main-title,
+.main-wrapper .main__content-advice .advice__main-title .main-title {
+  padding-left: var(--optical-inset);
+}
+/* the ingredients on desktop are plain text (no card), so they go in with the headings; on phones they are cards */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-components .components-slider .item {
+    padding-left: var(--optical-inset);
+  }
+  /* three equal columns: with plain 1fr a long word («Полігідроксикислоти») widens its column */
+  .main-wrapper .main__content-components .components-slider {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* …and a word longer than the column breaks with a hyphen */
+  .main-wrapper .main__content-components .components-slider .title {
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+}
+
+/* no rule between the steps, the same empty space: the 1px border stays, only invisible */
+.main-wrapper .main__content-care .item {
+  border-bottom-color: transparent;
+}
+
+/* Prototype: «Краще відкласти» — a plain list split by horizontal rules, no card */
+.main-wrapper .shelf-skip {
+  margin: 64px 0;
+}
+.main-wrapper .shelf-skip__head {
+  margin-bottom: 8px;
+  padding-left: var(--optical-inset);
+}
+/* the same title and lead as «Додатково з твоєї полички» */
+.main-wrapper .shelf-skip__title {
+  margin: 0;
+  font-family: NibProBold;
+  font-size: 32px;
+  font-weight: normal;
+  line-height: 36px;
+  color: #000;
+}
+.main-wrapper .shelf-skip__lead {
+  margin: 8px 0 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .shelf-skip__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* rules between the rows only; the text goes in with the headings, the rules stay edge to edge */
+.main-wrapper .shelf-skip__row {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  /* the reason starts on the name's first line */
+  align-items: first baseline;
+  column-gap: 40px;
+  padding: 20px 0 20px var(--optical-inset);
+}
+.main-wrapper .shelf-skip__row + .shelf-skip__row {
+  border-top: 1px solid #e5e5e5;
+}
+.main-wrapper .shelf-skip__product {
+  display: flex;
+  flex-direction: column;
+  /* a little narrower than its column; the reason keeps its place and width */
+  max-width: 240px;
+}
+.main-wrapper .shelf-skip__name {
+  font-family: NibProBold;
+  font-size: 14px;
+  line-height: 20px;
+  color: #000;
+}
+.main-wrapper .shelf-skip__brand {
+  margin-bottom: 2px;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .shelf-skip__why {
+  margin: 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-skip {
+    margin: 48px 0;
+  }
+  .main-wrapper .shelf-skip__title {
+    font-size: 24px;
+    line-height: 28px;
+  }
+  /* phones: the reason goes under the brand */
+  .main-wrapper .shelf-skip__row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+    padding-block: 16px;
+  }
+}
+/* «Чому» over the reason: the same size, darker — like the name under the brand on the left */
+.main-wrapper .shelf-skip__why-label {
+  display: block;
+  margin-bottom: 2px;
+  color: #1b1b1b;
 }
