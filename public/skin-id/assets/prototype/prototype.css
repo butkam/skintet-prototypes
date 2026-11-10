@@ -652,9 +652,41 @@
     padding-block: 16px;
   }
 }
-/* «Чому» over the reason: the same size, darker — like the name under the brand on the left */
-.main-wrapper .shelf-skip__why-label {
-  display: block;
-  margin-bottom: 2px;
-  color: #1b1b1b;
+/* on phones the price and «Купити» swap places: the price is text on the left edge, so it goes in too */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item > .actions .price-holder {
+    padding-left: var(--optical-inset);
+  }
+}
+
+/* Phones: «Рекомендовані інгредієнти» and «Поради» swipe like «Додатково з твоєї полички» — a native row of
+   272px cards running to both screen edges, snapping to the card start (no slick, no dots; result-sliders.js) */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-components .components-slider,
+  .main-wrapper .main__content-advice .advice__slider {
+    display: flex;
+    gap: 8px;
+    margin: 0 -20px;
+    padding: 0 20px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 20px;
+    scrollbar-width: none;
+  }
+  .main-wrapper .main__content-components .components-slider::-webkit-scrollbar,
+  .main-wrapper .main__content-advice .advice__slider::-webkit-scrollbar {
+    display: none;
+  }
+  .main-wrapper .main__content-components .components-slider .item,
+  .main-wrapper .main__content-advice .advice__slider .item {
+    display: block;
+    flex: 0 0 272px;
+    height: auto;
+    scroll-snap-align: start;
+  }
+  .main-wrapper .main__content-components .dots,
+  .main-wrapper .main__content-advice .dots {
+    display: none;
+  }
 }

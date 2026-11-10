@@ -18,32 +18,8 @@
     const $componentsDots = $('.components__main-title .dots');
     const $adviceDots = $('.advice__main-title .dots');
 
-    toggleSlick(
-      $('.components-slider'),
-      enable,
-      {
-        infinite: false,
-        dots: true,
-        appendDots: $componentsDots,
-        arrows: false,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-      }
-    );
-
-    toggleSlick(
-      $('.advice__slider'),
-      enable,
-      {
-        infinite: false,
-        dots: true,
-        appendDots: $adviceDots,
-        arrows: false,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-      }
-    );
-
+    // Prototype: «Рекомендовані інгредієнти» and «Поради» scroll natively on phones, like «Додатково з
+    // твоєї полички» (prototype.css), so no slick for them; the live page slicks them here with dots
     toggleSlick(
       $('.steps-slider'),
       enable,
