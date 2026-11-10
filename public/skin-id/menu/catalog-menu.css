@@ -55,6 +55,20 @@
   transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* The panels sit inside the root list's scroller (absolute, top: 0). In a short list iOS handed the swipe on to
+   that scroller: it scrolled, the panel rode up with it and the root list's Skin(ID) card showed from under it.
+   While a panel is open the root list doesn't scroll, and no list passes its scroll on */
+@media (max-width: 1024px) {
+  .cm-deep .menu-main-mobile-all {
+    overflow: hidden;
+  }
+
+  .cm-prototype .menu-main-mobile-all,
+  .cm-prototype .menu-main-mobile-catalog.cm-panel {
+    overscroll-behavior: contain;
+  }
+}
+
 /* The panel is a flex column: without flex: none the level shrank to the screen instead of scrolling.
    No min-height: the Skin(ID) card follows the list right away (24px), with no empty screen above it */
 .cm-level {

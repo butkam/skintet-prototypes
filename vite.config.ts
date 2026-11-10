@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 
 // Static copies of live skintet.com pages in public/<slug>/ (e.g. Skin(ID) result):
 // in dev, serve their index.html instead of falling back to the Vue app
+// catalog-menu: only a redirect to skin-id now (old links)
 const staticPages = ['skin-id', 'catalog-menu']
 
 export default defineConfig({

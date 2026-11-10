@@ -62,6 +62,12 @@
   <link rel="stylesheet" href="assets/shop/css/slick-theme.css" type="text/css">
   <!-- Prototype changes on top of the live page -->
   <link rel="stylesheet" href="assets/prototype/prototype.css" type="text/css">
+  <!-- Prototype: the new catalog menu, mobile and desktop (Figma «Cat» page), public/skin-id/menu -->
+  <!-- A fresh copy on every load: Safari kept running an old catalog-menu.js despite no-cache -->
+  <script>
+    window.cmVersion = Date.now()
+    document.write('<link rel="stylesheet" href="menu/catalog-menu.css?v=' + window.cmVersion + '" type="text/css">')
+  </script>
 
   <meta name="google-site-verification" content="fIvJkLkV4S81p9rqfwP8X-wzdxnN6VLtLgl1FBaIBH0"/>
 
@@ -2479,6 +2485,9 @@
   <script src="assets/shop/js/email-rules.js"></script>
   <script src="build/shop/runtime.js" type="application/javascript"></script>
   <script src="build/shop/index.js" type="application/javascript"></script>
+  <script>
+    document.write('<script src="menu/catalog-menu.js?v=' + window.cmVersion + '"><\/script>')
+  </script>
       <!-- KeyCRM online chat widget begin -->
   
   <!-- KeyCRM online chat widget end -->

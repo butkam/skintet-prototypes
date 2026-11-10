@@ -14,7 +14,7 @@
 (function () {
   'use strict'
 
-  const IMG = '../catalog-menu/assets/images/'
+  const IMG = 'menu/images/'
 
   /* ── Icons (exported from Figma «Іконки меню» → «UI icon/…»: 1px strokes on half pixels, so they sit on the pixel grid;
      colours are currentColor so a selected pill turns them white) ── */
@@ -122,7 +122,7 @@
   const cat = (label, links = [], more = false) => ({ label, links, more })
 
   /* Bestsellers: the first three products of the section's page on skintet.com (sorted by popularity),
-     5 листопада 2026; photos saved at 320px in assets/images/best */
+     5 листопада 2026; photos saved at 320px in menu/images/best */
   const product = (name, price, img, slug) => ({ name, price, img: `best/${img}.webp`, href: `https://skintet.com/products/${slug}` })
 
   const SECTIONS = [
