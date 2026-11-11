@@ -5,7 +5,8 @@
  *   /2026-10-06/    — гілка «Товари на вибір» від 6 жовтня: поки така сама, далі змінюється окремо
  *   /gift-card/     — подарунок до замовлення карткою над товарами, без шторки (Figma 234:3047)
  *   /skin-id/       — статична копія сторінки результату Skin(ID) з skintet.com з новим меню каталогу
- *                     (public/skin-id, не Vue; меню — public/skin-id/menu). /catalog-menu/ лише перекидає сюди
+ *                     (public/skin-id, не Vue; меню — public/skin-id/menu). /catalog-menu/ лише перекидає сюди;
+ *                     /skin-id/empty.html — пустий стан: аналіз полички ще не готовий
  *
  * Прототип обирається один раз — за адресою, з якою відкрили сторінку. Роутер працює під його
  * префіксом (router → history), а кошик і оформлення зберігаються в сесії окремо (persist),
@@ -53,13 +54,16 @@ export const prototypeBase = baseOf(current)
 /** Ключ прототипу для сховища (persist): у кожного свій кошик і оформлення */
 export const prototypeKey = current.slug ?? 'samples'
 
-/** Статичні копії сторінок skintet.com у public/<slug>/ — не Vue, тож лише пункт у меню (див. vite.config → staticPages) */
+/** Статичні копії сторінок skintet.com у public/<slug>/ — не Vue, тож лише пункт у меню (див. vite.config → staticPages).
+ *  path — під BASE_URL; branch — стан тієї самої сторінки, у меню з кутиком під нею */
 const STATIC_PAGES = [
-  { slug: 'skin-id', title: 'Skin(ID)' },
+  { path: 'skin-id/', title: 'Skin(ID)', branch: false },
+  // аналіз полички ще не готовий після 10 хв: звичайна схема і пропозиція надіслати розбір на пошту
+  { path: 'skin-id/empty.html', title: 'Пустий стан', branch: true },
 ]
 
 /** Для меню в хедері. Звичайні посилання, не роутер: прототип обирається під час завантаження сторінки */
 export const prototypes = [
   ...PROTOTYPES.map((p) => ({ title: p.title, href: baseOf(p), current: p === current, branch: !!p.branch })),
-  ...STATIC_PAGES.map((p) => ({ title: p.title, href: `${import.meta.env.BASE_URL}${p.slug}/`, current: false, branch: false })),
+  ...STATIC_PAGES.map((p) => ({ title: p.title, href: `${import.meta.env.BASE_URL}${p.path}`, current: false, branch: p.branch })),
 ]

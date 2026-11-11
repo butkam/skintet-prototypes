@@ -121,36 +121,102 @@
 }
 
 /* Prototype: a scheme step covered by the client's own product */
-/* brand + badge: no «·» between them, a little more room */
-.main-wrapper .main__content-care .item .more-info > :has(+ .shelf-badge)::after {
+/* brand + «З твоєї полички»: a green check and the words, no pill — the same element as «Чому рекомендуємо»
+   on our products, only green and with nothing on hover. No «·» after the brand, a little more room */
+.main-wrapper .main__content-care .item .more-info > :has(+ .shelf-own)::after {
   content: none;
 }
-.main-wrapper .main__content-care .item .more-info:has(.shelf-badge) {
+.main-wrapper .main__content-care .item .more-info:has(.shelf-own) {
   column-gap: 8px;
 }
-.main-wrapper .main__content-care .item .shelf-badge {
-  /* the site's pill: .p-card__badge geometry, colours of .care-result .product-discount */
+.main-wrapper .main__content-care .item .shelf-own {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 20px;
-  padding: 0 8px 0 6px;
-  border-radius: 100px;
-  background: #e5f7e7;
-  color: #107a40;
   font-family: Sailec;
-  font-size: 12px;
-  line-height: 1;
+  font-size: 14px;
+  line-height: 20px;
+  color: #107a40;
   white-space: nowrap;
 }
-/* our recommendation: the same pill, neutral */
-.main-wrapper .main__content-care .item .shelf-badge--rec {
-  background: #f5f5f5;
+.main-wrapper .main__content-care .item .shelf-own svg {
+  display: block;
+  flex: none;
+}
+/* our product in a step: after the brand, «Чому рекомендуємо» with the sparkle of our recommendation;
+   hovering it (or focusing, a tap on phones) shows why it is there in a dark tooltip above. No «·» between
+   the brand and it, a little more room */
+.main-wrapper .main__content-care .item .more-info > :has(+ .shelf-why)::after {
+  content: none;
+}
+.main-wrapper .main__content-care .item .more-info:has(.shelf-why) {
+  column-gap: 8px;
+}
+.main-wrapper .main__content-care .item .shelf-why {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+  white-space: nowrap;
+  cursor: help;
+}
+.main-wrapper .main__content-care .item .shelf-why:hover,
+.main-wrapper .main__content-care .item .shelf-why:focus-visible {
   color: #1b1b1b;
 }
-.main-wrapper .main__content-care .item .shelf-badge svg {
+.main-wrapper .main__content-care .item .shelf-why svg {
   display: block;
-  flex: 0 0 auto;
+  flex: none;
+}
+.main-wrapper .main__content-care .item .shelf-why__tip {
+  position: absolute;
+  z-index: 10;
+  left: -12px;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 280px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #1b1b1b;
+  color: #fff;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
+  pointer-events: none;
+}
+/* phones: the tooltip hangs from the brand line instead, its width, so it never runs off the screen */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item .more-info:has(.shelf-why) {
+    position: relative;
+  }
+  .main-wrapper .main__content-care .item .shelf-why {
+    position: static;
+  }
+  .main-wrapper .main__content-care .item .shelf-why__tip {
+    left: 0;
+    max-width: 100%;
+  }
+}
+.main-wrapper .main__content-care .item .shelf-why:hover .shelf-why__tip,
+.main-wrapper .main__content-care .item .shelf-why:focus .shelf-why__tip {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .main-wrapper .main__content-care .item.item--shelf .description {
   margin-bottom: 0;
@@ -801,7 +867,7 @@
   line-height: 22px;
   color: #6b6b6b;
 }
-/* the reason is our note: a 16px info icon in the row's first column, on the first line of text
+/* the reason is our note: a 16px question mark in the row's first column, on the first line of text
    (1px strokes on half pixels, snapped by pixel-snap.js) */
 .main-wrapper .shelf-skip__icon {
   align-self: start;
@@ -878,4 +944,136 @@
    grey photo tile; the phone gets its own 80px drawing through <picture>, so its 1px lines stay sharp too */
 .main-wrapper .main__content-care .item .img-holder--line picture {
   display: block;
+}
+
+/* Prototype: under the jars' shelf, one grey line on what we couldn't recognise (the brief's «Не змогли
+   перевірити»). Outside the section, so the shelf stays at its bottom; above it, so the shelf's underside
+   (seen from below) goes behind the text */
+.main-wrapper .shelf-extra:has(+ .shelf-extra__unknown) {
+  margin-bottom: 20px;
+}
+.main-wrapper .shelf-extra__unknown {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 64px;
+  padding-left: var(--optical-inset);
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-extra:has(+ .shelf-extra__unknown) {
+    margin-bottom: 16px;
+  }
+  .main-wrapper .shelf-extra__unknown {
+    margin-bottom: 48px;
+  }
+}
+
+/* Prototype (empty.html): the shelf analysis isn't ready yet — a card under «Твоя схема догляду», before the
+   tabs: why the scheme is ours for now, and «Нагадати
+   про готовність на пошту» (the site's secondary button), which turns into a green confirmation */
+/* highlighted like the promo code strip in the cart (CartPromo / CartGiftPicker .picker): a grey fill (neutral/100
+   at 70%) and thin border/strong rules above and below, strongest in the middle and fading out to the left
+   and right. The band runs a little past the column (40px; on phones to the screen's edges), so the fade
+   ends outside the text; the text on the column like the headings (4px optical inset), the button on its edge */
+.main-wrapper .shelf-pending {
+  --band: 40px;
+  --line: transparent, var(--neutral-300) 50%, transparent;
+  --fill: transparent, color-mix(in oklch, var(--neutral-100) 70%, transparent) 50%, transparent;
+  --neutral-100: oklch(94.01% 0 0);
+  --neutral-300: oklch(88.53% 0 0);
+  display: flex;
+  align-items: flex-start; /* the envelope beside the heading and the text, not the button */
+  gap: 24px;
+  margin: 16px calc(-1 * var(--band)) 32px;
+  padding: 24px var(--band);
+  background:
+    linear-gradient(to right, var(--line)) top / 100% 1px no-repeat,
+    linear-gradient(to right, var(--line)) bottom / 100% 1px no-repeat,
+    linear-gradient(to right, var(--fill));
+}
+.main-wrapper .shelf-pending__title,
+.main-wrapper .shelf-pending__text,
+.main-wrapper .shelf-pending__done {
+  padding-left: var(--optical-inset);
+}
+.main-wrapper .shelf-pending__body {
+  flex: 1;
+  min-width: 0;
+}
+/* a big «@» at the start, an outline of our accent face (the serif italic of «Крок 1 · …» and the logo's
+   «(tet)»): no fill, a 1px stroke, its top on the heading's top */
+.main-wrapper .shelf-pending__icon {
+  flex: none;
+  display: block;
+  margin-top: -3px; /* the glyph's top lands ~4px into the heading's line, on its cap height */
+  font-family: NibProSemiBoldItalic;
+  font-size: 104px;
+  line-height: 104px;
+  color: transparent;
+  -webkit-text-stroke: 1px #c4c4c4; /* light: a step lighter than the icons' secondary lines */
+  user-select: none;
+}
+.main-wrapper .shelf-pending__title {
+  margin: 0;
+  font-family: NibProBold;
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 24px;
+  color: #000;
+}
+.main-wrapper .shelf-pending__text {
+  max-width: 520px;
+  margin: 4px 0 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .shelf-pending__actions {
+  margin-top: 20px;
+}
+.main-wrapper .shelf-pending .shelf-pending__send {
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+.main-wrapper .shelf-pending__done {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  min-height: 48px;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #107a40;
+}
+.main-wrapper .shelf-pending__done[hidden],
+.main-wrapper .shelf-pending__send[hidden] {
+  display: none;
+}
+.main-wrapper .shelf-pending__done svg {
+  flex: none;
+  display: block;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-pending {
+    --band: 20px;
+    margin-bottom: 24px;
+    padding-block: 20px;
+  }
+  /* phones: no room beside the text, and scaled down its 1px lines would blur */
+  .main-wrapper .shelf-pending__icon {
+    display: none;
+  }
+  .main-wrapper .shelf-pending__title {
+    font-size: 16px;
+    line-height: 20px;
+  }
+  .main-wrapper .shelf-pending .shelf-pending__send {
+    width: 100%;
+  }
 }
