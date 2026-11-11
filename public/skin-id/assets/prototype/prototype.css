@@ -753,16 +753,24 @@
   list-style: none;
 }
 /* rules between the rows only; the text goes in with the headings, the rules stay edge to edge */
+/* a column for our comment's icon, then the product and the reason */
 .main-wrapper .shelf-skip__row {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-columns: 16px minmax(0, 5fr) minmax(0, 7fr);
   /* the reason starts on the name's first line */
   align-items: first baseline;
-  column-gap: 40px;
   padding: 20px 0 20px var(--optical-inset);
 }
+.main-wrapper .shelf-skip__row > .shelf-skip__product {
+  padding-left: 12px;
+}
+.main-wrapper .shelf-skip__row > .shelf-skip__why {
+  padding-left: 40px;
+}
+/* split by the zigzag rule of the steps' shelf rows (.shelf-next): 12px period, 4px tall */
 .main-wrapper .shelf-skip__row + .shelf-skip__row {
-  border-top: 1px solid #e5e5e5;
+  padding-top: 24px; /* 20px of air + the 4px zigzag */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='4' viewBox='0 0 12 4'%3E%3Cpath d='M-6 .5 0 3.5 6 .5 12 3.5 18 .5' fill='none' stroke='%23d6d6d6' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top / 12px 4px;
 }
 .main-wrapper .shelf-skip__product {
   display: flex;
@@ -785,11 +793,20 @@
   line-height: 20px;
   color: #6b6b6b;
 }
+/* the reason in our voice: the site's serif italic, as in «Крок 1 · …» over the steps */
 .main-wrapper .shelf-skip__why {
   margin: 0;
-  font-family: Sailec;
-  font-size: 14px;
-  line-height: 20px;
+  font-family: NibProSemiBoldItalic;
+  font-size: 16px;
+  line-height: 22px;
+  color: #6b6b6b;
+}
+/* the reason is our note: a 16px info icon in the row's first column, on the first line of text
+   (1px strokes on half pixels, snapped by pixel-snap.js) */
+.main-wrapper .shelf-skip__icon {
+  align-self: start;
+  margin-top: 2px;
+  display: block;
   color: #6b6b6b;
 }
 @media (max-width: 1024px) {
@@ -802,9 +819,19 @@
   }
   /* phones: the reason goes under the brand */
   .main-wrapper .shelf-skip__row {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 16px minmax(0, 1fr);
     row-gap: 8px;
     padding-block: 16px;
+  }
+  .main-wrapper .shelf-skip__row + .shelf-skip__row {
+    padding-top: 20px;
+  }
+  .main-wrapper .shelf-skip__icon {
+    grid-row: 1 / span 2;
+  }
+  .main-wrapper .shelf-skip__row > .shelf-skip__why {
+    grid-column: 2;
+    padding-left: 12px;
   }
 }
 /* on phones the price and «Купити» swap places: the price is text on the left edge, so it goes in too */
