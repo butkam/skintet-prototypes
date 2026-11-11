@@ -182,7 +182,7 @@
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='4' viewBox='0 0 12 4'%3E%3Cpath d='M-6 .5 0 3.5 6 .5 12 3.5 18 .5' fill='none' stroke='%23d6d6d6' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top / 12px 4px;
 }
 @media (max-width: 1024px) {
-  /* narrow: photo and name in a row, Buy under the name (48px photo + 16px gap) */
+  /* narrow: icon and name in a row, Buy under the name (32px icon + 16px gap) */
   .main-wrapper .main__content-care .item .shelf-rows {
     grid-column: 1 / -1;
   }
@@ -191,30 +191,26 @@
     row-gap: 8px;
   }
   .main-wrapper .main__content-care .item .shelf-next .shelf-next__info {
-    flex: 1 1 calc(100% - 64px);
+    flex: 1 1 calc(100% - 48px);
   }
   .main-wrapper .main__content-care .item .shelf-next .sk-button {
-    margin-left: 64px;
+    margin-left: 48px;
   }
 }
-.main-wrapper .main__content-care .item .shelf-next__img {
+/* the row's icon instead of a photo, 32px, no tile: «Альтернатива» — two bottles, a smaller one behind on the
+   left (in solid grey #a4a4a4, 40% of the black on white, not opacity, so its parts never darken where they
+   meet; its cap whole and its body cut off with square ends 2px short of the front one, so a clean
+   strip of white parts them and no lines meet) and a bigger one in front on the right; «Коли
+   закінчиться» — the same bottle nearly empty. 1px strokes on half pixels like the catalog menu icons; the
+   column starts at x = 300.16…, so pixel-snap.js nudges the svg onto whole device pixels (data-pixel-snap) */
+.main-wrapper .main__content-care .item .shelf-next__icon {
   flex: none;
-  display: block;
+  width: 32px;
+  height: 32px;
+  color: #1b1b1b;
 }
-.main-wrapper .main__content-care .item .shelf-next__img img {
+.main-wrapper .main__content-care .item .shelf-next__icon svg {
   display: block;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: #f5f5f5;
-  object-fit: cover;
-}
-/* no photo of her product: a plain tile of the same size */
-.main-wrapper .main__content-care .item .shelf-next__img--empty {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: #f5f5f5;
 }
 .main-wrapper .main__content-care .item .shelf-next__info {
   flex: 1;
@@ -265,6 +261,10 @@
   padding: 4px 4px 0;
   background-color: #fafafa;
   border-radius: 24px 24px 32px 32px;
+  /* above the last step's shelf: its underside (seen from below on scroll) hangs into the gap and would
+     paint over the card, a positioned step otherwise paints after a static card */
+  position: relative;
+  z-index: 1;
 }
 .main-wrapper .main__content-care .care-result__body {
   background-color: #fff;
@@ -470,20 +470,70 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
+/* desktop: the row starts 64px left of the column, and the jars fade out as they swipe into that strip,
+   gone by the shelf's end (24px past the column), so none floats past it */
+@media (min-width: 1025px) {
+  .main-wrapper .shelf-extra__list {
+    --fade: 64px;
+    margin-left: calc(-1 * var(--fade));
+    padding-left: var(--fade);
+    scroll-padding-left: var(--fade);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, transparent 24px, rgba(0, 0, 0, 0.35) 40px, #000 var(--fade));
+    mask-image: linear-gradient(to right, transparent 0, transparent 24px, rgba(0, 0, 0, 0.35) 40px, #000 var(--fade));
+  }
+}
 .main-wrapper .shelf-extra__list::-webkit-scrollbar {
   display: none;
 }
-/* the card of the ingredient slider on phones: a 1px #e5e5e5 border, 24px corners */
+/* Each card is a jar standing on a shelf, a very light line drawing (from the sketch): a wide jar with
+   rounded edges, its text on it, straight and left-aligned. The jar is an SVG behind the text
+   (.shelf-extra__jar), drawn by shelf-jars.js: its rims turn with the page's scroll like the shelf (round
+   by up to --jar-ry, seen from above or below), its corners stay --jar-corner round, and it stands on the
+   shelf --jar-stand back from the front edge. The jars in a row are as tall as the tallest (flex stretch).
+   Under them, the scheme steps' shelf (the same rules, with the 3D on scroll of shelf-perspective.js),
+   drawn by the section itself, so it stays put while the jars swipe over it: from past the column on the
+   left to the end of the row on the right (--bleed) */
+.main-wrapper .shelf-extra {
+  --jar-ry: 32px; /* in step with the shelf: its top shows up to 104px deep, the jars stand on part of it */
+  --jar-lid: 24px;
+  --jar-corner: 14px;
+  --jar-line: #dcdcdc;
+  --jar-stand: 14px; /* the jars stand a little back from the shelf's front edge */
+  --jar-headroom: 48px; /* seen from above they rise: up to the stand and the bottom rim's curve */
+  --shelf-overhang-right: var(--bleed);
+}
 .main-wrapper .shelf-extra__card {
   flex: 0 0 320px;
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 24px;
-  border: 1px solid #e5e5e5;
-  border-radius: 24px;
+  /* the text: under the lid's seam even at its roundest (low on the screen, seen from above), and just
+     above the jar's bottom face */
+  padding: calc(2 * var(--jar-ry) + var(--jar-corner) + var(--jar-lid) + 16px) 28px calc(var(--shelf-plank) + var(--jar-corner) + 28px);
   scroll-snap-align: start;
 }
+/* the jar with its text, moved by shelf-jars.js to stand on the shelf as it turns (a transform: the
+   layout stays); the row has room above for them to rise into */
+.main-wrapper .shelf-extra__card {
+  transform: translateY(var(--jar-shift, 0px));
+}
+.main-wrapper .shelf-extra__list {
+  padding-top: var(--jar-headroom);
+}
+.main-wrapper .shelf-extra__jar {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+}
+.main-wrapper .shelf-extra__jar svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
 .main-wrapper .shelf-extra__brand {
   font-family: Sailec;
   font-size: 14px;
@@ -496,6 +546,22 @@
   font-size: 20px;
   line-height: 24px;
   color: #000;
+}
+/* when to use it, under the name: a 16px clock (1px strokes on half pixels, snapped by pixel-snap.js) */
+.main-wrapper .shelf-extra__when {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+.main-wrapper .shelf-extra__when svg {
+  flex: none;
+  display: block;
+  color: #6b6b6b;
 }
 .main-wrapper .shelf-extra__how {
   margin: 12px 0 0;
@@ -523,9 +589,16 @@
     padding-left: 20px;
     scroll-padding-inline: 20px;
   }
+  .main-wrapper .shelf-extra {
+    --jar-ry: 22px;
+    --jar-lid: 20px;
+    --jar-corner: 12px;
+    --jar-stand: 10px;
+    --jar-headroom: 36px;
+  }
   .main-wrapper .shelf-extra__card {
     flex-basis: 272px;
-    padding: 20px;
+    padding: calc(2 * var(--jar-ry) + var(--jar-corner) + var(--jar-lid) + 12px) 24px calc(var(--shelf-plank) + var(--jar-corner) + 22px);
   }
   .main-wrapper .shelf-extra__name {
     font-size: 16px;
@@ -570,9 +643,89 @@
   border-bottom-color: transparent;
 }
 
+/* Prototype: each step stands on a shelf, a very light line drawing (from the sketch): the shelf's front edge
+   is a plank at the bottom of the step, sticking out past the column on both sides; its top (or its
+   underside) runs back in perspective, the sides narrowing inward, and fades out.
+
+   3D on scroll (shelf-perspective.js): the eye is at the middle of the screen. A shelf below it is seen
+   from above, its top rising behind the text; a shelf above it is seen from below, its underside hanging
+   under the plank; at eye level only the plank. The script sets --shelf-h (how much of the top/underside
+   shows, up to --shelf-depth) and --shelf-under (0 top, 1 underside); the underside is the same drawing
+   flipped (scale 1 -1, exact) and moved under the plank. Without the script (or with reduced motion) the
+   top shows at full depth.
+
+   The drawing is three background layers: a corner at each end (a triangle of fill and the slanted side,
+   an SVG exactly the inset wide and stretched only in height, its 1px side kept by non-scaling-stroke) and
+   the plain fill between them, fading the same way. Clean joints: the drawing overlaps the plank by 1px, so
+   the slanted side starts under the plank's border, in its corner column; square plank corners; and
+   pixel-snap.js sets --snap-left/right/bottom so the plank's edges land on whole device pixels */
+.main-wrapper .main__content-care .item,
+.main-wrapper .shelf-extra {
+  --shelf-inset: 72px;
+  --shelf-depth: 104px;
+  --shelf-plank: 12px;
+  --shelf-overhang: 24px;
+  --shelf-fill: rgba(0, 0, 0, 0.028);
+  --shelf-corner-l: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 104' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='f' gradientUnits='userSpaceOnUse' x1='0' y1='104' x2='0' y2='0'%3E%3Cstop stop-opacity='.028'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' gradientUnits='userSpaceOnUse' x1='0' y1='104' x2='0' y2='0'%3E%3Cstop stop-opacity='.1'/%3E%3Cstop offset='.85' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 104L72 0V104Z' fill='url%28%23f%29'/%3E%3Cpath d='M.5 104L72.5 0' stroke='url%28%23s%29' vector-effect='non-scaling-stroke' fill='none'/%3E%3C/svg%3E");
+  --shelf-corner-r: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 104' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='f' gradientUnits='userSpaceOnUse' x1='0' y1='104' x2='0' y2='0'%3E%3Cstop stop-opacity='.028'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' gradientUnits='userSpaceOnUse' x1='0' y1='104' x2='0' y2='0'%3E%3Cstop stop-opacity='.1'/%3E%3Cstop offset='.85' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M72 104L0 0V104Z' fill='url%28%23f%29'/%3E%3Cpath d='M71.5 104L-.5 0' stroke='url%28%23s%29' vector-effect='non-scaling-stroke' fill='none'/%3E%3C/svg%3E");
+  position: relative;
+  isolation: isolate;
+}
+.main-wrapper .main__content-care .item::before,
+.main-wrapper .main__content-care .item::after,
+.main-wrapper .shelf-extra::before,
+.main-wrapper .shelf-extra::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--snap-left, 0px) - var(--shelf-overhang));
+  right: calc(-1 * var(--shelf-overhang-right, var(--shelf-overhang)) - var(--snap-right, 0px));
+  z-index: -1;
+  pointer-events: none;
+}
+.main-wrapper .main__content-care .item::before,
+.main-wrapper .shelf-extra::before {
+  --h: var(--shelf-h, var(--shelf-depth));
+  bottom: calc(var(--shelf-plank) - 1px - var(--snap-bottom, 0px)
+    - var(--shelf-under, 0) * (var(--h) + var(--shelf-plank) - 2px));
+  height: var(--h);
+  scale: 1 calc(1 - 2 * var(--shelf-under, 0));
+  background:
+    var(--shelf-corner-l) left bottom / var(--shelf-inset) 100% no-repeat,
+    var(--shelf-corner-r) right bottom / var(--shelf-inset) 100% no-repeat,
+    linear-gradient(to top, var(--shelf-fill), transparent) center bottom / calc(100% - 2 * var(--shelf-inset)) 100% no-repeat;
+}
+.main-wrapper .main__content-care .item::after,
+.main-wrapper .shelf-extra::after {
+  bottom: calc(0px - var(--snap-bottom, 0px));
+  height: var(--shelf-plank);
+  box-sizing: border-box;
+  border: 1px solid #e8e8e8;
+  background: #fcfcfc;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item,
+  .main-wrapper .shelf-extra {
+    --shelf-inset: 40px;
+    --shelf-depth: 72px;
+    --shelf-plank: 10px;
+    --shelf-overhang: 20px; /* the page gutter: the shelf runs edge to edge of the screen */
+    --shelf-corner-l: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 72' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='f' gradientUnits='userSpaceOnUse' x1='0' y1='72' x2='0' y2='0'%3E%3Cstop stop-opacity='.028'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' gradientUnits='userSpaceOnUse' x1='0' y1='72' x2='0' y2='0'%3E%3Cstop stop-opacity='.1'/%3E%3Cstop offset='.85' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 72L40 0V72Z' fill='url%28%23f%29'/%3E%3Cpath d='M.5 72L40.5 0' stroke='url%28%23s%29' vector-effect='non-scaling-stroke' fill='none'/%3E%3C/svg%3E");
+    --shelf-corner-r: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 72' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='f' gradientUnits='userSpaceOnUse' x1='0' y1='72' x2='0' y2='0'%3E%3Cstop stop-opacity='.028'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' gradientUnits='userSpaceOnUse' x1='0' y1='72' x2='0' y2='0'%3E%3Cstop stop-opacity='.1'/%3E%3Cstop offset='.85' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M40 72L0 0V72Z' fill='url%28%23f%29'/%3E%3Cpath d='M39.5 72L-.5 0' stroke='url%28%23s%29' vector-effect='non-scaling-stroke' fill='none'/%3E%3C/svg%3E");
+  }
+}
+
+/* the plank of the jars' shelf in front of the jars: seen from below, their bottoms sink behind it (its top,
+   ::before, stays behind them) */
+.main-wrapper .shelf-extra::after {
+  z-index: 1;
+}
+
 /* Prototype: «Краще відкласти» — a plain list split by horizontal rules, no card */
 .main-wrapper .shelf-skip {
   margin: 64px 0;
+  /* above the jars' shelf: its underside (seen from below on scroll) hangs into the gap */
+  position: relative;
+  z-index: 1;
 }
 .main-wrapper .shelf-skip__head {
   margin-bottom: 8px;
@@ -617,8 +770,10 @@
   /* a little narrower than its column; the reason keeps its place and width */
   max-width: 240px;
 }
+/* the product's name in the body face (Sailec Regular, the only Sailec the site has), told apart from the
+   grey brand and reason by its black */
 .main-wrapper .shelf-skip__name {
-  font-family: NibProBold;
+  font-family: Sailec;
   font-size: 14px;
   line-height: 20px;
   color: #000;
@@ -689,4 +844,11 @@
   .main-wrapper .main__content-advice .dots {
     display: none;
   }
+}
+
+/* Prototype: a product from her shelf with no catalog photo: a plain line drawing of a tube (for now the same
+   for every product; a bottle and a pump are drawn too, in assets/prototype/shelf-products/), on the site's
+   grey photo tile; the phone gets its own 80px drawing through <picture>, so its 1px lines stay sharp too */
+.main-wrapper .main__content-care .item .img-holder--line picture {
+  display: block;
 }

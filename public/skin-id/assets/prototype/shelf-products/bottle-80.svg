@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+<!-- Prototype: a product from her shelf as a plain line drawing, no background. 1px strokes centred on half pixels, drawn separately at 80px (desktop 224, phone 80) so they stay sharp; outline #1B1B1B, details solid #A4A4A4 -->
+<g stroke-linejoin="round" stroke-linecap="round"><path d="M35.5 23.5V15.5C35.5 14.95 35.95 14.5 36.5 14.5H43.5C44.05 14.5 44.5 14.95 44.5 15.5V23.5Z" stroke="#1B1B1B"/><path d="M36.5 23.5H43.5V26.5H36.5Z" stroke="#1B1B1B"/><path d="M28.5 31.5C28.5 28.74 30.74 26.5 33.5 26.5H46.5C49.26 26.5 51.5 28.74 51.5 31.5V63.5C51.5 65.16 50.16 66.5 48.5 66.5H31.5C29.84 66.5 28.5 65.16 28.5 63.5Z" stroke="#1B1B1B"/><path d="M28.5 40.5H51.5" stroke="#A4A4A4"/><path d="M28.5 57.5H51.5" stroke="#A4A4A4"/></g>
+</svg>

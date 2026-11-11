@@ -1363,7 +1363,7 @@
       
         
   <!-- Prototype: a step covered by the client's own product (from her shelf) — no price, no Buy -->
-  <div class="item item--shelf">
+  <div class="item item--shelf" data-pixel-snap-box>
     <div class="steps">
       <span class="step">Крок 1</span>
       <span class="name">Мʼяке ранкове очищення</span>
@@ -1386,7 +1386,7 @@
     <div class="shelf-rows">
       <!-- Prototype: another product from her shelf that also fits this step — use one or the other -->
       <div class="shelf-next shelf-next--alt">
-        <span class="shelf-next__img shelf-next__img--empty" aria-hidden="true"></span>
+        <span class="shelf-next__icon" aria-hidden="true"><svg data-pixel-snap width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M8.5 12.5V9.5H11.5V12.5M12 12.5H8.5C7.395 12.5 6.5 13.395 6.5 14.5V27C6.5 27.828 7.172 28.5 8 28.5H12" stroke="#A4A4A4" stroke-linejoin="round"/><path d="M17.5 3.5H22.5V8.5H17.5Z" stroke="currentColor" stroke-linejoin="round"/><path d="M14.5 11.5C14.5 9.843 15.843 8.5 17.5 8.5H22.5C24.157 8.5 25.5 9.843 25.5 11.5V27C25.5 27.828 24.828 28.5 24 28.5H16C15.172 28.5 14.5 27.828 14.5 27Z" stroke="currentColor" stroke-linejoin="round"/></svg></span>
         <div class="shelf-next__info">
           <span class="shelf-next__label">Альтернатива з твоєї полички</span>
           <span class="shelf-next__name">Міцелярна вода Sensibio H2O, Bioderma</span>
@@ -1395,7 +1395,7 @@
       </div>
       <!-- Prototype: our product as the next purchase, once hers runs out -->
       <div class="shelf-next">
-        <a class="shelf-next__img" href="https://skintet.com/products/gentle-cleanse" tabindex="-1" aria-hidden="true"><img alt="" width="48" height="48" loading="lazy" src="media/image/ee/dd/x7d4c9960ec4d122e1e711d80d83e.webp.pagespeed.ic.kg8I5zweFR.webp"></a>
+        <span class="shelf-next__icon" aria-hidden="true"><svg data-pixel-snap width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M13.5 3.5H18.5V8.5H13.5Z" stroke="currentColor" stroke-linejoin="round"/><path d="M11 25H21V27C21 27.552 20.552 28 20 28H12C11.448 28 11 27.552 11 27Z" fill="#A4A4A4"/><path d="M10.5 11.5C10.5 9.843 11.843 8.5 13.5 8.5H18.5C20.157 8.5 21.5 9.843 21.5 11.5V27C21.5 27.828 20.828 28.5 20 28.5H12C11.172 28.5 10.5 27.828 10.5 27Z" stroke="currentColor" stroke-linejoin="round"/><path d="M10.5 24.5H21.5" stroke="currentColor"/></svg></span>
         <div class="shelf-next__info">
           <span class="shelf-next__label">Коли закінчиться</span>
           <a class="shelf-next__name" href="https://skintet.com/products/gentle-cleanse">Пінка для очищення Gentle cleanse™</a>
@@ -1406,9 +1406,12 @@
       </div>
     </div>
 
-    <div class="img-holder">
-      <!-- Prototype: no catalog photo for this product — line placeholder -->
-      <img alt="" width="224" height="224" src="assets/prototype/placeholder-jars.svg">
+    <div class="img-holder img-holder--line">
+      <!-- Prototype: no catalog photo for her product — a plain line drawing of a tube (for now the same for every product), drawn apart for the phone's 80px -->
+      <picture>
+        <source media="(max-width: 1024px)" srcset="assets/prototype/shelf-products/tube-80.svg">
+        <img alt="" width="224" height="224" src="assets/prototype/shelf-products/tube-224.svg">
+      </picture>
     </div>
   </div>
                   
@@ -1418,7 +1421,7 @@
       
       
         
-  <div class="item">
+  <div class="item" data-pixel-snap-box>
     <div class="steps">
       <span class="step">Крок 2</span>
       <span class="name">Зволожувальна сироватка</span>
@@ -1465,7 +1468,7 @@
       
       
         
-  <div class="item">
+  <div class="item" data-pixel-snap-box>
     <div class="steps">
       <span class="step">Крок 3</span>
       <span class="name">Зволоження та захист</span>
@@ -1517,7 +1520,7 @@
       
       
         
-  <div class="item item--shelf">
+  <div class="item item--shelf" data-pixel-snap-box>
     <div class="steps">
       <span class="step">Крок 1</span>
       <span class="name">Вечірнє очищення</span>
@@ -1540,7 +1543,7 @@
     <div class="shelf-rows">
       <!-- Prototype: our product as the next purchase, once hers runs out -->
       <div class="shelf-next">
-        <a class="shelf-next__img" href="https://skintet.com/products/gentle-cleanse" tabindex="-1" aria-hidden="true"><img alt="" width="48" height="48" loading="lazy" src="media/image/ee/dd/x7d4c9960ec4d122e1e711d80d83e.webp.pagespeed.ic.kg8I5zweFR.webp"></a>
+        <span class="shelf-next__icon" aria-hidden="true"><svg data-pixel-snap width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M13.5 3.5H18.5V8.5H13.5Z" stroke="currentColor" stroke-linejoin="round"/><path d="M11 25H21V27C21 27.552 20.552 28 20 28H12C11.448 28 11 27.552 11 27Z" fill="#A4A4A4"/><path d="M10.5 11.5C10.5 9.843 11.843 8.5 13.5 8.5H18.5C20.157 8.5 21.5 9.843 21.5 11.5V27C21.5 27.828 20.828 28.5 20 28.5H12C11.172 28.5 10.5 27.828 10.5 27Z" stroke="currentColor" stroke-linejoin="round"/><path d="M10.5 24.5H21.5" stroke="currentColor"/></svg></span>
         <div class="shelf-next__info">
           <span class="shelf-next__label">Коли закінчиться</span>
           <a class="shelf-next__name" href="https://skintet.com/products/gentle-cleanse">Пінка для очищення Gentle cleanse™</a>
@@ -1551,9 +1554,12 @@
       </div>
     </div>
 
-    <div class="img-holder">
-      <!-- Prototype: no catalog photo for this product — line placeholder -->
-      <img alt="" width="224" height="224" src="assets/prototype/placeholder-jars.svg">
+    <div class="img-holder img-holder--line">
+      <!-- Prototype: no catalog photo for her product — a plain line drawing of a tube (for now the same for every product), drawn apart for the phone's 80px -->
+      <picture>
+        <source media="(max-width: 1024px)" srcset="assets/prototype/shelf-products/tube-80.svg">
+        <img alt="" width="224" height="224" src="assets/prototype/shelf-products/tube-224.svg">
+      </picture>
     </div>
   </div>
                   
@@ -1563,7 +1569,7 @@
       
       
         
-  <div class="item item--shelf">
+  <div class="item item--shelf" data-pixel-snap-box>
     <div class="steps">
       <span class="step">Крок 2</span>
       <span class="name">Відновлювальний крем</span>
@@ -1586,7 +1592,7 @@
     <div class="shelf-rows">
       <!-- Prototype: our product as the next purchase, once hers runs out -->
       <div class="shelf-next">
-        <a class="shelf-next__img" href="https://skintet.com/products/h-e-o-mask" tabindex="-1" aria-hidden="true"><img alt="" width="48" height="48" loading="lazy" src="media/image/22/99/x2d5c9c8849ed3b461a533bc138c8.webp.pagespeed.ic.Sphq8lr-jF.webp"></a>
+        <span class="shelf-next__icon" aria-hidden="true"><svg data-pixel-snap width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M13.5 3.5H18.5V8.5H13.5Z" stroke="currentColor" stroke-linejoin="round"/><path d="M11 25H21V27C21 27.552 20.552 28 20 28H12C11.448 28 11 27.552 11 27Z" fill="#A4A4A4"/><path d="M10.5 11.5C10.5 9.843 11.843 8.5 13.5 8.5H18.5C20.157 8.5 21.5 9.843 21.5 11.5V27C21.5 27.828 20.828 28.5 20 28.5H12C11.172 28.5 10.5 27.828 10.5 27Z" stroke="currentColor" stroke-linejoin="round"/><path d="M10.5 24.5H21.5" stroke="currentColor"/></svg></span>
         <div class="shelf-next__info">
           <span class="shelf-next__label">Коли закінчиться</span>
           <a class="shelf-next__name" href="https://skintet.com/products/h-e-o-mask">Нічна маска H.e.o.® mask</a>
@@ -1597,9 +1603,12 @@
       </div>
     </div>
 
-    <div class="img-holder">
-      <!-- Prototype: no catalog photo for this product — line placeholder -->
-      <img alt="" width="224" height="224" src="assets/prototype/placeholder-jars.svg">
+    <div class="img-holder img-holder--line">
+      <!-- Prototype: no catalog photo for her product — a plain line drawing of a tube (for now the same for every product), drawn apart for the phone's 80px -->
+      <picture>
+        <source media="(max-width: 1024px)" srcset="assets/prototype/shelf-products/tube-80.svg">
+        <img alt="" width="224" height="224" src="assets/prototype/shelf-products/tube-224.svg">
+      </picture>
     </div>
   </div>
               </div>
@@ -1694,7 +1703,7 @@
 
         <!-- Prototype: «Додатково з твоєї полички» — the client's own products that are fine to keep alongside the scheme.
              One row of cards that runs past the screen edge; arrows on desktop (assets/prototype/shelf-extra.js) -->
-        <section class="shelf-extra" aria-labelledby="shelf-extra-title">
+        <section class="shelf-extra" aria-labelledby="shelf-extra-title" data-pixel-snap-box>
       <div class="shelf-extra__head">
         <div class="shelf-extra__heading">
           <h2 class="shelf-extra__title" id="shelf-extra-title">Додатково з твоєї полички</h2>
@@ -1710,31 +1719,41 @@
         </div>
       </div>
 
-      <ul class="shelf-extra__list" data-shelf-extra-list>
+      <ul class="shelf-extra__list" data-shelf-extra-list data-pixel-snap>
         <li class="shelf-extra__card">
+          <span class="shelf-extra__jar" aria-hidden="true"></span>
           <span class="shelf-extra__brand">Etude</span>
           <span class="shelf-extra__name">Тонер SoonJung pH&nbsp;5.5 Relief Toner</span>
-          <p class="shelf-extra__how">Вранці і ввечері після очищення, перед сироваткою. Наноси руками, без ватного диска&nbsp;— так менше тертя.</p>
+          <span class="shelf-extra__when"><svg data-pixel-snap width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8.5 14.5C11.814 14.5 14.5 11.814 14.5 8.5C14.5 5.186 11.814 2.5 8.5 2.5C5.186 2.5 2.5 5.186 2.5 8.5C2.5 11.814 5.186 14.5 8.5 14.5Z" stroke="currentColor"/><path d="M8.5 5.5V8.5H10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Вранці і ввечері</span>
+          <p class="shelf-extra__how">Після очищення, перед сироваткою. Наноси руками, без ватного диска&nbsp;— так менше тертя.</p>
         </li>
         <li class="shelf-extra__card">
+          <span class="shelf-extra__jar" aria-hidden="true"></span>
           <span class="shelf-extra__brand">The Ordinary</span>
           <span class="shelf-extra__name">Сироватка з ніацинамідом 10% + цинк 1%</span>
-          <p class="shelf-extra__how">Вранці: 2–3 краплі після тонера, перед Hydr8 B5. Перші два тижні&nbsp;— через день, поки шкіра звикає.</p>
+          <span class="shelf-extra__when"><svg data-pixel-snap width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8.5 14.5C11.814 14.5 14.5 11.814 14.5 8.5C14.5 5.186 11.814 2.5 8.5 2.5C5.186 2.5 2.5 5.186 2.5 8.5C2.5 11.814 5.186 14.5 8.5 14.5Z" stroke="currentColor"/><path d="M8.5 5.5V8.5H10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Вранці</span>
+          <p class="shelf-extra__how">2–3 краплі після тонера, перед Hydr8 B5. Перші два тижні&nbsp;— через день, поки шкіра звикає.</p>
         </li>
         <li class="shelf-extra__card">
+          <span class="shelf-extra__jar" aria-hidden="true"></span>
           <span class="shelf-extra__brand">Laneige</span>
           <span class="shelf-extra__name">Нічна маска Water Sleeping Mask</span>
-          <p class="shelf-extra__how">Двічі на тиждень увечері, останнім кроком замість Cicaplast Baume B5+. Тонким шаром, змивати вранці.</p>
+          <span class="shelf-extra__when"><svg data-pixel-snap width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8.5 14.5C11.814 14.5 14.5 11.814 14.5 8.5C14.5 5.186 11.814 2.5 8.5 2.5C5.186 2.5 2.5 5.186 2.5 8.5C2.5 11.814 5.186 14.5 8.5 14.5Z" stroke="currentColor"/><path d="M8.5 5.5V8.5H10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Ввечері, двічі на тиждень</span>
+          <p class="shelf-extra__how">Останнім кроком замість Cicaplast Baume B5+. Тонким шаром, змивати вранці.</p>
         </li>
         <li class="shelf-extra__card">
+          <span class="shelf-extra__jar" aria-hidden="true"></span>
           <span class="shelf-extra__brand">Avène</span>
           <span class="shelf-extra__name">Термальна вода Eau Thermale</span>
-          <p class="shelf-extra__how">Протягом дня, коли відчуваєш стягнутість: розпиляй і за хвилину промокни серветкою, не чекай, поки висохне сама.</p>
+          <span class="shelf-extra__when"><svg data-pixel-snap width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8.5 14.5C11.814 14.5 14.5 11.814 14.5 8.5C14.5 5.186 11.814 2.5 8.5 2.5C5.186 2.5 2.5 5.186 2.5 8.5C2.5 11.814 5.186 14.5 8.5 14.5Z" stroke="currentColor"/><path d="M8.5 5.5V8.5H10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Протягом дня</span>
+          <p class="shelf-extra__how">Коли відчуваєш стягнутість: розпиляй і за хвилину промокни серветкою, не чекай, поки висохне сама.</p>
         </li>
         <li class="shelf-extra__card">
+          <span class="shelf-extra__jar" aria-hidden="true"></span>
           <span class="shelf-extra__brand">Laneige</span>
           <span class="shelf-extra__name">Маска для губ Lip Sleeping Mask</span>
-          <p class="shelf-extra__how">Щовечора на губи, останнім кроком після догляду для обличчя.</p>
+          <span class="shelf-extra__when"><svg data-pixel-snap width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8.5 14.5C11.814 14.5 14.5 11.814 14.5 8.5C14.5 5.186 11.814 2.5 8.5 2.5C5.186 2.5 2.5 5.186 2.5 8.5C2.5 11.814 5.186 14.5 8.5 14.5Z" stroke="currentColor"/><path d="M8.5 5.5V8.5H10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Щовечора</span>
+          <p class="shelf-extra__how">На губи, останнім кроком після догляду для обличчя.</p>
         </li>
       </ul>
     </section>
@@ -2573,6 +2592,8 @@
     <script type="text/javascript" defer src="assets/shop/js/parts/skin-id-cart.js"></script>
     <script type="text/javascript" defer src="assets/prototype/pixel-snap.js"></script>
     <script type="text/javascript" defer src="assets/prototype/shelf-extra.js"></script>
+    <script type="text/javascript" defer src="assets/prototype/shelf-perspective.js"></script>
+    <script type="text/javascript" defer src="assets/prototype/shelf-jars.js"></script>
 
 
 
