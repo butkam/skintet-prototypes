@@ -462,6 +462,171 @@
   color: #107a40;
 }
 
+/* Prototype (classic.html): the routine card as it was before the shelf analysis — no frame, the set of 7
+   on the left, the price with both buttons beside it, the product page's info card under the buttons.
+   First the card rules above undone back to the site's own (style.min.css), then the old card's */
+.main-wrapper .main__content-care .care-result.care-result--classic {
+  display: flex;
+  margin-top: 0;
+  padding: 40px 0 0;
+  background: none;
+  border-radius: 0;
+}
+.main-wrapper .main__content-care .care-result--classic .care-result__info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: normal;
+  margin: 0;
+}
+.main-wrapper .main__content-care .care-result--classic .images {
+  grid-area: auto;
+}
+.main-wrapper .main__content-care .care-result--classic .care-result__info .price-holder {
+  grid-area: auto;
+  text-align: start;
+}
+.main-wrapper .main__content-care .care-result--classic .care-result__info .old-price__holder {
+  justify-content: normal;
+}
+.main-wrapper .main__content-care .care-result--classic .care-result__cta {
+  display: block;
+  margin-top: 0;
+}
+/* Same 48px as the site's own «Додати в кошик» above it, which has no border */
+.main-wrapper .main__content-care .care-result--classic .care-result__more .sk-button {
+  margin-top: 8px;
+  padding-block: 11px;
+}
+/* Info card from the product page (product-page.min.css, not loaded here): «Оплата частинами» with the
+   banks and the number of payments, «Доставка» with the free-delivery threshold */
+/* 16px from the buttons (8 between the buttons themselves), as in Figma: the card isn't a third button */
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--bottom {
+  margin: 16px 0 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #fff;
+}
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--item {
+  font-size: 0;
+  line-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 10px;
+}
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--item .col {
+  display: flex;
+  align-items: center;
+  column-gap: 7px;
+}
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--item .icon-holder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--item .txt,
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--item .txt-info {
+  font-size: 14px;
+  font-family: Sailec;
+  font-weight: 400;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+.main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--item .txt-info {
+  display: block;
+  text-align: right;
+  color: #228b22;
+}
+.main-wrapper .main__content-care .care-result--classic .parts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.main-wrapper .main__content-care .care-result--classic .parts-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.main-wrapper .main__content-care .care-result--classic .parts-list svg,
+.main-wrapper .main__content-care .care-result--classic .parts-list img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+/* On the site the PrivatBank mark is a 24px square with 8px corners */
+.main-wrapper .main__content-care .care-result--classic .parts-list img {
+  border-radius: 8px;
+}
+/* Desktop: the set on the left («7 засобів» over the previews), then the purchase — the price
+   with both buttons beside it, and the info card under the buttons, as wide as they are */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-care .care-result.care-result--classic {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) auto minmax(360px, 1.25fr);
+    grid-template-areas:
+      "title price cta"
+      "images price cta"
+      "images . card";
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+    gap: 8px 24px;
+  }
+  .main-wrapper .main__content-care .care-result--classic .care-result__info {
+    display: contents;
+  }
+  /* 16px under the title: the row gap is only 8, the card's gap to the buttons */
+  .main-wrapper .main__content-care .care-result--classic .images {
+    grid-area: images;
+    margin-top: 8px;
+  }
+  .main-wrapper .main__content-care .care-result--classic .care-result__info .info {
+    grid-area: title;
+  }
+  .main-wrapper .main__content-care .care-result--classic .care-result__info .price-holder {
+    grid-area: price;
+  }
+  .main-wrapper .main__content-care .care-result--classic .care-result__cta {
+    grid-area: cta;
+  }
+  .main-wrapper .main__content-care .care-result--classic .care-result__cta .btn-add {
+    width: 100%;
+  }
+  .main-wrapper .main__content-care .care-result--classic .wayfx-product__additional--info--description--bottom {
+    grid-area: card;
+    margin: 8px 0 0; /* + the 8px row gap */
+  }
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result.care-result--classic {
+    flex-direction: column;
+    align-items: normal;
+    gap: 0;
+  }
+  .main-wrapper .main__content-care .care-result--classic .images {
+    margin-bottom: 16px;
+  }
+  .main-wrapper .main__content-care .care-result--classic .care-result__info {
+    margin-bottom: 24px;
+  }
+  /* both buttons across the whole width, as on the site */
+  .main-wrapper .main__content-care .care-result--classic .care-result__cta .btn,
+  .main-wrapper .main__content-care .care-result--classic .care-result__cta .sk-button {
+    width: 100%;
+  }
+}
+
 /* Prototype: «Додатково з твоєї полички» — one row of cards running past the screen edge */
 .main-wrapper .shelf-extra {
   /* how far the row may run past the content column: the wrapper's padding, plus the side margin past 1512px */
