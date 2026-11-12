@@ -1104,12 +1104,9 @@
   }
 }
 
-/* Prototype: a product from her shelf with no catalog photo: a plain line drawing of a tube (for now the same
-   for every product; a bottle and a pump are drawn too, in assets/prototype/shelf-products/), on the site's
-   grey photo tile; the phone gets its own 80px drawing through <picture>, so its 1px lines stay sharp too */
-.main-wrapper .main__content-care .item .img-holder--line picture {
-  display: block;
-}
+/* Prototype: a product from her shelf with no catalog photo gets the stock photo of its type (assets/prototype/
+   jars/: cleansing, moisturizer… from the brief's table, fallback when none fits), cut out of its grey so it
+   sits on the site's own photo tile like a catalog photo; 448px for the 224px tile, 160px for the phone's 80 */
 
 /* Prototype: under the jars' shelf, one grey line on what we couldn't recognise (the brief's «Не змогли
    перевірити»). Outside the section, so the shelf stays at its bottom; above it, so the shelf's underside
