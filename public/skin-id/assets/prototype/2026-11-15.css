@@ -1,0 +1,442 @@
+/* Prototype (2026-11-15.html): the feedback round of 14.11 on the shelf analysis page, on top of prototype.css.
+   Only this page loads it, so index.html and classic.html stay as they were. The numbers are the items of
+   docs/skin-id-feedback-2026-11-14.md */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── 1. Morning / evening sticks under the header ─────────────────────────────────────────────────────────
+   The same 40px chips in their 48px track, stuck 4px under the header on a white bar (the bottom menu's
+   white with blur and hairline). The bar shows only once it's stuck (.is-stuck, 2026-11-15.js). It lives in
+   .care-tabs, so it leaves with the last step: after the scheme it scrolls away with it.
+   −4px margins around the 4px padding: in the flow the toggle sits exactly where it did */
+.main-wrapper .main__content-care .care-nav {
+  position: sticky;
+  top: var(--sticky-top, 65px);
+  z-index: 30;
+  margin-top: -4px;
+  margin-bottom: 36px;
+  padding-block: 4px;
+}
+.main-wrapper .main__content-care .care-nav::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 -24px;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e5e5e5;
+  opacity: 0;
+  transition: opacity 0.15s linear;
+  pointer-events: none;
+}
+.main-wrapper .main__content-care .care-nav.is-stuck::before {
+  opacity: 1;
+}
+@media (max-width: 1024px) {
+  /* phones: the bar runs edge to edge of the screen */
+  .main-wrapper .main__content-care .care-nav::before {
+    inset: 0 -20px;
+  }
+}
+.main-wrapper .main__content-care .care-nav__holder span {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Variant Б (?nav=anchors): morning and evening on one page, the chips jump to them; the active chip follows
+   the scroll. Each part gets its heading with the toggle's icon. jQuery hides the inactive tab with an inline
+   display: none — !important keeps both */
+.main-wrapper .care-part {
+  display: none;
+}
+.main-wrapper .care-tabs--anchors .care-section {
+  display: block !important;
+}
+.main-wrapper .care-tabs--anchors .care-part {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding-left: var(--optical-inset);
+  font-family: NibProBold;
+  font-size: 24px;
+  font-weight: normal;
+  line-height: 28px;
+  color: #000;
+  scroll-margin-top: calc(var(--sticky-top, 65px) + 56px + 16px);
+}
+.main-wrapper .care-tabs--anchors .care-part svg {
+  flex: none;
+  display: block;
+}
+.main-wrapper .care-tabs--anchors .care-section + .care-section {
+  margin-top: 64px;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .care-tabs--anchors .care-section + .care-section {
+    margin-top: 48px;
+  }
+}
+
+/* ── 6. No shelves under the steps: the site's own hairline between the steps comes back ────────────────── */
+.main-wrapper .main__content-care .item::before,
+.main-wrapper .main__content-care .item::after {
+  content: none;
+}
+.main-wrapper .main__content-care .item {
+  border-bottom-color: #e5e5e5;
+}
+
+/* ── 5. One buy button for a single product, in the steps and in «Коли закінчиться» ─────────────────────
+   SkButton secondary with the sum after a faint rule («Купити | 2 950 ₴»), like «Частинами | від … ₴/міс»
+   in the routine card: the same shape and label everywhere, 40px, below the black «Додати в кошик» of the
+   set. The price lives in the button, so in a step nothing outshines it */
+.main-wrapper .sk-button--buy {
+  padding: 8px 20px;
+  font-size: 14px;
+  line-height: 22px;
+}
+.main-wrapper .sk-button--buy .sk-button__rule {
+  margin-inline: 4px;
+}
+/* desktop: on the right edge of the text column, in the steps as in «Коли закінчиться» */
+.main-wrapper .main__content-care .item > .actions {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+/* desktop, our products: «Купити» on the description's row, on the right, its top on the text's top; the text
+   keeps clear of it (the button is ~164px, 32px of air) */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-care .item:not(.item--shelf) > .description {
+    padding-right: 196px;
+  }
+  .main-wrapper .main__content-care .item:not(.item--shelf) > .actions {
+    grid-row: 4;
+    justify-self: end;
+    align-self: start;
+  }
+}
+/* phones: under the blocks, on the left edge — under the description in a step, under the icon and the name
+   in «Коли закінчиться» */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item > .actions {
+    justify-content: flex-start;
+  }
+  .main-wrapper .main__content-care .item .shelf-next .sk-button {
+    margin-left: 0;
+  }
+}
+
+/* ── Р1 + 3. «Додатково з твоєї полички» as a list, like «Краще відкласти» ──────────────────────────────
+   The catalog menu's glyph of the product's type in the icon column (toner, serum, cream, lips), then
+   name and brand; when to use it, as only the toggle's sun / moon (20px, no words: the words are the
+   label and the hover title), in a narrow column of its own between the product and how, in our serif voice.
+   The moon is drawn at 80% in its box (#tod-moon-list): its solid crescent would outweigh the sun's small
+   core and light rays. Each icon is centred in the column, so one or two share the same middle */
+.main-wrapper .shelf-skip--extra .shelf-skip__row {
+  grid-template-columns: 24px minmax(0, 5fr) 64px minmax(0, 7fr);
+}
+.main-wrapper .shelf-skip--extra .shelf-skip__row > .shelf-skip__why {
+  padding-left: 16px;
+}
+/* the catalog menu's glyph for the product's type, 20px (drawn at 15), on the brand's line */
+.main-wrapper .shelf-skip__icon--type {
+  margin-top: 0;
+}
+.main-wrapper .shelf-skip__when {
+  align-self: start;
+  justify-self: center;
+  display: flex;
+  gap: 2px;
+}
+.main-wrapper .shelf-skip__when svg {
+  flex: none;
+  display: block;
+}
+.main-wrapper .shelf-skip--extra:has(+ .shelf-extra__unknown) {
+  margin-bottom: 20px;
+}
+@media (max-width: 1024px) {
+  /* phones: the icons on the right of the name, how under both */
+  .main-wrapper .shelf-skip--extra .shelf-skip__row {
+    grid-template-columns: 24px minmax(0, 1fr) 48px;
+  }
+  .main-wrapper .shelf-skip--extra .shelf-skip__when {
+    justify-self: end;
+  }
+  .main-wrapper .shelf-skip--extra .shelf-skip__row > .shelf-skip__why {
+    grid-column: 2 / -1;
+    padding-left: 12px;
+  }
+  .main-wrapper .shelf-skip--extra:has(+ .shelf-extra__unknown) {
+    margin-bottom: 16px;
+  }
+}
+
+/* both lists («Додатково з твоєї полички» and «Краще відкласти»): the name takes its whole column, no 240px cap */
+.main-wrapper .shelf-skip__product {
+  max-width: none;
+}
+
+/* ── 4. «Краще відкласти»: a pause in a muted terracotta circle instead of «?» — «not now», not «help» ──── */
+.main-wrapper .shelf-skip__icon--pause {
+  color: #b0654a;
+}
+
+/* ── Р2. Ingredients: which products of the scheme or the shelf have them ──────────────────────────────
+   Small grey pills under the text; the ones from her shelf with the green check of «З твоєї полички» */
+.main-wrapper .main__content-components .ingr-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.main-wrapper .main__content-components .ingr-in__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #1b1b1b;
+}
+.main-wrapper .main__content-components .ingr-in__item--own svg {
+  flex: none;
+  display: block;
+  color: #107a40;
+}
+.main-wrapper .main__content-components .ingr-in--none {
+  display: block;
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+.main-wrapper .main__content-components .ingr-in__label {
+  align-self: center;
+  margin-right: 2px;
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+
+/* ── 8. The routine card on phones: both buttons the same, the card's full width, one under the other ──── */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result__cta {
+    flex-direction: column;
+  }
+  .main-wrapper .main__content-care .care-result__cta .btn,
+  .main-wrapper .main__content-care .care-result__cta .sk-button {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* ── 7. The routine's purchase sticks to the bottom once the card is scrolled past ──────────────────────
+   Like the product page's panel: white with blur, a hairline on top. Desktop and tablet: the set's previews
+   and what it is on the left, the price and «Додати 2 засоби в кошик» on the right. Phones: a compact panel
+   over the bottom menu, the price with the discount and «Додати в кошик». The chat button rises over it */
+.routine-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #e5e5e5;
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+.routine-bar.is-shown {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.25s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .routine-bar,
+  .routine-bar.is-shown {
+    transition: none;
+  }
+}
+.routine-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1512px;
+  margin: 0 auto;
+  padding: 12px 40px;
+}
+.routine-bar__set {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* the card's previews, smaller: grey coins with a white ring, overlapping */
+.routine-bar__images {
+  display: flex;
+  margin: 0;
+  padding: 0 0 0 4px;
+  list-style: none;
+}
+.routine-bar__images li {
+  width: 40px;
+  height: 40px;
+  margin-left: -10px;
+  border-radius: 10px;
+  background: #f5f5f5;
+  box-shadow: 0 0 0 3px #fff;
+  overflow: hidden;
+}
+.routine-bar__images li:first-child {
+  margin-left: 0;
+}
+.routine-bar__images img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.routine-bar__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.routine-bar__name {
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+.routine-bar__count {
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+/* the price, the old one and the discount pill on one centre line, not the baseline: the pill and the big
+   serif figures would otherwise sit at different heights */
+.routine-bar__price {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 8px;
+}
+.routine-bar__new {
+  font-family: NibProBold;
+  font-size: 24px;
+  line-height: 28px;
+  color: #000;
+}
+.routine-bar__price-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.routine-bar__old {
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+  text-decoration: line-through;
+}
+/* the site's green discount pill (.product-discount) */
+.routine-bar__discount {
+  padding: 0 6px;
+  border-radius: 100px;
+  background: #e5f7e7;
+  font-family: Sailec;
+  font-size: 13px;
+  line-height: 20px;
+  color: #107a40;
+}
+.routine-bar .routine-bar__btn {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 12px 32px;
+  font-family: Sailec;
+  font-size: 16px;
+  line-height: 24px;
+}
+.routine-bar__short {
+  display: none;
+}
+/* room under the footer for the panel, and the chat button over it */
+body.has-routine-bar {
+  padding-bottom: 73px;
+}
+body.has-routine-bar .fabs {
+  bottom: 97px;
+  transition: bottom 0.25s ease;
+}
+@media (max-width: 1024px) {
+  .routine-bar__inner {
+    padding: 12px 20px;
+  }
+}
+/* phones: over the bottom menu (60px + its hairline), no previews, the price in two lines */
+@media (max-width: 767px) {
+  .routine-bar {
+    bottom: calc(61px + env(safe-area-inset-bottom));
+  }
+  .routine-bar__inner {
+    gap: 12px;
+    padding: 8px 16px;
+  }
+  .routine-bar__set {
+    display: none;
+  }
+  /* on the left edge here, the button on the right; the old price and the pill under the price */
+  .routine-bar__price {
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .routine-bar__new {
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .routine-bar__old,
+  .routine-bar__discount {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .routine-bar .routine-bar__btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    line-height: 24px;
+  }
+  .routine-bar__long {
+    display: none;
+  }
+  .routine-bar__short {
+    display: inline;
+  }
+  body.has-routine-bar {
+    padding-bottom: 61px;
+  }
+  body.has-routine-bar .fabs {
+    bottom: calc(61px + 61px + 16px + env(safe-area-inset-bottom));
+  }
+}
