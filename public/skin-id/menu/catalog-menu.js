@@ -65,6 +65,11 @@
       '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 10.5H17.5V16.5C17.5 17.052 17.052 17.5 16.5 17.5H3.5C2.948 17.5 2.5 17.052 2.5 16.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10.5V6.5C5.5 5.948 5.948 5.5 6.5 5.5H7.5C8.052 5.5 8.5 5.948 8.5 6.5V10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 5.5V3.5H7.5V5.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 10.5V8.5C10.5 7.948 10.948 7.5 11.5 7.5H13.5C14.052 7.5 14.5 7.948 14.5 8.5V10.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.5 7.5V5.5H13.5V7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 14.5H11.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     'Гаджети та аксесуари':
       '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 11.5L11.5 3.5L11 8.5H14.5L8.5 16.5L9 11.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    // a price tag with its hole, drawn to match the set above: the hole is a ring of r 1.5 around (14, 6), so its
+    // top, bottom and sides fall on half pixels and it renders as a crisp 4px ring; a <circle>, not a path: the same
+    // ring as a path of Bézier arcs blurred into a grey spot at 1×
+    'Бренди':
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10.5 2.5H16.5C17.052 2.5 17.5 2.948 17.5 3.5V9.5L9.5 17.5L2.5 10.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="6" r="1.5" stroke="currentColor"/></svg>',
   }
 
 
@@ -432,6 +437,11 @@
               <span class="cm-row__arrow">${ICON.chevron20}</span>
             </button>`
           ).join('')}
+          <!-- «Бренди»: a row like the sections, with their chevron and hover, that opens nothing yet -->
+          <button type="button" class="cm-row">
+            <span class="cm-row__icon">${SECTION_ICON['Бренди']}</span><span class="cm-row__label">Бренди</span>
+            <span class="cm-row__arrow">${ICON.chevron20}</span>
+          </button>
         </nav>
       </div>`
 
@@ -557,6 +567,11 @@
             <span class="cm-section__chevron">${ICON.chevron}</span>
           </a>`
         ).join('')}
+        <!-- «Бренди»: a section like the others, with their chevron and hover, that opens nothing yet -->
+        <a class="cm-section" href="#" data-noop>
+          <span class="cm-section__icon">${SECTION_ICON['Бренди']}</span><span class="cm-section__label">Бренди</span>
+          <span class="cm-section__chevron">${ICON.chevron}</span>
+        </a>
       </nav>
       <div class="cm-mega__content"></div>
       ${promo('cm-promo--tall')}`
@@ -568,6 +583,8 @@
       content.innerHTML = pills(s, si) + bestsellers(s)
     }
     show(0)
+
+    inner.querySelector('.cm-section[data-noop]').addEventListener('click', (e) => e.preventDefault())
 
     // Sections switch on click only
     inner.querySelectorAll('.cm-section[data-section]').forEach((a) => {
