@@ -18,6 +18,8 @@
  * тож усі переходи й дані лишаються в межах одного прототипу.
  */
 
+import skinIdPages from '../public/skin-id/prototypes.json'
+
 /** Що пропонуємо на вибір у шторці: звичайні товари чи набори семплів */
 export type GiftStyle = 'products' | 'samples'
 
@@ -60,22 +62,14 @@ export const prototypeBase = baseOf(current)
 export const prototypeKey = current.slug ?? 'samples'
 
 /** Статичні копії сторінок skintet.com у public/<slug>/ — не Vue, тож лише пункт у меню (див. vite.config → staticPages).
- *  path — під BASE_URL; branch — стан тієї самої сторінки, у меню з кутиком під нею */
-const STATIC_PAGES = [
-  { path: 'skin-id/', title: 'Skin(ID)', branch: false },
-  // аналіз полички ще не готовий після 10 хв: звичайна схема і пропозиція надіслати розбір на пошту
-  { path: 'skin-id/empty.html', title: 'Пустий стан', branch: true },
-  { path: 'skin-id/classic.html', title: 'Класична картка', branch: true },
-  // правки від 14.11: А — ранок і вечір вкладками, Б — на одній сторінці, чипи як якорі
-  { path: 'skin-id/2026-11-15.html', title: '15 листопада · вкладки', branch: true },
-  { path: 'skin-id/2026-11-15.html?nav=anchors', title: '15 листопада · якорі', branch: true },
-  // ще одна версія рутини: крок у три колонки, покупка під зигзагом, картка «До повної рутини» без фону
-  { path: 'skin-id/2026-11-17.html', title: '17 листопада · рутина', branch: true },
-  // стани з брифу: розбір не готовий; жоден крок не закритий поличкою; усі кроки закриті поличкою
-  { path: 'skin-id/2026-11-17-empty.html', title: '17 листопада · пустий стан', branch: true },
-  { path: 'skin-id/2026-11-17-ours.html', title: '17 листопада · тільки наші', branch: true },
-  { path: 'skin-id/2026-11-17-own.html', title: '17 листопада · тільки з полички', branch: true },
-]
+ *  Список Skin(ID) — public/skin-id/prototypes.json: з нього ж меню під логотипом на самих сторінках
+ *  (public/skin-id/assets/prototype/proto-switch.js). href — від public/skin-id/; branch — стан тієї самої
+ *  сторінки, у меню з кутиком під нею */
+const STATIC_PAGES = skinIdPages.map((p) => ({
+  path: `skin-id/${p.href === './' ? '' : p.href}`,
+  title: p.title,
+  branch: p.branch,
+}))
 
 /** Для меню в хедері. Звичайні посилання, не роутер: прототип обирається під час завантаження сторінки */
 export const prototypes = [
