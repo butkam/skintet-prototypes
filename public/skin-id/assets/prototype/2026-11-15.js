@@ -10,6 +10,8 @@
  *    reaches the panel's top edge, so the button takes over from it; never when nothing is missing (an
  *    empty data-codes). Its button
  *    presses the card's own «Додати в кошик», so the cart logic (skin-id-cart.js) stays in one place.
+ *    Desktop (1025px and up): no panel — the card itself moves into the right column (.routine-rail) and sticks
+ *    there (2026-11-15.css); below 1025px it goes back into the scheme, where it was.
  */
 (function () {
   'use strict';
@@ -90,6 +92,26 @@
   }
   var barOn = !!(bar && card && addAll && missing.length);
 
+  // the card between the scheme and the right column: a marker keeps its place in the scheme
+  var rail = document.querySelector('.routine-rail');
+  var desktop = window.matchMedia('(min-width: 1025px)');
+  var home = null;
+  if (rail && card) {
+    home = document.createComment('care-result');
+    card.parentNode.insertBefore(home, card);
+  }
+  function placeCard() {
+    if (!home) return;
+    if (desktop.matches) {
+      if (card.parentNode !== rail) rail.appendChild(card);
+    } else if (card.previousSibling !== home) {
+      home.parentNode.insertBefore(card, home.nextSibling);
+    }
+  }
+  placeCard();
+  if (desktop.addEventListener) desktop.addEventListener('change', placeCard);
+  else if (desktop.addListener) desktop.addListener(placeCard);
+
   if (barOn) {
     bar.querySelector('[data-routine-bar-add]').addEventListener('click', function () {
       addAll.click();
@@ -132,7 +154,7 @@
       var navH = menu && getComputedStyle(menu).display !== 'none' ? menu.offsetHeight : 0;
       var floor = window.innerHeight - navH - bar.offsetHeight;
       var b = addAll.getBoundingClientRect();
-      showBar(b.bottom < top || b.top > floor);
+      showBar(!desktop.matches && (b.bottom < top || b.top > floor));
     }
   }
   function schedule() {

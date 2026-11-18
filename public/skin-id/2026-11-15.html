@@ -1233,8 +1233,36 @@
                           <div class="admin-result">
     <div class="main-wrapper">
 
-              
-<div class="main__content">
+      <!-- Prototype: on desktop «Мій кабінет» goes on top, its links in one row (2026-11-15.css) -->
+                  <div class="main__aside">
+        <span class="main__aside-title">Мій кабінет</span>
+        <ul class="main__aside-menu">
+          
+                      <li><a href="https://skintet.com/account/skin-id" class="is-active">Мій Skin(ID)</a></li>
+            <li><a href="https://skintet.com/account/skin-id/pdf" target="_blank">Скачати PDF-звіт Skin(ID)</a></li>
+            <li class="">
+              <a href="https://skintet.com/account/dashboard">Особисті дані</a>
+            </li>
+            <li class="">
+              <a href="https://skintet.com/account/orders/">Історія замовлень</a>
+            </li>
+            <li class="">
+              <a href="https://skintet.com/account/wishlists/wishlist">Список бажань</a>
+            </li>
+                                                <li class="">
+              <a href="https://skintet.com/account/notifications">Сповіщення</a>
+            </li>
+            <li class="">
+              <a href="https://skintet.com/account/promocodes">Промокоди</a>
+            </li>
+            <li>
+              <a href="https://skintet.com/logout" class="btn-exit">Вийти</a>
+            </li>
+                  </ul>
+      </div>
+      <!-- Prototype: on desktop the profile and the strategy across the whole width; the two columns (the
+           scheme and what's missing) start from «Твоя схема догляду» (2026-11-15.css) -->
+<div class="main__intro">
 
     <div class="main__content-banner">
     <div class="data-holder">
@@ -1335,10 +1363,10 @@
         </svg>
       </div>
     </div>
-  
-    
-                          
-                                                                                              
+</div>
+
+<div class="main__content">
+
 <div class="main__content-care">
   <span class="main-title">Твоя схема догляду</span>
 
@@ -1408,6 +1436,8 @@
 
     <div class="description">
       <p>Міцелярна вода з твоєї полички мʼяко очищує без змивання і не пересушує, а вітамін С підтримує рівний тон — це важливо для шкіри, схильної до пігментації. Залишай її для ранкового очищення. Замість неї підійде міцелярна вода Sensibio H2O від Bioderma з&nbsp;твоєї полички, але разом їх використовувати не потрібно.</p>
+      <!-- Prototype: the recommended ingredients (the «Рекомендовані інгредієнти» block below) this product has -->
+      <ul class="step-ingr" aria-label="Рекомендовані інгредієнти в засобі"><li class="step-ingr__label" aria-hidden="true">Містить:</li><li class="step-ingr__item">Антиоксиданти</li></ul>
     </div>
 
     <div class="shelf-rows">
@@ -1451,6 +1481,8 @@
     
     <div class="description">
       <p>Сироватка Medik8 HYDR8 B5™ з гіалуроновою кислотою забезпечує глибоке зволоження, притягуючи та утримуючи вологу в клітинах, що допомагає усунути стягнутість, лущення та покращує еластичність твоєї шкіри.</p>
+      <!-- Prototype: the recommended ingredients (the «Рекомендовані інгредієнти» block below) this product has -->
+      <ul class="step-ingr" aria-label="Рекомендовані інгредієнти в засобі"><li class="step-ingr__label" aria-hidden="true">Містить:</li><li class="step-ingr__item">Гіалуронова кислота</li><li class="step-ingr__item">Пантенол</li></ul>
           </div>
 
     <div class="actions">
@@ -1489,6 +1521,8 @@
     
     <div class="description">
       <p>Medik8 ADVANCED DAY ULTIMATE PROTECT™ з SPF 50 є чудовим вибором для зволоження та високого захисту від сонця, що особливо важливо для шкіри з веснянками та схильністю до пігментації.</p>
+      <!-- Prototype: the recommended ingredients (the «Рекомендовані інгредієнти» block below) this product has -->
+      <ul class="step-ingr" aria-label="Рекомендовані інгредієнти в засобі"><li class="step-ingr__label" aria-hidden="true">Містить:</li><li class="step-ingr__item">Антиоксиданти</li></ul>
           </div>
 
     <div class="actions">
@@ -1531,6 +1565,8 @@
 
     <div class="description">
       <p>Засіб з твоєї полички з керамідами та гіалуроновою кислотою змиває денні забруднення і залишки сонцезахисту, не порушуючи захисний барʼєр. Для шкіри, схильної до сухості, це важливо. Залишай його для вечірнього очищення.</p>
+      <!-- Prototype: the recommended ingredients (the «Рекомендовані інгредієнти» block below) this product has -->
+      <ul class="step-ingr" aria-label="Рекомендовані інгредієнти в засобі"><li class="step-ingr__label" aria-hidden="true">Містить:</li><li class="step-ingr__item">Гіалуронова кислота</li><li class="step-ingr__item">Кераміди</li></ul>
     </div>
 
     <div class="shelf-rows">
@@ -1572,6 +1608,8 @@
 
     <div class="description">
       <p>Бальзам з твоєї полички з пантенолом і мадекасосидом за ніч відновлює захисний барʼєр і знімає стягнутість та лущення. Наноси його останнім кроком вечірнього догляду.</p>
+      <!-- Prototype: the recommended ingredients (the «Рекомендовані інгредієнти» block below) this product has -->
+      <ul class="step-ingr" aria-label="Рекомендовані інгредієнти в засобі"><li class="step-ingr__label" aria-hidden="true">Містить:</li><li class="step-ingr__item">Пантенол</li></ul>
     </div>
 
     <div class="shelf-rows">
@@ -1658,8 +1696,7 @@
   </div>
 
         <!-- Prototype: «Додатково з твоєї полички» — the client's own products that are fine to keep alongside the scheme.
-             A list like «Краще відкласти»: the catalog menu's glyph of the product's type (toner, serum, cream, lips), name and
-             brand, when to use it as the toggle's morning / evening icons in a column of their own, how in our voice on the right -->
+             A list like «Краще відкласти», without the type glyphs at the start: name and brand, when to use it as the toggle's morning / evening icons in a column of their own, how in our voice on the right -->
         <section class="shelf-skip shelf-skip--extra" aria-labelledby="shelf-extra-title">
       <div class="shelf-skip__head">
         <h2 class="shelf-skip__title" id="shelf-extra-title">Додатково з твоєї полички</h2>
@@ -1668,7 +1705,6 @@
 
       <ul class="shelf-skip__list">
         <li class="shelf-skip__row">
-          <svg class="shelf-skip__icon shelf-skip__icon--type" width="20" height="20" aria-hidden="true"><use href="#cat-toner"/></svg>
           <div class="shelf-skip__product">
             <span class="shelf-skip__brand">Etude</span>
             <span class="shelf-skip__name">Тонер SoonJung pH&nbsp;5.5 Relief Toner</span>
@@ -1677,7 +1713,6 @@
           <p class="shelf-skip__why">Після очищення, перед сироваткою. Наноси руками, без ватного диска&nbsp;— так менше тертя.</p>
         </li>
         <li class="shelf-skip__row">
-          <svg class="shelf-skip__icon shelf-skip__icon--type" width="20" height="20" aria-hidden="true"><use href="#cat-serum"/></svg>
           <div class="shelf-skip__product">
             <span class="shelf-skip__brand">The Ordinary</span>
             <span class="shelf-skip__name">Сироватка з ніацинамідом 10% + цинк 1%</span>
@@ -1686,7 +1721,6 @@
           <p class="shelf-skip__why">2–3 краплі після тонера, перед Hydr8 B5. Перші два тижні&nbsp;— через день, поки шкіра звикає.</p>
         </li>
         <li class="shelf-skip__row">
-          <svg class="shelf-skip__icon shelf-skip__icon--type" width="20" height="20" aria-hidden="true"><use href="#cat-cream"/></svg>
           <div class="shelf-skip__product">
             <span class="shelf-skip__brand">Laneige</span>
             <span class="shelf-skip__name">Нічна маска Water Sleeping Mask</span>
@@ -1695,7 +1729,6 @@
           <p class="shelf-skip__why">Двічі на тиждень, останнім кроком замість Cicaplast Baume B5+. Тонким шаром, змивати вранці.</p>
         </li>
         <li class="shelf-skip__row">
-          <svg class="shelf-skip__icon shelf-skip__icon--type" width="20" height="20" aria-hidden="true"><use href="#cat-toner"/></svg>
           <div class="shelf-skip__product">
             <span class="shelf-skip__brand">Avène</span>
             <span class="shelf-skip__name">Термальна вода Eau Thermale</span>
@@ -1704,7 +1737,6 @@
           <p class="shelf-skip__why">Коли відчуваєш стягнутість: розпиляй і за хвилину промокни серветкою, не чекай, поки висохне сама.</p>
         </li>
         <li class="shelf-skip__row">
-          <svg class="shelf-skip__icon shelf-skip__icon--type" width="20" height="20" aria-hidden="true"><use href="#cat-lips"/></svg>
           <div class="shelf-skip__product">
             <span class="shelf-skip__brand">Laneige</span>
             <span class="shelf-skip__name">Маска для губ Lip Sleeping Mask</span>
@@ -1804,7 +1836,7 @@
             <div class="color-holder" style="background-color:#E8DED3;"></div>
             <span class="title">Антиоксиданти (вітамін С, Е)</span>
             <p>Захищають клітини шкіри від пошкодження вільними радикалами, які можуть спричинити передчасне старіння та посилення пігментації, підтримуючи здоровий вигляд шкіри.</p>
-            <ul class="ingr-in" aria-label="Є в засобах"><li class="ingr-in__label" aria-hidden="true">Є в:</li><li class="ingr-in__item ingr-in__item--own"><svg width="12" height="12" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.75 9.34372C5.39062 10.375 6.26881 11.3215 7.25 13.125C8.34375 10.375 10.9688 6.25 14.25 4.875" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Garnier Skin Naturals<span class="visually-hidden">, з твоєї полички</span></li></ul>
+            <ul class="ingr-in" aria-label="Є в засобах"><li class="ingr-in__label" aria-hidden="true">Є в:</li><li class="ingr-in__item">Advanced Day SPF 50</li><li class="ingr-in__item ingr-in__item--own"><svg width="12" height="12" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.75 9.34372C5.39062 10.375 6.26881 11.3215 7.25 13.125C8.34375 10.375 10.9688 6.25 14.25 4.875" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Garnier Skin Naturals<span class="visually-hidden">, з твоєї полички</span></li></ul>
           </div>
                   <div class="item">
             <div class="color-holder" style="background-color:#E8D3DB;"></div>
@@ -1909,32 +1941,10 @@
 </div>
       
 
-                  <div class="main__aside">
-        <span class="main__aside-title">Мій кабінет</span>
-        <ul class="main__aside-menu">
-          
-                      <li><a href="https://skintet.com/account/skin-id" class="is-active">Мій Skin(ID)</a></li>
-            <li><a href="https://skintet.com/account/skin-id/pdf" target="_blank">Скачати PDF-звіт Skin(ID)</a></li>
-            <li class="">
-              <a href="https://skintet.com/account/dashboard">Особисті дані</a>
-            </li>
-            <li class="">
-              <a href="https://skintet.com/account/orders/">Історія замовлень</a>
-            </li>
-            <li class="">
-              <a href="https://skintet.com/account/wishlists/wishlist">Список бажань</a>
-            </li>
-                                                <li class="">
-              <a href="https://skintet.com/account/notifications">Сповіщення</a>
-            </li>
-            <li class="">
-              <a href="https://skintet.com/account/promocodes">Промокоди</a>
-            </li>
-            <li>
-              <a href="https://skintet.com/logout" class="btn-exit">Вийти</a>
-            </li>
-                  </ul>
-      </div>
+      <!-- Prototype: desktop — «Бракує до повної рутини» in a column of its own on the right, sticky, instead of
+           the panel at the bottom of the screen. 2026-11-15.js moves the card here from the scheme (and back below
+           1025px); .main__content-care so the card keeps its styles -->
+      <aside class="routine-rail main__content-care" aria-label="Чого бракує до повної рутини"></aside>
     </div>
   </div>
 
