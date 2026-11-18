@@ -744,6 +744,11 @@ body:has(.admin-result) .menu::before {
   font-family: Sailec;
   color: #1b1b1b;
 }
+/* a step with «Коли закінчиться» over a step on a card (which reaches 28px out): 52px from the row to the card,
+   more than the row's 48 to its own step, so it doesn't drift down to the next one */
+.main-wrapper .rstep:has(> .rstep__buy):has(+ .rstep:not(.rstep--shelf):not(.rstep--plain)) {
+  padding-bottom: 80px;
+}
 .main-wrapper .rstep__label {
   grid-area: label;
   margin: 0;
@@ -879,7 +884,7 @@ body:has(.admin-result) .menu::before {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  margin-top: 48px;
+  margin-top: 24px; /* the zigzag as far from the step as the row from it, so the row reads as the step's */
   padding-top: 24px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4' viewBox='0 0 16 4'%3E%3Cpath d='M-8 .5 0 3.5 8 .5 16 3.5 24 .5' fill='none' stroke='%23ebebeb' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top / 16px 4px;
 }
@@ -1066,6 +1071,9 @@ body:has(.admin-result) .menu::before {
   .main-wrapper .rstep__buy {
     gap: 12px;
     margin-top: 24px;
+  }
+  .main-wrapper .rstep:has(> .rstep__buy):has(+ .rstep:not(.rstep--shelf):not(.rstep--plain)) {
+    padding-bottom: 72px; /* 52px to the card, which reaches 20px out here */
   }
 }
 /* phones: «Купити» under the name in «Коли закінчиться» (beside it the text had a column of a few words) */
@@ -1330,52 +1338,6 @@ body:has(.admin-result) .menu::before {
 @media (min-width: 1440px) {
   .main-wrapper {
     grid-template-columns: minmax(0, 1fr) 141px 200px; /* 141 + 72 + 200 = 413 */
-  }
-}
-
-/* ── «Розбір твоєї полички» in the scheme's column (desktop, beside the routine card) ────────────────────────
-   The text takes the card's width; the four faces small (48px, a 3px white ring, 12px over each other) in the
-   top right corner, level with the title, which keeps clear of them. The hours badge and «Почати розбір
-   полички» each on one line, the button by its words, not stretched */
-@media (min-width: 1025px) {
-  .main-wrapper .main__content-help--holder {
-    position: relative;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .main-wrapper .main__content-help .data-holder {
-    width: 100%;
-    max-width: none;
-  }
-  .main-wrapper .main__content-help .title {
-    padding-right: 172px; /* 4 × 48 − 3 × 12 = 156px of faces + 16px */
-  }
-  .main-wrapper .main__content-help .img-holder {
-    position: absolute;
-    top: 32px;
-    right: 32px;
-    flex-wrap: nowrap;
-    width: auto;
-    margin: 0;
-  }
-  .main-wrapper .main__content-help .img-holder .item {
-    flex: none;
-    width: 48px;
-    height: 48px;
-    max-width: none;
-    max-height: none;
-    box-shadow: 0 0 0 3px #fff;
-  }
-  .main-wrapper .main__content-help .img-holder .item + .item {
-    margin-left: -12px;
-  }
-  .main-wrapper .main__content-help .time-block {
-    white-space: nowrap;
-  }
-  .main-wrapper .main__content-help .btn-holder a {
-    width: auto;
-    padding: 12px 32px;
-    white-space: nowrap;
   }
 }
 
