@@ -11,6 +11,10 @@
  *    (skin-id-cart.js) stays in one place.
  *    Desktop (1025px and up): no panel — the card itself moves into the right column (.routine-rail) and sticks
  *    there (2026-11-17.css); below 1025px it goes back into the scheme, where it was.
+ * 3. 18.11 (Figma 746:15673), desktop: the toggle moves into the right column too, over the card (both in
+ *    .routine-rail__stick, sticking together); both parts show, the toggle's buttons are anchors to them and the
+ *    part on screen is the active one. Below 1025px it goes back beside the title, sticking as before — and
+ *    there too both parts are on one page and the toggle is anchors (a press glides to the part, under it).
  */
 (function () {
   'use strict';
@@ -47,21 +51,57 @@
     });
     if (focus) chips[i].focus();
   }
+  // 18.11: anchors, not tabs, on every screen — both parts on one page (in the right column on desktop, beside
+  // the title and sticking on phones and tablets)
+  function anchors() {
+    return !!nav;
+  }
+  function inRail() {
+    return !!(nav && nav.parentNode && nav.parentNode.classList && nav.parentNode.classList.contains('routine-rail__stick'));
+  }
+  // what lies over the page under the header: on phones and tablets the stuck toggle (or its row) too
+  function overlap() {
+    return inRail() ? 24 : stuckBar().offsetHeight + 16;
+  }
+  var spyLock = -1;
+  function markActive(i) {
+    chips.forEach(function (c, k) {
+      c.classList.toggle('is-active', k === i);
+      if (k === i) c.setAttribute('aria-current', 'true');
+      else c.removeAttribute('aria-current');
+    });
+  }
   chips.forEach(function (chip, i) {
     chip.addEventListener('click', function () {
+      if (anchors()) {
+        var part = panels[i] && (panels[i].querySelector('.care-part') || panels[i]);
+        if (!part) return;
+        spyLock = i;
+        markActive(i);
+        glideTo(function () {
+          return part.getBoundingClientRect().top + window.scrollY - stickyTop() - overlap();
+        }, function () {
+          spyLock = -1;
+          schedule();
+        });
+        return;
+      }
       var stuck = stuckBar().classList.contains('is-stuck');
       select(i);
-      // pressed while stuck: the new part starts from its first step, under the toggle
-      // (a jump, not a smooth scroll: the part under it has just been swapped, and a smooth scroll started over a
-      // swap gets dropped by the browser)
+      // pressed while stuck: the page glides up to the new part's first step, under the toggle (18.11: animated,
+      // not a jump — glideTo starts two frames after the swap, when the page has settled, so the browser doesn't
+      // drop it, and takes over with its own ease if it does)
       if (stuck && panels[i]) {
-        var y = panels[i].getBoundingClientRect().top + window.scrollY - stickyTop() - stuckBar().offsetHeight - 16;
-        window.scrollTo(0, Math.max(0, y));
+        var panel = panels[i];
+        glideTo(function () {
+          return panel.getBoundingClientRect().top + window.scrollY - stickyTop() - stuckBar().offsetHeight - 16;
+        }, function () {});
       }
     });
     // arrows move between the two, as tabs do
     chip.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (anchors()) return;
       e.preventDefault();
       select((i + (e.key === 'ArrowRight' ? 1 : chips.length - 1)) % chips.length, true);
     });
@@ -158,7 +198,7 @@
       if (target.hidden) openFold();
       var inScheme = tabs && tabs.contains(target);
       glideTo(function () {
-        return target.getBoundingClientRect().top + window.scrollY - stickyTop() - (inScheme && nav ? stuckBar().offsetHeight : 0) - 24;
+        return target.getBoundingClientRect().top + window.scrollY - stickyTop() - (inScheme && nav && !inRail() ? stuckBar().offsetHeight : 0) - 24;
       }, function () {
         target.setAttribute('tabindex', '-1');
         target.focus({ preventScroll: true });
@@ -192,18 +232,61 @@
   // the card between the scheme and the right column: a marker keeps its place in the scheme
   var rail = document.querySelector('.routine-rail');
   var desktop = window.matchMedia('(min-width: 1025px)');
+  var phone = window.matchMedia('(max-width: 767px)');
   var home = null;
+  var stick = null;
   if (rail && card) {
     home = document.createComment('care-result');
     card.parentNode.insertBefore(home, card);
+    stick = document.createElement('div');
+    stick.className = 'routine-rail__stick';
+    rail.appendChild(stick);
   }
+  // 18.11: the toggle beside the title on phones, over the card on desktop (a marker keeps its place)
+  var navHome = null;
+  if (stick && nav) {
+    navHome = document.createComment('care-nav');
+    nav.parentNode.insertBefore(navHome, nav);
+  }
+  var holder = nav && nav.querySelector('.care-nav__holder');
   function placeCard() {
     if (!home) return;
     if (desktop.matches) {
-      if (card.parentNode !== rail) rail.appendChild(card);
-    } else if (card.previousSibling !== home) {
-      home.parentNode.insertBefore(card, home.nextSibling);
+      if (card.parentNode !== stick) stick.appendChild(card);
+      if (navHome && nav.parentNode !== stick) stick.insertBefore(nav, stick.firstChild);
+    } else {
+      if (card.previousSibling !== home) home.parentNode.insertBefore(card, home.nextSibling);
+      if (navHome && nav.previousSibling !== navHome) navHome.parentNode.insertBefore(nav, navHome.nextSibling);
     }
+    setMode();
+  }
+  // desktop: both parts shown, the buttons anchors (aria-current on the part on screen); phones: tabs
+  function setMode() {
+    if (!chips.length) return;
+    var on = anchors();
+    if (holder) {
+      if (on) holder.removeAttribute('role');
+      else holder.setAttribute('role', 'tablist');
+    }
+    var current = 0;
+    chips.forEach(function (c, k) {
+      if (c.classList.contains('is-active')) current = k;
+      if (on) {
+        c.removeAttribute('role');
+        c.removeAttribute('aria-selected');
+        c.removeAttribute('tabindex');
+        if (panels[k]) {
+          panels[k].hidden = false;
+          panels[k].removeAttribute('role');
+        }
+      } else {
+        c.setAttribute('role', 'tab');
+        c.removeAttribute('aria-current');
+        if (panels[k]) panels[k].setAttribute('role', 'tabpanel');
+      }
+    });
+    if (on) markActive(current);
+    else select(current);
   }
   placeCard();
   if (desktop.addEventListener) desktop.addEventListener('change', placeCard);
@@ -214,9 +297,10 @@
   var railOffset = null;
   function alignRail() {
     if (!rail || !desktop.matches) return;
-    var step = document.querySelector('.care-section:not([hidden]) .care-list > .rstep');
-    if (!step) return;
-    var off = Math.max(0, Math.round(step.getBoundingClientRect().top - rail.getBoundingClientRect().top));
+    // 18.11: the toggle's top level with «Твоя схема догляду»
+    var title = document.querySelector('.care-head .care-title');
+    if (!title) return;
+    var off = Math.max(0, Math.round(title.getBoundingClientRect().top - rail.getBoundingClientRect().top));
     if (off === railOffset) return;
     railOffset = off;
     rail.style.setProperty('--rail-offset', off + 'px');
@@ -229,6 +313,16 @@
   if (barOn) {
     var barBtn = bar.querySelector('[data-routine-bar-add]');
     barBtn.addEventListener('click', function () {
+      // 18.11, phones: «Купити» glides down to the routine card (its «Додати в кошик» and «Частинами» there), the
+      // panel hides on the way as the card comes up; tablets: straight to the cart, as before
+      if (phone.matches) {
+        glideTo(function () {
+          return card.getBoundingClientRect().top + window.scrollY - stickyTop() - 24;
+        }, function () {
+          addAll.focus({ preventScroll: true });
+        });
+        return;
+      }
       addAll.click();
     });
     // mirror the card button's states: loading, and «Додано в кошик» once added
@@ -257,7 +351,39 @@
     frame = 0;
     var top = stickyTop();
     root.style.setProperty('--sticky-top', top + 'px');
-    if (nav && tabs) {
+    if (anchors()) {
+      if (spyLock === -1) {
+        // the active part: the last one whose «РАНОК» / «ВЕЧІР» is above a third of the screen
+        var under = inRail() ? top : top + stuckBar().offsetHeight;
+        var line = under + (window.innerHeight - under) / 3;
+        var active = 0;
+        panels.forEach(function (p, k) {
+          if (p && p.getBoundingClientRect().top <= line) active = k;
+        });
+        markActive(active);
+      }
+      // the toggle leaves with the steps: once the last step's bottom passes the toggle's, the column rides up
+      // with the page (a smaller sticky top) until the card is where the toggle was, 24px under the header —
+      // then only the card sticks
+      if (stick && tabs && inRail()) {
+        var base = top + 24;
+        var navH = nav.offsetHeight;
+        var shift = Math.min(navH + 40, Math.max(0, base + navH - tabs.getBoundingClientRect().bottom));
+        stick.style.top = (base - shift) + 'px';
+        var gone = shift >= navH;
+        if (nav.classList.contains('is-gone') !== gone) {
+          nav.classList.toggle('is-gone', gone);
+          if (gone) nav.setAttribute('inert', '');
+          else nav.removeAttribute('inert');
+        }
+      }
+    }
+    if (nav && tabs && !inRail()) {
+      if (stick) {
+        stick.style.top = '';
+        nav.classList.remove('is-gone');
+        nav.removeAttribute('inert');
+      }
       var sticky = stuckBar();
       var navTop = sticky.getBoundingClientRect().top;
       sticky.classList.toggle('is-stuck', navTop <= top + 0.5 && tabs.getBoundingClientRect().bottom > top + sticky.offsetHeight);
@@ -265,9 +391,18 @@
       if (sticky !== nav) nav.classList.remove('is-stuck');
     }
     if (barOn) {
-      // comment 7: only once the card's button has gone up under the header, not on the way to it
+      // comment 7: only once the card's button has gone up under the header, not on the way to it;
+      // 18.11, phones (up to 767px): over the bottom menu from the start, until the routine card itself comes up
+      // to the panel's top edge — from there on (the card on screen, or the page past it) it stays hidden
       var b = addAll.getBoundingClientRect();
-      showBar(!desktop.matches && b.bottom < top);
+      var show;
+      if (phone.matches) {
+        var barTop = window.innerHeight - (parseFloat(getComputedStyle(bar).bottom) || 0) - bar.offsetHeight;
+        show = card.getBoundingClientRect().top > barTop;
+      } else {
+        show = b.bottom < top;
+      }
+      showBar(!desktop.matches && show);
     }
   }
   function schedule() {
