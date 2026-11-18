@@ -1390,16 +1390,20 @@
     <!-- Prototype: the parts as tabs (the evening [hidden] until chosen); both .is-active, so the site's tabs
          (result-sliders.js) don't interfere. Their headings («☀ Ранок» on a band) are hidden while the toggle names
          the part (.care-tabs--tabs) -->
-    <h2 class="main-title care-title">Твоя схема догляду</h2>
-    <!-- Prototype: the morning / evening toggle as tabs, one part at a time; it sticks under the header while the
-         scheme scrolls by (2026-11-17.js). Our own buttons, not [data-nav], so the site's tabs (result-sliders.js)
-         leave it alone -->
-    <nav class="care-nav care-nav--anchors">
-      <div class="care-nav__holder" role="tablist" aria-label="Частини схеми">
-        <button type="button" role="tab" id="care-tab-morning" aria-controls="care-panel-morning" aria-selected="true" class="is-active" data-part-tab><svg width="24" height="24" aria-hidden="true"><use href="#tod-sun"/></svg>Ранок</button>
-        <button type="button" role="tab" id="care-tab-evening" aria-controls="care-panel-evening" aria-selected="false" tabindex="-1" data-part-tab><svg width="24" height="24" aria-hidden="true"><use href="#tod-moon"/></svg>Вечір</button>
-      </div>
-    </nav>
+    <!-- Prototype: the title and the toggle on one row, sticking together under the header (2026-11-17.css .care-head;
+         on phones the row comes apart, the title scrolls away and the toggle sticks alone) -->
+    <div class="care-head">
+      <h2 class="main-title care-title">Твоя схема догляду</h2>
+      <!-- Prototype: the morning / evening toggle as tabs, one part at a time; it sticks under the header while the
+           scheme scrolls by (2026-11-17.js). Our own buttons, not [data-nav], so the site's tabs (result-sliders.js)
+           leave it alone -->
+      <nav class="care-nav care-nav--anchors">
+        <div class="care-nav__holder" role="tablist" aria-label="Частини схеми">
+          <button type="button" role="tab" id="care-tab-morning" aria-controls="care-panel-morning" aria-selected="true" class="is-active" data-part-tab><svg width="24" height="24" aria-hidden="true"><use href="#tod-sun"/></svg>Ранок</button>
+          <button type="button" role="tab" id="care-tab-evening" aria-controls="care-panel-evening" aria-selected="false" tabindex="-1" data-part-tab><svg width="24" height="24" aria-hidden="true"><use href="#tod-moon"/></svg>Вечір</button>
+        </div>
+      </nav>
+    </div>
 
         <div class="care-section is-active" data-section="1" id="care-panel-morning" role="tabpanel" aria-labelledby="care-tab-morning">
       <h3 class="care-part" id="care-morning"><svg width="24" height="24" aria-hidden="true"><use href="#tod-sun"/></svg>Ранок</h3>

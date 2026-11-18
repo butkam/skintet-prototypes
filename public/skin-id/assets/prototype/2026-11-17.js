@@ -3,7 +3,8 @@
  *
  * 1. The header's height as --sticky-top, for the toggle and the routine card sticking under it. The morning /
  *    evening toggle switches the parts as tabs (one shown, the other [hidden]); pressed while stuck, the new
- *    part starts from its first step under it. .is-stuck for the white bar behind it once it sticks.
+ *    part starts from its first step under it. .is-stuck for the white bar behind it once it sticks — on the
+ *    title's row with the toggle (.care-head), on phones on the toggle alone.
  * 2. The routine's purchase sticks to the bottom of the screen once the card's own «Додати в кошик» has been
  *    scrolled past (comment 7), and hides when it's back on screen; never when nothing is missing (an empty
  *    data-codes). Its button presses the card's own «Додати в кошик», so the cart logic
@@ -26,6 +27,12 @@
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var nav = document.querySelector('.care-nav--anchors');
   var chips = nav ? Array.prototype.slice.call(nav.querySelectorAll('[data-part-tab]')) : [];
+  // what sticks: the title's row with the toggle (.care-head) — or, on phones, where that row comes apart
+  // (display: contents), the toggle alone
+  var head = document.querySelector('.care-head');
+  function stuckBar() {
+    return head && getComputedStyle(head).display !== 'contents' ? head : nav;
+  }
   var panels = chips.map(function (chip) {
     return document.getElementById(chip.getAttribute('aria-controls'));
   });
@@ -42,13 +49,13 @@
   }
   chips.forEach(function (chip, i) {
     chip.addEventListener('click', function () {
-      var stuck = nav.classList.contains('is-stuck');
+      var stuck = stuckBar().classList.contains('is-stuck');
       select(i);
       // pressed while stuck: the new part starts from its first step, under the toggle
       // (a jump, not a smooth scroll: the part under it has just been swapped, and a smooth scroll started over a
       // swap gets dropped by the browser)
       if (stuck && panels[i]) {
-        var y = panels[i].getBoundingClientRect().top + window.scrollY - stickyTop() - nav.offsetHeight - 16;
+        var y = panels[i].getBoundingClientRect().top + window.scrollY - stickyTop() - stuckBar().offsetHeight - 16;
         window.scrollTo(0, Math.max(0, y));
       }
     });
@@ -151,7 +158,7 @@
       if (target.hidden) openFold();
       var inScheme = tabs && tabs.contains(target);
       glideTo(function () {
-        return target.getBoundingClientRect().top + window.scrollY - stickyTop() - (inScheme && nav ? nav.offsetHeight : 0) - 24;
+        return target.getBoundingClientRect().top + window.scrollY - stickyTop() - (inScheme && nav ? stuckBar().offsetHeight : 0) - 24;
       }, function () {
         target.setAttribute('tabindex', '-1');
         target.focus({ preventScroll: true });
@@ -202,6 +209,23 @@
   if (desktop.addEventListener) desktop.addEventListener('change', placeCard);
   else if (desktop.addListener) desktop.addListener(placeCard);
 
+  // desktop: the card starts level with the scheme's first step (--rail-offset, 2026-11-17.css) — measured, as
+  // the empty state has «Розбір ще триває» over the scheme; again on resize and once the fonts are in
+  var railOffset = null;
+  function alignRail() {
+    if (!rail || !desktop.matches) return;
+    var step = document.querySelector('.care-section:not([hidden]) .care-list > .rstep');
+    if (!step) return;
+    var off = Math.max(0, Math.round(step.getBoundingClientRect().top - rail.getBoundingClientRect().top));
+    if (off === railOffset) return;
+    railOffset = off;
+    rail.style.setProperty('--rail-offset', off + 'px');
+  }
+  alignRail();
+  window.addEventListener('resize', alignRail);
+  window.addEventListener('load', alignRail);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(alignRail);
+
   if (barOn) {
     var barBtn = bar.querySelector('[data-routine-bar-add]');
     barBtn.addEventListener('click', function () {
@@ -234,8 +258,11 @@
     var top = stickyTop();
     root.style.setProperty('--sticky-top', top + 'px');
     if (nav && tabs) {
-      var navTop = nav.getBoundingClientRect().top;
-      nav.classList.toggle('is-stuck', navTop <= top + 0.5 && tabs.getBoundingClientRect().bottom > top + nav.offsetHeight);
+      var sticky = stuckBar();
+      var navTop = sticky.getBoundingClientRect().top;
+      sticky.classList.toggle('is-stuck', navTop <= top + 0.5 && tabs.getBoundingClientRect().bottom > top + sticky.offsetHeight);
+      if (head && sticky !== head) head.classList.remove('is-stuck');
+      if (sticky !== nav) nav.classList.remove('is-stuck');
     }
     if (barOn) {
       // comment 7: only once the card's button has gone up under the header, not on the way to it

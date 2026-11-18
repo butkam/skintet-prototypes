@@ -744,11 +744,6 @@ body:has(.admin-result) .menu::before {
   font-family: Sailec;
   color: #1b1b1b;
 }
-/* a step with «Коли закінчиться» over a step on a card (which reaches 28px out): 52px from the row to the card,
-   more than the row's 48 to its own step, so it doesn't drift down to the next one */
-.main-wrapper .rstep:has(> .rstep__buy):has(+ .rstep:not(.rstep--shelf):not(.rstep--plain)) {
-  padding-bottom: 80px;
-}
 .main-wrapper .rstep__label {
   grid-area: label;
   margin: 0;
@@ -1072,9 +1067,6 @@ body:has(.admin-result) .menu::before {
     gap: 12px;
     margin-top: 24px;
   }
-  .main-wrapper .rstep:has(> .rstep__buy):has(+ .rstep:not(.rstep--shelf):not(.rstep--plain)) {
-    padding-bottom: 72px; /* 52px to the card, which reaches 20px out here */
-  }
 }
 /* phones: «Купити» under the name in «Коли закінчиться» (beside it the text had a column of a few words) */
 @media (max-width: 767px) {
@@ -1348,28 +1340,10 @@ body:has(.admin-result) .menu::before {
   --optical-inset: 0px;
 }
 
-/* ── The recommendation as a filled gap ─────────────────────────────────────────────────────────────────────
-   Our products' steps on a light card (#fafafa, 24px corners, 24px around the product, the photo and the
-   purchase; the step's name stays outside, in its column), her steps without one: the scheme reads as mostly
-   hers with two places we filled; its text says why it's here, then what it does. The single-product buttons
-   outlined, in the steps and in «Коли закінчиться»: the only black one is the set's «Додати в кошик» */
-.main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) {
-  position: relative;
-  isolation: isolate;
-}
-.main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain)::before {
-  content: "";
-  grid-column: 2 / -1;
-  grid-row: 1 / -1;
-  align-self: stretch; /* the step aligns its items to the top */
-  z-index: -1;
-  margin: -28px -32px; /* 28px over and under the product, 32px at the sides */
-  border-radius: 24px;
-  background: #fafafa;
-}
-.main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__img {
-  background: #fff;
-}
+/* ── Our recommendation looks like her shelf ────────────────────────────────────────────────────────────────
+   No card under our products' steps any more: they stand as her steps do, told apart by «Наша рекомендація»
+   after the brand and their «Купити»; the text says why it's here, then what it does. The single-product
+   buttons outlined, in the steps and in «Коли закінчиться»: the only black one is the set's «Додати в кошик» */
 .main-wrapper .rstep__btn {
   padding: 9px 23px;
   border: 1px solid #e5e5e5;
@@ -1386,23 +1360,6 @@ body:has(.admin-result) .menu::before {
 .main-wrapper .rstep__btn.skin-id-buy--done {
   border-color: #f5f5f5;
   background: #f5f5f5;
-}
-/* phones: the card spans the step's width under its name, 16px around (the page has 20px of margin) */
-@media (max-width: 1279px) {
-  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain)::before {
-    grid-column: 1 / -1;
-    grid-row: 2 / -1;
-    margin: -20px -4px; /* 16px from the screen's edges on phones */
-    border-radius: 20px;
-  }
-  /* inside the card, 20px from its sides: the card reaches 4px past the column, the text steps 16px in */
-  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__main,
-  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__foot {
-    padding-inline: 16px;
-  }
-  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__label {
-    margin-bottom: 32px;
-  }
 }
 
 /* ── «Не змогли перевірити» at the bottom of the shelf analysis ─────────────────────────────────────────────
@@ -1425,6 +1382,81 @@ body:has(.admin-result) .menu::before {
 }
 .main-wrapper .care-tabs--tabs .care-part {
   display: none;
+}
+
+/* ── «Твоя схема догляду» and the toggle on one row, sticking together ───────────────────────────────────────
+   The title on the left, the toggle on the right, centred on each other; the whole row sticks under the header
+   (in .care-tabs, so it leaves with the scheme) and, once stuck, gets the white bar with a hairline across the
+   column (.is-stuck, 2026-11-17.js). The steps 32px under the row (24px + its 8px). Phones (up to 767px, where
+   the two don't fit side by side): the row comes apart (display: contents), the title scrolls away and the toggle
+   sticks alone, as before */
+.main-wrapper .main__content-care .care-head {
+  position: sticky;
+  top: var(--sticky-top, 65px);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: -8px 0 32px; /* the steps 40px under the toggle */
+  padding-block: 8px;
+}
+/* desktop: the routine card on the right starts level with the first step, not with the title's row — by
+   --rail-offset (2026-11-17.js measures it: more in the empty state, under «Розбір ще триває»), else 88px (the
+   row's 64px less its −8px, and its 32px under it); on scroll it rides up and sticks 24px under the header, as
+   before, beside the stuck row (whose bar is the scheme column's only) */
+@media (min-width: 1025px) {
+  .main-wrapper .routine-rail.main__content-care .care-result.rset {
+    margin-top: var(--rail-offset, 88px);
+  }
+}
+.main-wrapper .main__content-care .care-head::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 -24px;
+  background: #fff;
+  border-bottom: 1px solid #e5e5e5;
+  opacity: 0;
+  transition: opacity 0.15s linear;
+  pointer-events: none;
+}
+.main-wrapper .main__content-care .care-head.is-stuck::before {
+  opacity: 1;
+}
+.main-wrapper .main__content-care .care-head .care-title {
+  min-width: 0;
+  margin: 0;
+}
+.main-wrapper .main__content-care .care-head .care-nav--anchors {
+  position: static;
+  flex: none;
+  margin: 0;
+  padding: 0;
+}
+.main-wrapper .main__content-care .care-head .care-nav--anchors::before {
+  content: none;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-head::before {
+    inset: 0 -20px;
+  }
+}
+@media (max-width: 767px) {
+  .main-wrapper .main__content-care .care-head {
+    display: contents;
+  }
+  .main-wrapper .main__content-care .care-head .care-title {
+    margin: 0 0 24px;
+  }
+  .main-wrapper .main__content-care .care-head .care-nav--anchors {
+    position: sticky;
+    margin: -4px 0 28px; /* the steps 32px under the toggle */
+    padding-block: 4px;
+  }
+  .main-wrapper .main__content-care .care-head .care-nav--anchors::before {
+    content: "";
+  }
 }
 
 /* ── «Додатково з твоєї полички» folded after 3 ─────────────────────────────────────────────────────────────
@@ -1527,13 +1559,6 @@ body:has(.admin-result) .menu::before {
 .main-wrapper .shelf-skip__row[tabindex="-1"]:focus,
 .main-wrapper .shelf-skip__name[tabindex="-1"]:focus {
   outline: none;
-}
-
-/* 1280–1439px: the routine card is only 40px away — the step's card reaches 24px to the right, not 32 */
-@media (min-width: 1280px) and (max-width: 1439px) {
-  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain)::before {
-    margin-right: -24px;
-  }
 }
 
 /* up to 1279px: «Купити» under the ingredients on the left, as in «Коли закінчиться» (on the right, alone on
