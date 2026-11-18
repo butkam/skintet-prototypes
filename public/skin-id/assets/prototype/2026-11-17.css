@@ -1,0 +1,1549 @@
+/* Prototype (2026-11-17.html): another version of the routine (Figma «Checkout», Desktop 701:9334). Starts as a copy
+   of 2026-11-15.css (the feedback round of 14.11), the new routine at the end of the file.
+   Only this page loads it, so index.html and classic.html stay as they were. The numbers are the items of
+   docs/skin-id-feedback-2026-11-14.md */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── 1. (15.11's sticky morning / evening toggle and variant Б: gone, see «No toggle» below) ──────────────── */
+
+/* ── 6. No shelves under the steps: the site's own hairline between the steps comes back ────────────────── */
+.main-wrapper .main__content-care .item::before,
+.main-wrapper .main__content-care .item::after {
+  content: none;
+}
+.main-wrapper .main__content-care .item {
+  border-bottom-color: #e5e5e5;
+}
+
+/* ── 5. One buy button for a single product, in the steps and in «Коли закінчиться» ─────────────────────
+   SkButton secondary with the sum after a faint rule («Купити | 2 950 ₴»), like «Частинами | від … ₴/міс»
+   in the routine card: the same shape and label everywhere, 40px, below the black «Додати в кошик» of the
+   set. The price lives in the button, so in a step nothing outshines it */
+.main-wrapper .sk-button--buy {
+  padding: 8px 20px;
+  font-size: 14px;
+  line-height: 22px;
+}
+.main-wrapper .sk-button--buy .sk-button__rule {
+  margin-inline: 4px;
+}
+/* desktop: on the right edge of the text column, in the steps as in «Коли закінчиться» */
+.main-wrapper .main__content-care .item > .actions {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+/* desktop, our products: «Купити» on the description's row, on the right, its top on the text's top; the text
+   keeps clear of it (the button is ~164px, 32px of air) */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-care .item:not(.item--shelf) > .description {
+    padding-right: 196px;
+  }
+  .main-wrapper .main__content-care .item:not(.item--shelf) > .actions {
+    grid-row: 4;
+    justify-self: end;
+    align-self: start;
+  }
+}
+/* phones: under the blocks, on the left edge — under the description in a step, under the icon and the name
+   in «Коли закінчиться» */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item > .actions {
+    justify-content: flex-start;
+  }
+  .main-wrapper .main__content-care .item .shelf-next .sk-button {
+    margin-left: 0;
+  }
+}
+
+/* ── Р1 + 3. «Додатково з твоєї полички» as a list, like «Краще відкласти» ──────────────────────────────
+   The catalog menu's glyph of the product's type in the icon column (toner, serum, cream, lips), then
+   name and brand; when to use it, as only the toggle's sun / moon (20px, no words: the words are the
+   label and the hover title), in a narrow column of its own between the product and how, in our serif voice.
+   The moon is drawn at 80% in its box (#tod-moon-list): its solid crescent would outweigh the sun's small
+   core and light rays. Each icon is centred in the column, so one or two share the same middle */
+.main-wrapper .shelf-skip--extra .shelf-skip__row {
+  grid-template-columns: 24px minmax(0, 5fr) 64px minmax(0, 7fr);
+}
+.main-wrapper .shelf-skip--extra .shelf-skip__row > .shelf-skip__why {
+  padding-left: 16px;
+}
+/* the catalog menu's glyph for the product's type, 20px (drawn at 15), on the brand's line */
+.main-wrapper .shelf-skip__icon--type {
+  margin-top: 0;
+}
+.main-wrapper .shelf-skip__when {
+  align-self: start;
+  justify-self: center;
+  display: flex;
+  gap: 2px;
+}
+.main-wrapper .shelf-skip__when svg {
+  flex: none;
+  display: block;
+}
+.main-wrapper .shelf-skip--extra:has(+ .shelf-extra__unknown) {
+  margin-bottom: 20px;
+}
+@media (max-width: 1024px) {
+  /* phones: the icons on the right of the name, how under both */
+  .main-wrapper .shelf-skip--extra .shelf-skip__row {
+    grid-template-columns: 24px minmax(0, 1fr) 48px;
+  }
+  .main-wrapper .shelf-skip--extra .shelf-skip__when {
+    justify-self: end;
+  }
+  .main-wrapper .shelf-skip--extra .shelf-skip__row > .shelf-skip__why {
+    grid-column: 2 / -1;
+    padding-left: 12px;
+  }
+  .main-wrapper .shelf-skip--extra:has(+ .shelf-extra__unknown) {
+    margin-bottom: 16px;
+  }
+}
+
+/* both lists («Додатково з твоєї полички» and «Краще відкласти»): the name takes its whole column, no 240px cap */
+.main-wrapper .shelf-skip__product {
+  max-width: none;
+}
+
+/* ── 4. «Краще відкласти»: a pause in a muted terracotta circle instead of «?» — «not now», not «help» ──── */
+.main-wrapper .shelf-skip__icon--pause {
+  color: #b0654a;
+}
+
+/* ── Р2. (15.11's «Є в:» pills under the ingredients: gone on 17.11) ────────────────────────────────────── */
+
+/* ── 8. The routine card on phones: both buttons the same, the card's full width, one under the other ──── */
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result__cta {
+    flex-direction: column;
+  }
+  .main-wrapper .main__content-care .care-result__cta .btn,
+  .main-wrapper .main__content-care .care-result__cta .sk-button {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* ── 7. The routine's purchase sticks to the bottom once the card is scrolled past ──────────────────────
+   Like the product page's panel: white with blur, a hairline on top. Desktop and tablet: the set's previews
+   and what it is on the left, the price and «Додати 2 засоби в кошик» on the right. Phones: a compact panel
+   over the bottom menu, the price with the discount and «Додати в кошик». The chat button rises over it */
+.routine-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #e5e5e5;
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+.routine-bar.is-shown {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.25s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .routine-bar,
+  .routine-bar.is-shown {
+    transition: none;
+  }
+}
+.routine-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1512px;
+  margin: 0 auto;
+  padding: 12px 40px;
+}
+.routine-bar__set {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* the card's previews, smaller: grey coins with a white ring, overlapping */
+.routine-bar__images {
+  display: flex;
+  margin: 0;
+  padding: 0 0 0 4px;
+  list-style: none;
+}
+.routine-bar__images li {
+  width: 40px;
+  height: 40px;
+  margin-left: -10px;
+  border-radius: 10px;
+  background: #f5f5f5;
+  box-shadow: 0 0 0 3px #fff;
+  overflow: hidden;
+}
+.routine-bar__images li:first-child {
+  margin-left: 0;
+}
+.routine-bar__images img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.routine-bar__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.routine-bar__name {
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+.routine-bar__count {
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+/* the price, the old one and the discount pill on one centre line, not the baseline: the pill and the big
+   serif figures would otherwise sit at different heights */
+.routine-bar__price {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 8px;
+}
+.routine-bar__new {
+  font-family: NibProBold;
+  font-size: 24px;
+  line-height: 28px;
+  color: #000;
+}
+.routine-bar__price-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.routine-bar__old {
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+  text-decoration: line-through;
+}
+/* the site's green discount pill (.product-discount) */
+.routine-bar__discount {
+  padding: 0 6px;
+  border-radius: 100px;
+  background: #e5f7e7;
+  font-family: Sailec;
+  font-size: 13px;
+  line-height: 20px;
+  color: #107a40;
+}
+.routine-bar .routine-bar__btn {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 12px 32px;
+  font-family: Sailec;
+  font-size: 16px;
+  line-height: 24px;
+}
+.routine-bar__short {
+  display: none;
+}
+/* room under the footer for the panel, and the chat button over it */
+body.has-routine-bar {
+  padding-bottom: 73px;
+}
+body.has-routine-bar .fabs {
+  bottom: 97px;
+  transition: bottom 0.25s ease;
+}
+@media (max-width: 1024px) {
+  .routine-bar__inner {
+    padding: 12px 20px;
+  }
+}
+/* phones: over the bottom menu (60px + its hairline), no previews, the price in two lines */
+@media (max-width: 767px) {
+  .routine-bar {
+    bottom: calc(61px + env(safe-area-inset-bottom));
+  }
+  .routine-bar__inner {
+    gap: 12px;
+    padding: 8px 16px;
+  }
+  .routine-bar__set {
+    display: none;
+  }
+  /* on the left edge here, the button on the right; the old price and the pill under the price */
+  .routine-bar__price {
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .routine-bar__new {
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .routine-bar__old,
+  .routine-bar__discount {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .routine-bar .routine-bar__btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    line-height: 24px;
+  }
+  .routine-bar__long {
+    display: none;
+  }
+  .routine-bar__short {
+    display: inline;
+  }
+  body.has-routine-bar {
+    padding-bottom: 61px;
+  }
+  body.has-routine-bar .fabs {
+    bottom: calc(61px + 61px + 16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Desktop: «Мій кабінет» on top, the scheme on the left, what's missing in a sticky column on the right ─
+   The side menu becomes a header: the title, under it the links in one row («Вийти» at the far end). The
+   routine card (.care-result) moves from the scheme into .routine-rail (2026-11-15.js) and sticks under the
+   header; the panel at the bottom of the screen is off here. Below 1025px everything is as before */
+.routine-rail {
+  display: none;
+}
+@media (min-width: 1025px) {
+  .main-wrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas:
+      "aside aside"
+      "content rail";
+    column-gap: 40px;
+  }
+  /* without «Мій кабінет» over it the profile starts 40px under the header, not the site's 70 */
+  .main-wrapper {
+    padding-top: 40px;
+  }
+  .main-wrapper .main__aside {
+    grid-area: aside;
+    position: static;
+    padding: 0 0 20px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  .main-wrapper .main__aside-title {
+    margin-bottom: 16px;
+  }
+  .main-wrapper .main__aside-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 32px;
+    margin: 0;
+  }
+  .main-wrapper .main__aside-menu li {
+    margin: 0;
+  }
+  .main-wrapper .main__aside-menu li:last-child {
+    margin-left: auto;
+  }
+  .main-wrapper .main__content {
+    grid-area: content;
+    min-width: 0;
+  }
+
+  .routine-rail {
+    grid-area: rail;
+    /* the whole height of the scheme, so the card has room to stick (the wrapper aligns its items to the top) */
+    align-self: stretch;
+    display: block;
+    margin: 0;
+  }
+  .main-wrapper .routine-rail .care-result {
+    position: sticky;
+    top: calc(max(var(--sticky-top, 0px), 0px) + 24px);
+    margin-top: 0;
+  }
+  .main-wrapper .routine-rail .care-result__body {
+    padding: 24px;
+  }
+  /* the title, the previews, the price: one under the other in the narrow column */
+  .main-wrapper .routine-rail .care-result__info {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "images"
+      "price";
+  }
+  .main-wrapper .routine-rail .care-result__info .price-holder {
+    text-align: left;
+  }
+  .main-wrapper .routine-rail .care-result__info .old-price__holder {
+    justify-content: flex-start;
+  }
+  /* both buttons the column's width, one under the other; «Частинами», as on phones */
+  .main-wrapper .routine-rail .care-result__cta {
+    flex-direction: column;
+    margin-top: 24px;
+  }
+  .main-wrapper .routine-rail .care-result__cta .btn,
+  .main-wrapper .routine-rail .care-result__cta .sk-button {
+    width: 100%;
+    max-width: none;
+    padding-inline: 24px;
+  }
+  .main-wrapper .routine-rail .care-result__long {
+    display: none;
+  }
+  .main-wrapper .routine-rail .care-result__short {
+    display: inline;
+  }
+  /* payment and delivery on two lines */
+  .main-wrapper .routine-rail .care-result__foot {
+    padding: 12px 24px 14px;
+  }
+  .main-wrapper .routine-rail .care-result__foot-rule {
+    display: none;
+  }
+
+  .routine-bar {
+    display: none;
+  }
+}
+
+/* ── The header without transparency ─────────────────────────────────────────────────────────────────────
+   The site's header lies on 95% white (.menu::before), on this page on white fading to 90% at the bottom
+   (body:has(.admin-result) .menu::before, style.min.css): here plain white, nothing shows through it on
+   scroll. The same selector, so it wins by coming later */
+body:has(.admin-result) .menu::before {
+  background: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ── The product photo in the steps on the left ─────────────────────────────────────────────────────────
+   The image column first, the text after it (the site's grid, its columns swapped): 224px on desktop, 80px
+   on phones, where the description, Buy and «Коли закінчиться» still run under both. A step without a
+   photo keeps its one column */
+.main-wrapper .main__content-care .item:has(> .img-holder) {
+  /* the text up to the step's right edge, so Buy stands on it, as before */
+  grid-template-columns: 224px minmax(274px, 1fr);
+  justify-content: start;
+}
+.main-wrapper .main__content-care .item:has(> .img-holder) > .img-holder {
+  grid-column: 1;
+}
+.main-wrapper .main__content-care .item:has(> .img-holder) > :not(.img-holder) {
+  grid-column: 2;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .item:has(> .img-holder) {
+    grid-template-columns: 80px minmax(0, 583px);
+    column-gap: 16px;
+  }
+  .main-wrapper .main__content-care .item:has(> .img-holder) > .description,
+  .main-wrapper .main__content-care .item:has(> .img-holder) > .actions,
+  .main-wrapper .main__content-care .item:has(> .img-holder) > .shelf-rows {
+    grid-column: 1 / -1;
+  }
+}
+/* desktop: the photo half its size, 112px instead of 224px, its corners smaller to match */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-care .item:has(> .img-holder) {
+    grid-template-columns: 112px minmax(274px, 1fr);
+    column-gap: 32px;
+  }
+  .main-wrapper .main__content-care .item > .img-holder img {
+    width: 112px;
+    height: 112px;
+    border-radius: 16px;
+  }
+}
+
+/* ── No rules between the steps: the hairline (item 6 above) invisible, the same empty space ──────────── */
+.main-wrapper .main__content-care .item {
+  border-bottom-color: transparent;
+}
+
+/* ── «Додатково з твоєї полички»: when (sun / moon) opens the row ─────────────────────────────────────────
+   The icons first, flush with the heading, in a 56px column (two icons are 42px); then name and brand, how on
+   the right. Phones: the icons, the name beside them, how under the name */
+.main-wrapper .shelf-skip--extra .shelf-skip__row {
+  grid-template-columns: 56px minmax(0, 5fr) minmax(0, 7fr);
+  padding-left: 0;
+}
+.main-wrapper .shelf-skip--extra .shelf-skip__row > .shelf-skip__product {
+  padding-left: 0;
+}
+.main-wrapper .shelf-skip--extra .shelf-skip__when {
+  justify-self: start;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-skip--extra .shelf-skip__row {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+  .main-wrapper .shelf-skip--extra .shelf-skip__when {
+    justify-self: start;
+  }
+  .main-wrapper .shelf-skip--extra .shelf-skip__row > .shelf-skip__why {
+    grid-column: 2;
+    padding-left: 0;
+  }
+}
+
+/* ── The recommended ingredients in each step ────────────────────────────────────────────────────────────
+   «Містить:» and the ingredients of «Рекомендовані інгредієнти» this product has, under the description:
+   the same grey pills as that block's «Є в:», so the two read as one system */
+.main-wrapper .main__content-care .item .step-ingr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.main-wrapper .main__content-care .item .step-ingr__label {
+  align-self: center;
+  margin-right: 2px;
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+.main-wrapper .main__content-care .item .step-ingr__item {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  font-family: Sailec;
+  font-size: 12px;
+  line-height: 16px;
+  color: #1b1b1b;
+}
+
+/* ── Desktop: the right column starts from «Твоя схема догляду» ─────────────────────────────────────────
+   The profile and the strategy (.main__intro) across the whole width under «Мій кабінет»; the scheme and
+   what's missing side by side after them, so the card shows up level with the scheme's title and sticks
+   from there */
+@media (min-width: 1025px) {
+  .main-wrapper {
+    grid-template-areas:
+      "aside aside"
+      "intro intro"
+      "content rail";
+  }
+  .main-wrapper .main__intro {
+    grid-area: intro;
+    min-width: 0;
+  }
+}
+
+/* ══ 17.11: another version of the routine (Figma «💳 Skin(tet) · Checkout», Desktop 701:9334) ═════════════════
+   Everything below overrides what's above for the scheme only; the profile, «Мій кабінет», «Додатково з
+   твоєї полички», «Краще відкласти», ingredients and advice stay as on 15.11 */
+
+/* ── Columns: 947 + 72 + 413 on a 1512px screen, as in the mock; narrower screens keep 15.11's 360px ────── */
+@media (min-width: 1440px) {
+  .main-wrapper {
+    grid-template-columns: minmax(0, 1fr) 413px;
+    column-gap: 72px;
+  }
+}
+
+/* ── Morning and evening one under the other, the toggle as anchors ───────────────────────────────────────
+   Each part under its heading — the toggle's sun / moon (24px) and «Ранок» / «Вечір» in Nib Pro 24/28 on a
+   band that fades to the right. The title, 24px down the toggle, 32px down the morning's heading, the steps
+   32px under it; between the parts only the last step's own space */
+.main-wrapper .main__content-care .care-title {
+  max-width: 620px;
+  margin: 0 0 24px;
+  font-family: NibProBold;
+  font-size: 32px;
+  font-weight: normal;
+  line-height: 36px;
+  letter-spacing: normal;
+  color: #1b1b1b;
+}
+.main-wrapper .care-tabs--both .care-section {
+  display: block;
+  margin: 0;
+}
+.main-wrapper .care-tabs--both .care-section + .care-section {
+  margin-top: 0; /* the last step's own 64px (48 on phones) is the gap before «Вечір» */
+}
+/* the heading on a band across the whole column: round on the left (a 48px pill's end), the toggle track's
+   #ebebeb fading out to the right. The icon stays on the text's edge, the band's round end hangs 12px out
+   to the left of it */
+.main-wrapper .care-tabs--both .care-part {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin: 0 0 32px -12px;
+  padding: 10px 16px 10px 12px;
+  font-family: NibProBold;
+  font-size: 24px;
+  font-weight: normal;
+  line-height: 28px;
+  color: #1b1b1b;
+  /* the toggle sticks now, the headings scroll; an anchor lands under the header and the stuck toggle */
+  position: relative;
+  z-index: 0;
+  scroll-margin-top: calc(var(--sticky-top, 65px) + 56px + 16px);
+}
+/* the band fading to white, below the heading's text (z-index −1 inside it), on white */
+.main-wrapper .care-tabs--both .care-part::before,
+.main-wrapper .care-tabs--both .care-part::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+.main-wrapper .care-tabs--both .care-part::before {
+  inset: 0;
+  background: #fff;
+}
+.main-wrapper .care-tabs--both .care-part::after {
+  inset: 0;
+  border-radius: 24px 0 0 24px;
+  background: linear-gradient(to right, #ebebeb, #fff);
+}
+.main-wrapper .care-tabs--both .care-part svg {
+  flex: none;
+  display: block;
+}
+/* the toggle: the mock's segmented control — a #ebebeb track, 4px around and between, the halves equal, the
+   active one white with Elevation/S; 24px icon, 8px, 14/20. Anchors: both parts stay on the page. It sticks
+   under the header (in .care-tabs, so it leaves with the evening's last step); once stuck, a white bar with a
+   hairline runs behind it across the column (.is-stuck, 2026-11-17.js). Desktop: its own width; phones: full */
+.main-wrapper .main__content-care .care-nav--anchors {
+  position: sticky;
+  top: var(--sticky-top, 65px);
+  z-index: 30;
+  margin: -4px 0 28px;
+  padding-block: 4px;
+}
+.main-wrapper .main__content-care .care-nav--anchors::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 -24px;
+  background: #fff; /* plain white, no backdrop blur: Safari repaints a blur on every frame of a scroll */
+  border-bottom: 1px solid #e5e5e5;
+  opacity: 0;
+  transition: opacity 0.15s linear;
+  pointer-events: none;
+}
+.main-wrapper .main__content-care .care-nav--anchors.is-stuck::before {
+  opacity: 1;
+}
+.main-wrapper .care-nav--anchors .care-nav__holder {
+  display: flex;
+  gap: 4px;
+  width: max-content;
+  min-width: 219px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: #ebebeb;
+}
+.main-wrapper .care-nav--anchors .care-nav__holder button {
+  flex: 1 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+  white-space: nowrap;
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s, box-shadow 0.15s;
+}
+.main-wrapper .care-nav--anchors .care-nav__holder button.is-active {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.16);
+}
+.main-wrapper .care-nav--anchors .care-nav__holder svg {
+  flex: none;
+  display: block;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-nav--anchors {
+    margin-bottom: 20px;
+  }
+  .main-wrapper .main__content-care .care-nav--anchors::before {
+    inset: 0 -20px;
+  }
+  .main-wrapper .care-nav--anchors .care-nav__holder {
+    width: auto;
+  }
+  .main-wrapper .main__content-care .care-title {
+    margin-bottom: 24px;
+    font-size: 24px;
+    line-height: 28px;
+  }
+  .main-wrapper .care-tabs--both .care-part {
+    min-height: 44px;
+    margin-bottom: 24px;
+    padding-block: 10px;
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .main-wrapper .care-tabs--both .care-part::after {
+    border-radius: 22px 0 0 22px;
+  }
+}
+
+/* ── A step: the step's name on the left, the product in the middle, its photo on the right ──────────────
+   171 · 48 · 1fr · 48 · 112. The name in Nib Pro SemiBold Italic 20/24, muted; the title Nib Pro 24/28, the
+   text 14/20, the ingredients as badges 24px under it. Under the text and the photo, 48px down: the zigzag
+   and the purchase — the photo, brand · volume and name of our product (or the bottle and «Коли
+   закінчиться» for hers), the price, black «Додати в кошик» */
+.main-wrapper .main__content-care .care-list {
+  display: block;
+}
+.main-wrapper .rstep {
+  display: grid;
+  grid-template-columns: 171px minmax(0, 1fr) 112px;
+  grid-template-areas:
+    "label main img"
+    "label buy  buy";
+  column-gap: 48px;
+  align-items: start;
+  padding-bottom: 64px; /* the mock's 41px between the steps felt tight */
+  font-family: Sailec;
+  color: #1b1b1b;
+}
+.main-wrapper .rstep__label {
+  grid-area: label;
+  margin: 0;
+  font-family: NibProSemiBoldItalic;
+  font-size: 20px; /* the size it has over the title on narrower screens, not the mock's 24/28 */
+  line-height: 24px;
+  color: #6b6b6b;
+}
+.main-wrapper .rstep__main {
+  grid-area: main;
+  min-width: 0;
+  display: flow-root; /* holds the floated photo */
+}
+.main-wrapper .rstep__title {
+  margin: 0;
+  font-family: NibProBold;
+  font-size: 24px;
+  font-weight: normal;
+  line-height: 28px;
+  color: #1b1b1b;
+}
+.main-wrapper .rstep__text {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+/* the brand under the name, the volume after it behind a middle dot, as on the site; then the mark */
+.main-wrapper .rstep__meta {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+/* brand · volume, then whose product it is: «З твоєї полички» with the green check, «Наша рекомендація» with
+   our sparkle, 12px apart; on a narrow screen the mark wraps under brand · volume, flush left */
+.main-wrapper .rstep__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+}
+.main-wrapper .rstep__src > * + *::before {
+  content: "·";
+  margin: 0 4px;
+}
+.main-wrapper .rstep__meta > .rstep__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.main-wrapper .rstep__mark svg {
+  flex: none;
+  display: block;
+}
+.main-wrapper .rstep__mark--own {
+  color: #107a40;
+}
+.main-wrapper .rstep__mark--ours {
+  color: #1b1b1b;
+}
+/* our product: the ingredients and «Купити | price» on one row under the text and the photo, the button on
+   the step's right edge (as in «Коли закінчиться»), on the badges' middle; it wraps under them when narrow */
+.main-wrapper .rstep__foot {
+  grid-area: buy;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-top: 24px;
+}
+.main-wrapper .rstep__foot .rstep__ingr {
+  margin: 0;
+}
+.main-wrapper .rstep__foot .rstep__btn {
+  margin-left: auto;
+}
+.main-wrapper .rstep__text {
+  margin-top: 12px;
+}
+/* the ingredient's colour from «Рекомендовані інгредієнти»: a 20px dot, the pill in it at 30% */
+.main-wrapper .rstep__ingr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.main-wrapper .rstep__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 2px 2px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ingr) 30%, transparent);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.main-wrapper .rstep__badge::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ingr);
+}
+/* the photo floats inside the text. Desktop: pushed out into the step's own 112px column (a margin as wide as
+   it and the gap), so the text keeps its column; narrower screens: the text flows around it and under it */
+.main-wrapper .rstep__img {
+  float: right;
+  margin: 0 -160px 0 0; /* 112px + the 48px gap */
+  display: block;
+  width: 112px;
+  height: 112px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+.main-wrapper .rstep__img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* the zigzag of the mock's «Коли закінчиться»: #ebebeb, 3px swing; 20px down to the row. On the right
+   «Купити | price» (outlined, see «The recommendation as a filled gap»), its top on the row's top */
+.main-wrapper .rstep__buy {
+  grid-area: buy;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 48px;
+  padding-top: 24px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4' viewBox='0 0 16 4'%3E%3Cpath d='M-8 .5 0 3.5 8 .5 16 3.5 24 .5' fill='none' stroke='%23ebebeb' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top / 16px 4px;
+}
+.main-wrapper .rstep__icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  color: #1b1b1b;
+}
+.main-wrapper .rstep__icon svg {
+  display: block;
+}
+.main-wrapper .rstep__thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+.main-wrapper .rstep__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.main-wrapper .rstep__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.main-wrapper .rstep__sub {
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+.main-wrapper .rstep__name {
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+/* why switch once hers runs out (the brief: «коли закінчиться» comes rarely and with its reason) */
+.main-wrapper .rstep__next-why {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .rstep__btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  border: 0;
+  border-radius: 9999px;
+  background: #1b1b1b;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.main-wrapper .rstep__btn:hover {
+  background: #333;
+}
+.main-wrapper .rstep__btn.loading {
+  opacity: 0.6;
+  cursor: progress;
+}
+/* added: «В кошику» (skin-id-cart.js) on light grey */
+.main-wrapper .rstep__btn.skin-id-buy--done {
+  background: #f5f5f5;
+  color: #1b1b1b;
+}
+/* the faint rule between «Купити» and the price, as in the routine's «Додати в кошик | …» */
+.main-wrapper .rstep__rule {
+  flex: none;
+  width: 1px;
+  height: 14px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+.main-wrapper .rstep__btn.skin-id-buy--done .rstep__rule {
+  background: rgba(27, 27, 27, 0.3);
+}
+
+/* up to 1279px (phones, tablets and narrow desktops, where the scheme's column is too narrow for three):
+   the name over the step, the photo 80px on the right of the text; the purchase under both */
+@media (max-width: 1279px) {
+  .main-wrapper .rstep {
+    padding-bottom: 48px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "label"
+      "main"
+      "buy";
+  }
+  .main-wrapper .rstep__label {
+    margin-bottom: 8px;
+  }
+  .main-wrapper .rstep__title {
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .main-wrapper .rstep__ingr {
+    margin-top: 16px;
+  }
+  .main-wrapper .rstep__img {
+    width: 80px;
+    height: 80px;
+    margin: 0 0 8px 16px;
+  }
+  .main-wrapper .rstep__buy {
+    gap: 12px;
+    margin-top: 24px;
+  }
+}
+/* phones: «Купити» under the name in «Коли закінчиться» (beside it the text had a column of a few words) */
+@media (max-width: 767px) {
+  .main-wrapper .rstep__buy {
+    flex-wrap: wrap;
+    column-gap: 16px;
+  }
+  .main-wrapper .rstep__buy .rstep__info {
+    flex: 1 1 calc(100% - 48px);
+  }
+  .main-wrapper .rstep__buy .rstep__btn {
+    margin-left: 48px; /* the 32px bottle + 16px */
+  }
+}
+
+/* ── What's missing to the full routine: no card ──────────────────────────────────────────────────────────
+   «2 засоби» Nib Pro 20/24 over «До повної рутини», 56px previews on its right in a 4px white ring, 2px over each other;
+   the price in the black «Додати в кошик», «Частинами» white with a hairline under it, both 48px and the
+   column's width; payment in parts and delivery as rows with a 40px grey icon */
+.main-wrapper .main__content-care .care-result.rset {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* the site's .care-result centres its children */
+  gap: 24px;
+  margin-top: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font-family: Sailec;
+  color: #1b1b1b;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care .care-result.rset {
+    margin-top: 16px;
+  }
+}
+/* «2 засоби / До повної рутини» on the left, the previews on the right of it, both on the row's middle */
+.main-wrapper .rset__set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.main-wrapper .rset__images {
+  flex: none;
+}
+.main-wrapper .rset__head {
+  display: flex;
+  flex-direction: column;
+}
+.main-wrapper .rset__count {
+  font-family: NibProBold;
+  font-size: 20px;
+  line-height: 24px;
+}
+.main-wrapper .rset__name {
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .rset__images {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* the tile on the li itself */
+.main-wrapper .rset__images li {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border: 4px solid #fff;
+  border-radius: 12px;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+.main-wrapper .rset__images li + li {
+  margin-left: -2px;
+}
+.main-wrapper .rset__images img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.main-wrapper .rset__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.main-wrapper .rset__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  padding: 11px 40px;
+  border: 1px solid #e5e5e5;
+  border-radius: 9999px;
+  background: #fff;
+  font-family: Sailec;
+  font-size: 16px;
+  line-height: 24px;
+  color: #1b1b1b;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.main-wrapper .rset__btn:hover {
+  border-color: #c9c9c9;
+}
+.main-wrapper .rset__btn--primary {
+  border-color: #1b1b1b;
+  background: #1b1b1b;
+  color: #fff;
+}
+.main-wrapper .rset__btn--primary:hover {
+  border-color: #333;
+  background: #333;
+}
+.main-wrapper .rset__btn.loading {
+  opacity: 0.6;
+  cursor: progress;
+}
+.main-wrapper .rset__rule {
+  flex: none;
+  width: 1px;
+  height: 14px;
+  border-radius: 1px;
+  background: rgba(27, 27, 27, 0.3);
+}
+.main-wrapper .rset__btn--primary .rset__rule {
+  background: rgba(255, 255, 255, 0.3);
+}
+/* the mock's white info card (16px in, 16px under the buttons) on the white page */
+.main-wrapper .rset__info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: -8px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+}
+.main-wrapper .rset__row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.main-wrapper .rset__row + .rset__row {
+  padding-top: 12px;
+  border-top: 1px solid #ebebeb;
+}
+.main-wrapper .rset__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: #f5f5f5;
+}
+.main-wrapper .rset__icon svg {
+  display: block;
+}
+.main-wrapper .rset__label {
+  flex: 1;
+  min-width: 0;
+}
+.main-wrapper .rset__banks {
+  display: flex;
+  gap: 12px;
+}
+.main-wrapper .rset__bank {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.main-wrapper .rset__bank img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+.main-wrapper .rset__free {
+  color: #107a40;
+  text-align: right;
+}
+
+/* ── Desktop: «Мій кабінет» back on the right, beside the profile ──────────────────────────────────────────
+   As in the mock: the links one under the other (14/20, 20px apart), the current one and the hovered one in
+   Nib Pro SemiBold Italic in brackets (the site's), «Вийти» 48px under the rest; no «Мій кабінет» title
+   (kept for screen readers). The profile and the strategy on the left, the scheme under them; the routine
+   card below the menu, level with the scheme's title, as before */
+@media (min-width: 1025px) {
+  .main-wrapper {
+    grid-template-areas:
+      "intro aside"
+      "content rail";
+  }
+  .main-wrapper .main__aside {
+    grid-area: aside;
+    position: static;
+    align-self: start;
+    margin: 8px 0 0;
+    padding: 0;
+    border-bottom: 0;
+  }
+  .main-wrapper .main__aside-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .main-wrapper .main__aside-menu {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 20px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .main-wrapper .main__aside-menu li,
+  .main-wrapper .main__aside-menu li:last-child {
+    margin: 0;
+  }
+  .main-wrapper .main__aside-menu li:last-child {
+    margin-top: 28px; /* 48px with the gap */
+  }
+  .main-wrapper .main__aside-menu a {
+    color: #000;
+  }
+  .main-wrapper .main__aside-menu a.is-active,
+  .main-wrapper .main__aside-menu a:hover {
+    font-family: NibProSemiBoldItalic;
+    font-style: normal;
+  }
+}
+
+/* ── «Розбір твоєї полички» in the scheme's column (desktop, beside the routine card) ────────────────────────
+   The text takes the card's width; the four faces small (48px, a 3px white ring, 12px over each other) in the
+   top right corner, level with the title, which keeps clear of them. The hours badge and «Почати розбір
+   полички» each on one line, the button by its words, not stretched */
+@media (min-width: 1025px) {
+  .main-wrapper .main__content-help--holder {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .main-wrapper .main__content-help .data-holder {
+    width: 100%;
+    max-width: none;
+  }
+  .main-wrapper .main__content-help .title {
+    padding-right: 172px; /* 4 × 48 − 3 × 12 = 156px of faces + 16px */
+  }
+  .main-wrapper .main__content-help .img-holder {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    flex-wrap: nowrap;
+    width: auto;
+    margin: 0;
+  }
+  .main-wrapper .main__content-help .img-holder .item {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    max-width: none;
+    max-height: none;
+    box-shadow: 0 0 0 3px #fff;
+  }
+  .main-wrapper .main__content-help .img-holder .item + .item {
+    margin-left: -12px;
+  }
+  .main-wrapper .main__content-help .time-block {
+    white-space: nowrap;
+  }
+  .main-wrapper .main__content-help .btn-holder a {
+    width: auto;
+    padding: 12px 32px;
+    white-space: nowrap;
+  }
+}
+
+/* ── No optical inset: 15.11's 4px for the headings and the lists under the scheme (prototype.css) is off ────
+   The new steps start flush with the column, so «Додатково з твоєї полички», «Краще відкласти», the
+   ingredients and advice do too */
+.main-wrapper {
+  --optical-inset: 0px;
+}
+
+/* ── The recommendation as a filled gap ─────────────────────────────────────────────────────────────────────
+   Our products' steps on a light card (#fafafa, 24px corners, 24px around the product, the photo and the
+   purchase; the step's name stays outside, in its column), her steps without one: the scheme reads as mostly
+   hers with two places we filled; its text says why it's here, then what it does. The single-product buttons
+   outlined, in the steps and in «Коли закінчиться»: the only black one is the set's «Додати в кошик» */
+.main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) {
+  position: relative;
+  isolation: isolate;
+}
+.main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain)::before {
+  content: "";
+  grid-column: 2 / -1;
+  grid-row: 1 / -1;
+  align-self: stretch; /* the step aligns its items to the top */
+  z-index: -1;
+  margin: -28px -32px; /* 28px over and under the product, 32px at the sides */
+  border-radius: 24px;
+  background: #fafafa;
+}
+.main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__img {
+  background: #fff;
+}
+.main-wrapper .rstep__btn {
+  padding: 9px 23px;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  color: #1b1b1b;
+}
+.main-wrapper .rstep__btn:hover {
+  border-color: #c9c9c9;
+  background: #fff;
+}
+.main-wrapper .rstep__btn .rstep__rule {
+  background: rgba(27, 27, 27, 0.3);
+}
+.main-wrapper .rstep__btn.skin-id-buy--done {
+  border-color: #f5f5f5;
+  background: #f5f5f5;
+}
+/* phones: the card spans the step's width under its name, 16px around (the page has 20px of margin) */
+@media (max-width: 1279px) {
+  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain)::before {
+    grid-column: 1 / -1;
+    grid-row: 2 / -1;
+    margin: -20px -4px; /* 16px from the screen's edges on phones */
+    border-radius: 20px;
+  }
+  /* inside the card, 20px from its sides: the card reaches 4px past the column, the text steps 16px in */
+  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__main,
+  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__foot {
+    padding-inline: 16px;
+  }
+  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain) .rstep__label {
+    margin-bottom: 32px;
+  }
+}
+
+/* ── «Не змогли перевірити» at the bottom of the shelf analysis ─────────────────────────────────────────────
+   One grey line after «Краще відкласти» (the brief: one line at the bottom of the block), 24px under its last
+   row (16px on phones); the ingredients 64px (48px) under it, as before */
+.main-wrapper .shelf-skip:has(+ .shelf-extra__unknown) {
+  margin-bottom: 24px;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-skip:has(+ .shelf-extra__unknown) {
+    margin-bottom: 16px;
+  }
+}
+
+/* ── For now: the toggle as tabs ─────────────────────────────────────────────────────────────────────────────
+   One part at a time (the other [hidden], 2026-11-17.js); the parts' own headings hidden, the toggle names the
+   part, so nothing reads twice. The steps 32px under the toggle (28px + its 4px) */
+.main-wrapper .care-tabs--tabs .care-section[hidden] {
+  display: none;
+}
+.main-wrapper .care-tabs--tabs .care-part {
+  display: none;
+}
+
+/* ── «Додатково з твоєї полички» folded after 3 ─────────────────────────────────────────────────────────────
+   The folded rows [hidden] (their grid would show them otherwise). «Показати ще 2» / «Згорнути» as the next
+   row: the same zigzag on top, 20px of air, the words and a chevron (turned up when open), in the middle */
+.main-wrapper .shelf-skip__row[hidden] {
+  display: none;
+}
+.main-wrapper .shelf-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  margin: 0;
+  padding: 24px 0 0; /* 20px of air + the 4px zigzag */
+  border: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='4' viewBox='0 0 12 4'%3E%3Cpath d='M-6 .5 0 3.5 6 .5 12 3.5 18 .5' fill='none' stroke='%23d6d6d6' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top / 12px 4px;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+  text-align: left;
+  cursor: pointer;
+}
+.main-wrapper .shelf-more[hidden] {
+  display: none;
+}
+.main-wrapper .shelf-more:hover .shelf-more__label {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.main-wrapper .shelf-more svg {
+  flex: none;
+  display: block;
+  transition: transform 0.15s;
+}
+.main-wrapper .shelf-more[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+/* ── «Рекомендовані інгредієнти» ───────────────────────────────────────────────────────────────────────────
+   Two columns beside the routine card up to 1279px (the scheme's column is too narrow for three there), three
+   from 1280px. Under each, «Є в засобах»: the products of the scheme and of her shelf that have it, one per
+   line, plain text */
+@media (min-width: 1025px) and (max-width: 1279px) {
+  .main-wrapper .main__content-components .components-slider {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.main-wrapper .main__content-components .ingr-list {
+  margin: 12px 0 0;
+  font-family: Sailec;
+}
+.main-wrapper .main__content-components .ingr-list__label {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+.main-wrapper .main__content-components .ingr-list ul {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+/* a list with dashes: «—» hanging in front, a wrapped name lines up under the first line's text */
+.main-wrapper .main__content-components .ingr-list__item {
+  position: relative;
+  padding: 2px 0 2px 20px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1b1b1b;
+}
+.main-wrapper .main__content-components .ingr-list__item::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: #6b6b6b;
+}
+.main-wrapper .main__content-components .ingr-list--none {
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b6b6b;
+}
+/* each product a dotted link to it on the page (2026-11-17.js scrolls to it); solid on hover */
+.main-wrapper .main__content-components .ingr-list__link {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: #a4a4a4;
+  text-underline-offset: 3px;
+}
+.main-wrapper .main__content-components .ingr-list__link:hover {
+  text-decoration-style: solid;
+  text-decoration-color: currentColor;
+}
+/* the product a link brought up (or the first row «Показати ще» opened) takes the focus only so the keyboard
+   carries on from there: it isn't a control, so no ring at all — Safari counts a script's focus after a click as
+   :focus-visible and draws one */
+.main-wrapper .rstep[tabindex="-1"]:focus,
+.main-wrapper .shelf-skip__row[tabindex="-1"]:focus,
+.main-wrapper .shelf-skip__name[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* 1280–1439px: the routine card is only 40px away — the step's card reaches 24px to the right, not 32 */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .main-wrapper .rstep:not(.rstep--shelf):not(.rstep--plain)::before {
+    margin-right: -24px;
+  }
+}
+
+/* up to 1279px: «Купити» under the ingredients on the left, as in «Коли закінчиться» (on the right, alone on
+   its line, it hung loose); from 1280px it stays on the badges' row on the right */
+@media (max-width: 1279px) {
+  .main-wrapper .rstep__foot {
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 24px; /* as from the text to the ingredients */
+  }
+  .main-wrapper .rstep__foot .rstep__btn {
+    margin-left: 0;
+  }
+}
+
+/* ── States (2026-11-17-empty / -ours / -own.html) ─────────────────────────────────────────────────────────
+   .rstep--plain: our product in the usual Skin(ID) scheme (the shelf isn't analysed yet) — no card, no mark.
+   .rset--done: her shelf closes every step, nothing to buy — a note in the routine card's place: the green
+   check of «З твоєї полички» in a 40px circle, the line in Nib Pro 20/24, the text 14/20 */
+.main-wrapper .main__content-care .care-result.rset--done {
+  gap: 0; /* the card's own 24px between its parts doesn't apply to the note */
+}
+.main-wrapper .rset__done-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: #e5f7e7;
+  color: #107a40;
+}
+.main-wrapper .rset__done-icon svg {
+  display: block;
+}
+.main-wrapper .rset__done-title {
+  margin: 0;
+  font-family: NibProBold;
+  font-size: 20px;
+  line-height: 24px;
+  color: #1b1b1b;
+}
+.main-wrapper .rset__done-text {
+  margin: 8px 0 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+/* «Розбір ще триває» above the scheme in the empty state: 48px of air under it (40px on phones) */
+.main-wrapper .main__content-care > .shelf-pending {
+  margin-top: 0;
+  margin-bottom: 48px;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .main__content-care > .shelf-pending {
+    margin-bottom: 40px;
+  }
+}
