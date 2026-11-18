@@ -64,8 +64,8 @@ export const prototypeKey = current.slug ?? 'samples'
 /** Статичні копії сторінок skintet.com у public/<slug>/ — не Vue, тож лише пункт у меню (див. vite.config → staticPages).
  *  Список Skin(ID) — public/skin-id/prototypes.json: з нього ж меню під логотипом на самих сторінках
  *  (public/skin-id/assets/prototype/proto-switch.js). href — від public/skin-id/; branch — стан тієї самої
- *  сторінки, у меню з кутиком під нею */
-const STATIC_PAGES = skinIdPages.map((p) => ({
+ *  сторінки, у меню з кутиком під нею; hidden — старі прототипи, у меню не показуємо (сторінки лишаються за адресою) */
+const STATIC_PAGES = skinIdPages.filter((p) => !('hidden' in p && p.hidden)).map((p) => ({
   path: `skin-id/${p.href === './' ? '' : p.href}`,
   title: p.title,
   branch: p.branch,

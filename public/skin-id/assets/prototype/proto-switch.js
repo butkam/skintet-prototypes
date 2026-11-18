@@ -59,6 +59,7 @@
   function render(pages) {
     list.innerHTML = '';
     pages.forEach(function (p) {
+      if (p.hidden) return; // older prototypes: out of the menu, still at their address
       var li = document.createElement('li');
       var a = document.createElement('a');
       a.className = 'proto-switch__item';

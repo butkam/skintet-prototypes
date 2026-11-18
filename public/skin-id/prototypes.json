@@ -1,10 +1,10 @@
 [
-  { "href": "./", "title": "Skin(ID)", "branch": false },
-  { "href": "empty.html", "title": "Пустий стан", "branch": true },
-  { "href": "classic.html", "title": "Класична картка", "branch": true },
-  { "href": "2026-11-15.html", "title": "15 листопада · вкладки", "branch": true },
-  { "href": "2026-11-15.html?nav=anchors", "title": "15 листопада · якорі", "branch": true },
-  { "href": "2026-11-17.html", "title": "17 листопада · рутина", "branch": true },
+  { "href": "./", "title": "Skin(ID)", "branch": false, "hidden": true },
+  { "href": "empty.html", "title": "Пустий стан", "branch": true, "hidden": true },
+  { "href": "classic.html", "title": "Класична картка", "branch": true, "hidden": true },
+  { "href": "2026-11-15.html", "title": "15 листопада · вкладки", "branch": true, "hidden": true },
+  { "href": "2026-11-15.html?nav=anchors", "title": "15 листопада · якорі", "branch": true, "hidden": true },
+  { "href": "2026-11-17.html", "title": "17 листопада · рутина", "branch": false },
   { "href": "2026-11-17-empty.html", "title": "17 листопада · пустий стан", "branch": true },
   { "href": "2026-11-17-ours.html", "title": "17 листопада · тільки наші", "branch": true },
   { "href": "2026-11-17-own.html", "title": "17 листопада · тільки з полички", "branch": true }
