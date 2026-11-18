@@ -250,3 +250,29 @@
   window.addEventListener('resize', schedule);
   update();
 })();
+
+/* «Чому рекомендуємо» under a step's «Коли закінчиться» (.rstep__why): only a click shows the reason; a click
+   pins it open or closes it, a click anywhere else or Esc closes it */
+(function () {
+  'use strict';
+  var whys = document.querySelectorAll('.rstep__why');
+  if (!whys.length) return;
+  function set(btn, open) {
+    btn.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function closeAll(except) {
+    for (var i = 0; i < whys.length; i++) if (whys[i] !== except) set(whys[i], false);
+  }
+  for (var i = 0; i < whys.length; i++) {
+    whys[i].addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeAll(this);
+      set(this, !this.classList.contains('is-open'));
+    });
+  }
+  document.addEventListener('click', function () { closeAll(null); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAll(null);
+  });
+})();
