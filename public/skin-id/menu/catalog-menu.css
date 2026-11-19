@@ -188,52 +188,10 @@
   text-decoration: none;
 }
 
-/* «Дивитися все» above the pills: the cart's promo strip (Figma 223:2931) — a 60px band, hairlines and a neutral/100
-   glow fading out from the centre, a text button in the middle. On a phone it runs to the screen edges */
-.cm-all {
-  position: relative;
-  isolation: isolate;
-  margin: 16px calc(var(--cm-gutter, 0px) * -1) 0;
-  padding: 6px var(--cm-gutter, 0px);
-}
-
-.cm-all::before {
-  --glow: circle 214.5px at 50% 50%;
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(var(--glow), #d9d9d9, transparent) top / 100% 1px no-repeat,
-    radial-gradient(var(--glow), #d9d9d9, transparent) bottom / 100% 1px no-repeat,
-    radial-gradient(var(--glow), rgba(235, 235, 235, 0.7), transparent);
-  pointer-events: none;
-}
-
-.cm-all__link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 48px;
-  border-radius: 999px;
-  font: 400 14px/20px Sailec, Arial, Helvetica, sans-serif;
-  color: var(--cm-fg);
-  text-decoration: none;
-  transition: background-color 0.15s ease;
-}
-
-.cm-all__link svg {
-  flex: none;
-  display: block;
-  width: 16px;
-  height: 16px;
-}
-
-@media (hover: hover) {
-  .cm-all__link:hover {
-    background: rgba(255, 255, 255, 0.6);
-  }
+/* «Дивитися все»: the whole section — a grey fill on the usual grey outline (the open pill is filled black) */
+.cm-pill--all {
+  padding-left: 20px;
+  background: #f5f5f5;
 }
 
 /* Selected at once, on the click itself: only the hover fades */
@@ -553,19 +511,13 @@
   padding-top: 0;
 }
 
-/* Under «Дивитися все» the pills keep the phone's 20px */
-.cm-mega .cm-all + .cm-pills {
-  padding-top: 20px;
-}
-
-/* On a phone 16px off the header's line, in the mega menu level with the sections */
-.cm-mega .cm-all {
-  margin-top: 0;
-}
-
 @media (hover: hover) {
   .cm-mega .cm-pill:not([aria-expanded='true']):hover {
     background: #f5f5f5;
+  }
+
+  .cm-mega .cm-pill--all:hover {
+    background: #ebebeb;
   }
 }
 
@@ -799,7 +751,6 @@ html.cm-noshadow .catalog {
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .cm-pill--link:hover .cm-pill__go svg,
-  .cm-all__link:hover svg,
   .cm-section:hover .cm-section__out svg,
   .cm-promo__button:hover svg,
   a.cm-row:hover .cm-row__arrow svg {

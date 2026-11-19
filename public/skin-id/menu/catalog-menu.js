@@ -261,10 +261,10 @@
       <a class="cm-promo__button" href="./">Дізнатися свій Skin(ID) ${ICON.arrowUpRight}</a>
     </div>`
 
-  /* Above the pills, «Дивитися все»: the whole section, a strip like the cart's «промокод» (Figma 223:2931); a pill with subcategories opens them; one without is a link to its category page, marked with an arrow */
+  /* «Дивитися все» first (the whole section, black outline, the same «↗» as the other links); a pill with subcategories opens them; one without is a link to its category page, marked with an arrow */
   const pills = (section, si) => `
-    <div class="cm-all"><a class="cm-all__link" href="#">Дивитися все ${ICON.out16}</a></div>
     <div class="cm-pills" aria-label="${esc(section.label)}">
+      <a class="cm-pill cm-pill--plain cm-pill--link cm-pill--all" href="#"><span>Дивитися все</span><span class="cm-pill__go">${ICON.out14}</span></a>
       ${section.cats
         .map((c, ci) => {
           const icon = PILL_ICON[c.label] ? PILL_ICON[c.label]() : ''
