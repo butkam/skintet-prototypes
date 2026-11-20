@@ -1365,6 +1365,19 @@
     </div>
 </div>
 
+
+<!-- 20.11: the shelf in figures, a band of its own across the screen on the light pink (--red-50 of the tokens) under the strategy: what was on the photo and where each went (the scheme, «Додатково», «Краще відкласти», «Не змогли перевірити»; in the scheme her steps and the alternative named in them) — a big number over its label; dt before dd for screen readers, shown the other way round -->
+<section class="shelf-band" aria-labelledby="shelf-band-title">
+  <h2 class="shelf-band__title" id="shelf-band-title">Підсумок полички</h2>
+  <dl class="shelf-stats">
+    <div class="shelf-stats__item"><dt>засобів<svg class="shelf-stats__cam" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 5.5C2 4.948 2.448 4.5 3 4.5H4.75L5.75 3H10.25L11.25 4.5H13C13.552 4.5 14 4.948 14 5.5V12C14 12.552 13.552 13 13 13H3C2.448 13 2 12.552 2 12Z" stroke="currentColor" stroke-linejoin="round"/><circle cx="8" cy="8.5" r="2.25" stroke="currentColor"/></svg><span class="visually-hidden"> на фото</span></dt><dd>16</dd></div>
+    <div class="shelf-stats__item"><dt>у схемі</dt><dd>5</dd></div>
+    <div class="shelf-stats__item"><dt>додатково</dt><dd>5</dd></div>
+    <div class="shelf-stats__item"><dt>відкласти</dt><dd>4</dd></div>
+    <div class="shelf-stats__item"><dt>не розпізнали</dt><dd>2</dd></div>
+  </dl>
+</section>
+
 <div class="main__content">
 
 <div class="main__content-care">
@@ -1392,7 +1405,7 @@
       <div class="care-list">
 
   <article id="step-micellar" class="rstep rstep--shelf" data-pixel-snap-box>
-    <p class="rstep__label">Крок 1 Мʼяке ранкове очищення</p>
+    <p class="rstep__label">Крок&nbsp;1 · Мʼяке ранкове очищення</p>
     <div class="rstep__main">
       <div class="rstep__img rstep__img--type">
         <!-- Prototype: no catalog photo for her product — the stock photo of its type -->
@@ -1405,7 +1418,7 @@
     </div>
   </article>
   <article id="step-ha" class="rstep rstep--shelf" data-pixel-snap-box>
-    <p class="rstep__label">Крок 2 Зволожувальна сироватка</p>
+    <p class="rstep__label">Крок&nbsp;2 · Зволожувальна сироватка</p>
     <div class="rstep__main">
       <div class="rstep__img rstep__img--type">
         <!-- Prototype: no catalog photo for her product — the stock photo of its type -->
@@ -1418,7 +1431,7 @@
     </div>
   </article>
   <article id="step-anthelios" class="rstep rstep--shelf" data-pixel-snap-box>
-    <p class="rstep__label">Крок 3 Зволоження та захист</p>
+    <p class="rstep__label">Крок&nbsp;3 · Зволоження та захист</p>
     <div class="rstep__main">
       <div class="rstep__img rstep__img--type">
         <!-- Prototype: no catalog photo for her product — the stock photo of its type -->
@@ -1438,7 +1451,7 @@
       <div class="care-list">
 
   <article id="step-cerave" class="rstep rstep--shelf" data-pixel-snap-box>
-    <p class="rstep__label">Крок 1 Вечірнє очищення</p>
+    <p class="rstep__label">Крок&nbsp;1 · Вечірнє очищення</p>
     <div class="rstep__main">
       <div class="rstep__img rstep__img--type">
         <!-- Prototype: no catalog photo for her product — the stock photo of its type -->
@@ -1451,7 +1464,7 @@
     </div>
   </article>
   <article id="step-cicaplast" class="rstep rstep--shelf" data-pixel-snap-box>
-    <p class="rstep__label">Крок 2 Відновлювальний крем</p>
+    <p class="rstep__label">Крок&nbsp;2 · Відновлювальний крем</p>
     <div class="rstep__main">
       <div class="rstep__img rstep__img--type">
         <!-- Prototype: no catalog photo for her product — the stock photo of its type -->
@@ -1483,7 +1496,6 @@
         <section class="shelf-skip shelf-skip--extra" aria-labelledby="shelf-extra-title">
       <div class="shelf-skip__head">
         <h2 class="shelf-skip__title" id="shelf-extra-title">Додатково з твоєї полички</h2>
-        <p class="shelf-skip__lead">Цих засобів немає в схемі, але їх можна залишити. Ось як і коли їх додавати.</p>
       </div>
 
       <ul class="shelf-skip__list" id="shelf-extra-list">
@@ -1537,7 +1549,8 @@
         <section class="shelf-skip" aria-labelledby="shelf-skip-title">
       <div class="shelf-skip__head">
         <h2 class="shelf-skip__title" id="shelf-skip-title">Краще відкласти</h2>
-        <p class="shelf-skip__lead">Ці засоби зараз можуть нашкодити твоїй шкірі. Пояснюємо чому.</p>
+        <!-- 20.11: no lead under «Краще відкласти»; in its place the products from her shelf we couldn't recognise or find the ingredients of, a grey note -->
+        <p class="shelf-extra__unknown"><svg class="shelf-extra__unknown-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.25"/><path d="M10 9v4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="10" cy="6.5" r="0.875" fill="currentColor"/></svg><span>Не змогли перевірити: Missha Time Revolution Essence і&nbsp;крем без етикетки з&nbsp;фото.</span></p>
       </div>
 
       <ul class="shelf-skip__list">
@@ -1575,10 +1588,6 @@
         </li>
       </ul>
     </section>
-
-        <!-- Prototype: the products from her shelf we couldn't recognise or find the ingredients of — one grey line at
-             the bottom of the shelf analysis, after «Краще відкласти», in the brief's words -->
-        <p class="shelf-extra__unknown">Не змогли перевірити: Missha Time Revolution Essence і&nbsp;крем без етикетки з&nbsp;фото.</p>
 
         <!-- Prototype: under each ingredient, the products of the scheme and of her shelf that have it (dotted links that
              scroll to the product on the page, opening its tab or the folded rows; whose it is only for screen readers); two columns beside the routine card on narrower desktops -->

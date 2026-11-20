@@ -23,7 +23,8 @@
   var header = document.querySelector('header');
 
   function stickyTop() {
-    return header ? header.getBoundingClientRect().bottom : 0;
+    // never above the screen's top: on phones the header slides away while scrolling down (below)
+    return header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
   }
 
   // ── 1. The toggle as tabs ───────────────────────────────────────────────────────────────────────────────
@@ -74,7 +75,9 @@
   chips.forEach(function (chip, i) {
     chip.addEventListener('click', function () {
       if (anchors()) {
-        var part = panels[i] && (panels[i].querySelector('.care-part') || panels[i]);
+        // 20.11: the parts' «РАНОК» / «ВЕЧІР» are hidden (2026-11-17.css) — then the part itself is the target
+        var heading = panels[i] && panels[i].querySelector('.care-part');
+        var part = heading && heading.offsetParent ? heading : panels[i];
         if (!part) return;
         spyLock = i;
         markActive(i);
@@ -168,6 +171,14 @@
   }
   function glideTo(getY, done) {
     cancelAnimationFrame(glide);
+    // 20.11: while the page glides by itself, the phones' header stays as it is (it'd take a glide up for a
+    // scroll up and come down mid-way, moving the sticky toggle and the target 65px)
+    root.classList.add('is-gliding');
+    var finish = done;
+    done = function () {
+      root.classList.remove('is-gliding');
+      finish();
+    };
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         var y = Math.max(0, getY());
@@ -253,7 +264,9 @@
     if (!home) return;
     if (desktop.matches) {
       if (card.parentNode !== stick) stick.appendChild(card);
-      if (navHome && nav.parentNode !== stick) stick.insertBefore(nav, stick.firstChild);
+      // 20.11: the toggle stays over the scheme on desktop too, under «Твоя схема догляду» as on phones — read as
+      // the scheme's navigation, not part of the sidebar; only the card goes into the right column
+      if (navHome && nav.previousSibling !== navHome) navHome.parentNode.insertBefore(nav, navHome.nextSibling);
     } else {
       if (card.previousSibling !== home) home.parentNode.insertBefore(card, home.nextSibling);
       if (navHome && nav.previousSibling !== navHome) navHome.parentNode.insertBefore(nav, navHome.nextSibling);
@@ -397,8 +410,11 @@
       var b = addAll.getBoundingClientRect();
       var show;
       if (phone.matches) {
-        var barTop = window.innerHeight - (parseFloat(getComputedStyle(bar).bottom) || 0) - bar.offsetHeight;
-        show = card.getBoundingClientRect().top > barTop;
+        // 20.11: to the page's end, hidden only while the routine card is in the frame (between the header's
+        // bottom and the panel's top), shown again once it has gone up past the header
+        var barTop = window.innerHeight - bar.offsetHeight - (document.body.classList.contains('chrome-away') ? 0 : 61);
+        var c = card.getBoundingClientRect();
+        show = c.top > barTop || c.bottom < top;
       } else {
         show = b.bottom < top;
       }
@@ -437,4 +453,111 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeAll(null);
   });
+})();
+
+/**
+ * 20.11 feedback, phones (up to 767px): fewer things fixed on screen — the header and the bottom menu slide away
+ * while scrolling down and come back on any scroll up (and near the top of the page); the purchase panel
+ * drops to the screen's bottom edge meanwhile. Not by transform: the mobile menus are
+ * position: fixed inside the header, so it goes up by its sticky top instead (.header--away, 2026-11-17.css).
+ * The toggle and the routine card stick under the header's bottom (--sticky-top), so while it slides, a scroll
+ * event per frame keeps them following it. Not while a menu is open.
+ */
+(function () {
+  'use strict';
+  var header = document.querySelector('header');
+  if (!header || !window.matchMedia) return;
+  var phone = window.matchMedia('(max-width: 767px)');
+  var root = document.documentElement;
+  var lastY = window.scrollY;
+  var away = false;
+  var follow = 0;
+
+  function menuOpen() {
+    // the site's mobile menus lock the page while open
+    return getComputedStyle(document.body).overflow === 'hidden' || getComputedStyle(root).overflow === 'hidden';
+  }
+
+  // the sticky things re-measure the header on scroll: nudge them every frame of the 0.25s slide
+  function followSlide() {
+    var until = performance.now() + 320;
+    cancelAnimationFrame(follow);
+    (function tick() {
+      window.dispatchEvent(new Event('scroll'));
+      if (performance.now() < until) follow = requestAnimationFrame(tick);
+    })();
+  }
+
+  function set(next) {
+    if (next === away) return;
+    away = next;
+    header.classList.toggle('header--away', away);
+    // the bottom menu goes with it, the purchase panel drops into its place (2026-11-17.css)
+    document.body.classList.toggle('chrome-away', away);
+    followSlide();
+  }
+
+  var frame = 0;
+  function check() {
+    frame = 0;
+    var y = window.scrollY;
+    var dy = y - lastY;
+    root.style.setProperty('--header-h', header.offsetHeight + 'px');
+    if (root.classList.contains('is-gliding')) { lastY = y; return; }
+    if (!phone.matches || menuOpen() || y <= header.offsetHeight) set(false);
+    else if (dy > 4) set(true);
+    else if (dy < -4) set(false);
+    if (Math.abs(dy) > 4 || y <= header.offsetHeight) lastY = y;
+  }
+  window.addEventListener('scroll', function (e) {
+    if (!e.isTrusted) return; // our own nudges
+    if (!frame) frame = requestAnimationFrame(check);
+  }, { passive: true });
+  if (phone.addEventListener) phone.addEventListener('change', check);
+  check();
+})();
+
+/**
+ * 20.11 feedback: no «З твоєї полички» / «Наша рекомендація» in the step's meta any more — the badge on the photo's
+ * corner (.rstep::after, its place set per screen width in 2026-11-17.css) says it, and the label is its tooltip
+ * on hover / focus / tap. The label (.rstep__mark) is moved over the badge as a transparent target, measured from
+ * the badge itself, again on resize; its text becomes the tooltip (still read by screen readers).
+ */
+(function () {
+  'use strict';
+  var marks = Array.prototype.slice.call(document.querySelectorAll('.rstep .rstep__mark'));
+  if (!marks.length) return;
+  var items = marks.map(function (mark) {
+    var step = mark.closest('.rstep');
+    var text = mark.textContent.trim();
+    mark.textContent = '';
+    var tip = document.createElement('span');
+    tip.className = 'rstep__mark-tip';
+    tip.textContent = text;
+    mark.appendChild(tip);
+    mark.classList.add('rstep__mark--badge');
+    mark.setAttribute('tabindex', '0');
+    step.appendChild(mark); // out of the meta, straight in the step (position: relative)
+    return { step: step, mark: mark };
+  });
+  function place() {
+    items.forEach(function (it) {
+      var a = getComputedStyle(it.step, '::after');
+      var off = a.content === 'none' || a.display === 'none';
+      it.mark.hidden = off;
+      if (off) return;
+      it.mark.style.top = a.top;
+      it.mark.style.right = a.right;
+      it.mark.style.width = a.width;
+      it.mark.style.height = a.height;
+    });
+  }
+  place();
+  window.addEventListener('resize', place);
+  window.addEventListener('load', place);
+  // a tap elsewhere closes a tooltip opened by a tap (focus)
+  document.addEventListener('touchstart', function (e) {
+    var a = document.activeElement;
+    if (a && a.classList && a.classList.contains('rstep__mark--badge') && !a.contains(e.target)) a.blur();
+  }, { passive: true });
 })();
