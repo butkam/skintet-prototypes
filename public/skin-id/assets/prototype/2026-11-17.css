@@ -2867,3 +2867,159 @@ body:has(.admin-result) .menu::before {
   padding-bottom: 40px;
   border-bottom: 1px solid #e5e5e5;
 }
+
+/* 21.11 feedback: no badge on the photo's corner any more — whose product it is back as a label beside brand ·
+   volume: «✓ З твоєї полички» in green, «✦ Наша рекомендація» in blue, each with its icon, 12px after brand ·
+   volume; on a narrow screen it wraps under them, flush left (the tooltip and 2026-11-17.js's badge are gone) */
+.main-wrapper .rstep::after {
+  content: none;
+}
+.main-wrapper .rstep__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+}
+.main-wrapper .rstep__meta > .rstep__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.main-wrapper .rstep__meta > .rstep__mark::before {
+  content: none;
+}
+.main-wrapper .rstep__meta > .rstep__mark svg {
+  display: block;
+}
+.main-wrapper .rstep__meta > .rstep__mark--own {
+  color: #107a40;
+}
+.main-wrapper .rstep__meta > .rstep__mark--ours {
+  color: #1858b8;
+}
+
+/* 21.11 feedback: the evening part opens with «Вечір» and the toggle's moon (#tod-moon), so the border between
+   morning and evening shows — under the morning's last hairline, NibProBold 24/28 with a 24px moon, the first
+   step 32px under it (20/24, 20px moon, 24px on phones). The morning keeps no heading: it starts right under the
+   toggle */
+.main-wrapper .care-tabs .care-section + .care-section .care-part {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  margin: 0 0 32px;
+  padding: 0;
+  border: 0;
+  font-family: NibProBold;
+  font-size: 24px;
+  font-weight: normal;
+  line-height: 28px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #1b1b1b;
+}
+.main-wrapper .care-tabs .care-section + .care-section .care-part svg {
+  display: block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+@media (max-width: 767px) {
+  .main-wrapper .care-tabs .care-section + .care-section .care-part {
+    margin-bottom: 24px;
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .main-wrapper .care-tabs .care-section + .care-section .care-part svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* 21.11 feedback: on tablets (768–1024px, the scheme the page's width) «Купити» and the price stay beside «Коли
+   закінчиться» again, on the step's right edge, their top on the row's top — the name and the reason take what
+   they leave. Narrow desktops (1025–1279px, the scheme a 420px column beside the purchase) and phones keep the
+   wrap */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .main-wrapper .rstep__buy {
+    flex-wrap: nowrap;
+  }
+  .main-wrapper .rstep__buy .rstep__info {
+    flex: 1 1 auto;
+  }
+  .main-wrapper .rstep__buy .rstep__deal {
+    margin-left: auto;
+  }
+}
+
+/* 21.11 feedback: «Підсумок полички» quieter — just information, not a block of its own: one line of text,
+   «15 засобів з полички: 4 у схемі · 5 додатково · 4 відкласти · 2 не розпізнали», Sailec 14/20 grey, the numbers
+   the text's size in NibProBold, black (Sailec has no bold here). No card, no glow, no badge; the heading for
+   screen readers only. 32px over and under it (24px on phones); it wraps there as text does */
+.main-wrapper .shelf-band {
+  margin: 32px 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.main-wrapper .shelf-line {
+  margin: 0;
+  font-family: Sailec;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.main-wrapper .shelf-line b {
+  font-family: NibProBold;
+  font-weight: normal;
+  color: #1b1b1b;
+}
+@media (max-width: 767px) {
+  .main-wrapper .shelf-band {
+    margin: 24px 0;
+  }
+}
+
+/* the line centred on the empty state's band («Розбір ще триває», prototype.css .shelf-pending): a soft grey fill
+   and thin rules above and below, strongest in the middle and fading out to the left and right; the band runs
+   40px past the column (20px up to 1024px), 16px over and under the text */
+.main-wrapper .shelf-band {
+  --band: 40px;
+  --line: transparent, var(--neutral-300) 50%, transparent;
+  --fill: transparent, color-mix(in oklch, var(--neutral-100) 70%, transparent) 50%, transparent;
+  --neutral-100: oklch(94.01% 0 0);
+  --neutral-300: oklch(88.53% 0 0);
+  margin-inline: calc(-1 * var(--band));
+  padding: 16px var(--band);
+  background:
+    linear-gradient(to right, var(--line)) top / 100% 1px no-repeat,
+    linear-gradient(to right, var(--line)) bottom / 100% 1px no-repeat,
+    linear-gradient(to right, var(--fill));
+  text-align: center;
+}
+@media (max-width: 1024px) {
+  .main-wrapper .shelf-band {
+    --band: 20px;
+  }
+}
+
+/* 21.11 feedback: every step's «Купити» and price on one vertical, discounted or not — the price a fixed 88px
+   column on the right on every screen, as wide as the discounted one (the new price over the struck-through old
+   one and −15%); a price without a discount on the column's right edge. On phones the buttons so the same width */
+.main-wrapper .rstep__deal .rstep__price {
+  flex: none;
+  width: 88px;
+}
+.main-wrapper .rstep__deal .rstep__price:not(:has(.rstep__old)) {
+  align-items: flex-end;
+}
+/* narrow desktops (1025–1279px), where both pairs sit on a row of their own under the text: on the step's right
+   edge too, so «Коли закінчиться»'s pair (48px in, past the bottle) lines up with the others */
+@media (min-width: 1025px) and (max-width: 1279px) {
+  .main-wrapper .rstep__foot .rstep__deal,
+  .main-wrapper .rstep__buy .rstep__deal {
+    margin-left: auto;
+  }
+}
