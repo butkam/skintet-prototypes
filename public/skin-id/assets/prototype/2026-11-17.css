@@ -3007,13 +3007,11 @@ body:has(.admin-result) .menu::before {
 
 /* 21.11 feedback: every step's «Купити» and price on one vertical, discounted or not — the price a fixed 88px
    column on the right on every screen, as wide as the discounted one (the new price over the struck-through old
-   one and −15%); a price without a discount on the column's right edge. On phones the buttons so the same width */
+   one and −15%); every price starts 16px after its button, a price without a discount too. On phones the buttons so
+   the same width */
 .main-wrapper .rstep__deal .rstep__price {
   flex: none;
   width: 88px;
-}
-.main-wrapper .rstep__deal .rstep__price:not(:has(.rstep__old)) {
-  align-items: flex-end;
 }
 /* narrow desktops (1025–1279px), where both pairs sit on a row of their own under the text: on the step's right
    edge too, so «Коли закінчиться»'s pair (48px in, past the bottle) lines up with the others */
